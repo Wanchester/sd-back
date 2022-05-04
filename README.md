@@ -1,5 +1,7 @@
 # Sports Dashboard: Back-end implementation
 
+[![Build status](https://github.com/Wanchester/sd-back/actions/workflows/node.js.yml/badge.svg)](https://github.com/Wanchester/sd-back/actions/workflows/node.js.yml) [![Coverage Status](https://coveralls.io/repos/github/Wanchester/sd-back/badge.svg?branch=main)](https://coveralls.io/github/Wanchester/sd-back?branch=main)
+
 Put all the source files into the `src` folder.
 
 To start the development environment, use `npm run dev`.

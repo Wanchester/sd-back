@@ -11,7 +11,7 @@
     "start": "node dist/index.ts",
     "start:watch": "nodemon -q dist/index.ts",
     "dev": "npm-run-all -p build:watch start:watch",
-    "lint": "eslint src/**/*.ts",
+    "lint": "eslint src/**/*.ts test/**/*.ts",
     "test:run": "nyc --reporter=text --reporter=lcovonly mocha --recursive \"./dist/test/*.js\"",
     "test": "npm-run-all -s build test:run"
   },
