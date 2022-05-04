@@ -8,4 +8,4 @@ To build the project into JavaScript for Node.js, use `npm run build`.
 
 Use `npm start` only if there is already a build in the `dist` folder.
 
-Make sure to always run `npm run lint` to check for linting errors before committing.
+Make sure to always run `npm run lint` to check for linting errors, as well as `npm test` to run the tests, before committing.
