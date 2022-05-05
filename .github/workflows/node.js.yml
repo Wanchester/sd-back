@@ -30,3 +30,10 @@ jobs:
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Prepare build for EC2
+      run: |
+        mv build ec2
+        git config --global user.name 'EC2 Builder'
+        git config --global user.email 'quyenjd@users.noreply.github.com'
+        git commit -am 'Prepare build for EC2'
+        git push
