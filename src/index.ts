@@ -41,15 +41,7 @@ app.listen(port, () => {
 
 let queryClient = client.getQueryApi(org)
 
-let fluxQuery1 = `from(bucket: "${bucket}")
- |> range(start: -1y)
- |> filter(fn: (r) => r._measurement == "measurement1")`
 
-let fluxQuery2 = `from(bucket: "test")
-|>range(start: -3y)
-|>group(columns:["Session"], mode:"by")
-|>limit(n: 1)
-|>yield()`
 
 const executeInflux = async (fluxQuery: string, queryClient: QueryApi ) => {
   let sessionArray : any[] = [] 
@@ -87,4 +79,35 @@ app.get('/test', async (req, res) => {
 });
 
 
+let fluxQuery1 = `from(bucket: "${bucket}")
+ |> range(start: -1y)
+ |> filter(fn: (r) => r._measurement == "measurement1")`
 
+let fluxQuery2 = `from(bucket: "test")
+|>range(start: -3y)
+|>group(columns:["Session"], mode:"by")
+|>limit(n: 1)
+|>yield()`
+
+const PLAYER = 'Exon'
+let querrySessionsOfPlayer  = `from(bucket: "test")
+  |>range(start:-3y)
+  |>filter(fn: (r)=>r["Player Name"] == "${PLAYER}")
+  |>group(columns: ["_measurement"], mode:"by")
+  |>limit(n: 1)`
+
+let querryTeamsOfPlayer = `from(bucket: "test")
+  |>range(start:-3y)
+  |>filter(fn: (r)=>r["Player Name"] == "${PLAYER}")
+  |>group(columns: ["_measurement"], mode:"by")
+  |>limit(n: 1)`
+
+app.get('/sessionsOfPlayer', async (req, res) => {
+    const sessionsArray = await executeInflux(querrySessionsOfPlayer, queryClient);
+    res.send(sessionsArray)
+});
+
+app.get('/teamsOfPlayer', async (req, res) => {
+  const sessionsArray = await executeInflux(querryTeamsOfPlayer, queryClient);
+  res.send(sessionsArray)
+});
