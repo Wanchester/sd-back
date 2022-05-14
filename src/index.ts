@@ -23,17 +23,32 @@ app.use(
   })
 )
 
-let PLAYER = 'Warren'  
-
-app.get('/', async (req, res) => {
-  if((<any>req).session.username != undefined)
+app.get('/:id', async (req, res) => {
+  console.log((<any>req).username);
+  //if the username is not provided, then username is Warren
+  (<any>req).session.username =  (<any>req).username
+  if((<any>req).session.username == undefined)
   {
-    PLAYER = (<string> (<any>req).session.username)
+    (<string> (<any>req).session.username) = 'Warren'
   }
+  let PLAYER = (<string>(<any>req).session.username)
 
-  const sessionsArray = await executeInflux(querrySessionsOfPlayer, queryClient);
-  const cleanedSessionsInfo:any[] = []
-  for(let i = 0; i<sessionsArray.length; i++ )
+  let queryPlayersSessions  = `from(bucket: "test")
+    |>range(start:-3y)
+    |>filter(fn: (r)=>r["Player Name"] == "${PLAYER}")
+    |>group(columns: ["Session"], mode: "by")
+    |>limit(n: 1)`
+
+  let queryPlayersTeams = `from(bucket: "test")
+    |>range(start:-3y)
+    |>filter(fn: (r)=>r["Player Name"] == "${PLAYER}")
+    |>group(columns: ["_measurement"], mode:"by")
+    |>limit(n: 1)`
+
+  //get the information of all the training sessions of given players
+  const trainingSessions = await executeInflux(queryPlayersSessions, queryClient);
+  const cleanedTrainingSessions:any[] = []
+  for(let i = 0; i<trainingSessions.length; i++ )
   {
     const session = {
       "playerName": "",
@@ -42,22 +57,45 @@ app.get('/', async (req, res) => {
       "sessionTime": "",
       "teamName": "",
     }
-    session["playerName"] = sessionsArray[i]["Player Name"]
-    session["sessionName"] = sessionsArray[i]["Session"].split(" ")[0]
-    session["sessionDate"] = moment(sessionsArray[i]["_time"]).format("DD-MMM-YYYY")
-    session["sessionTime"] = moment(sessionsArray[i]["_time"]).format("HH:MM")
-    session["teamName"] = sessionsArray[i]["_measurement"]
-    cleanedSessionsInfo.push(session)
+    session["playerName"] = trainingSessions[i]["Player Name"]
+    session["sessionName"] = trainingSessions[i]["Session"].split(" ")[0]
+    session["sessionDate"] = moment(trainingSessions[i]["_time"]).format("DD-MMM-YYYY")
+    session["sessionTime"] = moment(trainingSessions[i]["_time"]).format("HH:MM")
+    session["teamName"] = trainingSessions[i]["_measurement"]
+    cleanedTrainingSessions.push(session)
   }
-  res.send(cleanedSessionsInfo)
-  //console.log(sessionsArray)
-});
 
+  //get the teams that the givne player joined in
+  const teams =  await executeInflux(queryPlayersTeams, queryClient);
+  const cleanedTeams:string[] = []
+  for(let i = 0; i<teams.length; i++ )
+  {
+    cleanedTeams.push(teams[i]["_measurement"])
+  }
+
+  //define the structure of the API that will be returned to fronend
+  const homepageInfo = {
+    "name": "",
+    "email": "",
+    "dob": '',
+    'nationality':'',
+    'height':0,
+    'weight':0,
+    'teams':['', '' ],
+    'trainingSessions':[{}, {}] ,
+  }
+  homepageInfo['name'] = PLAYER 
+  homepageInfo['teams'] = cleanedTeams
+  homepageInfo['trainingSessions'] = cleanedTrainingSessions
+
+  res.send(homepageInfo)
+});
 
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
 });
 
+//function to run the InfluxDB querry
 const executeInflux = async (fluxQuery: string, queryClient: QueryApi ) => {
   let sessionArray : any[] = [] 
 
@@ -73,7 +111,7 @@ const executeInflux = async (fluxQuery: string, queryClient: QueryApi ) => {
         reject(error);
       },
       complete: () => {
-        console.log('\nSuccess')
+        console.log('\nQuery Successfully')
         if (!rejected) {
           resolve();
         }
@@ -85,11 +123,6 @@ const executeInflux = async (fluxQuery: string, queryClient: QueryApi ) => {
 
 
 
-const tomCruise = {
-  "name": "Tom Cruise",
-  "email": "tomCruise@gmail.com",
-  "dob": '01-01-1970'
-}
 
 
 
@@ -112,107 +145,8 @@ const tomCruise = {
 
 
 
-const dummyObject = {
-  "name": "sesison1_dummy",
-  "sesison_ id": "ss01",
-  "start": '2019-05-09T12:46:02.787152896Z'
-}
-
-app.get('/test', (req, res) => {
-  (<any>req).session.username = "test username"
-  console.log((<any>req).session)
-  res.send((<any>req).session)
-});
-
-
-
-app.get('/dummyAPI', (req, res) => {
-  //console.log(req.session)
-  res.send(dummyObject)
-});
 
 
 
 
 
-
-
-
-app.get('/test', async (req, res) => {
-  const result = await executeInflux(fluxQuery2, queryClient);
-  console.log(result);
-  res.send(result)
-
-  for (let i = 0; i < result.length; i++) {
-    console.log(typeof(result[i]))
-  }
-});
-
-
-let fluxQuery1 = `from(bucket: "${bucket}")
- |> range(start: -1y)
- |> filter(fn: (r) => r._measurement == "measurement1")`
-
-let fluxQuery2 = `from(bucket: "test")
-|>range(start: -3y)
-|>group(columns:["Session"], mode:"by")
-|>limit(n: 1)
-|>yield()`
-
-
-let querrySessionsOfPlayer  = `from(bucket: "test")
-|>range(start:-3y)
-|>filter(fn: (r)=>r["Player Name"] == "${PLAYER}")
-|>group(columns: ["Session"], mode: "by")
-|>limit(n: 1)`
-
-let querryTeamsOfPlayer = `from(bucket: "test")
-  |>range(start:-3y)
-  |>filter(fn: (r)=>r["Player Name"] == "${PLAYER}")
-  |>group(columns: ["_measurement"], mode:"by")
-  |>limit(n: 1)`
-
-/*
-app.get('/', (req, res) => {
-  
-  const userId = getUserId(req);
-  const getTeam = await querryTeamsOfPlayer(userId);
-
-  {
-    name: "Tom Cruise",
-    email: "asdfasdf@adfasdf",
-    dob: "12/12/12",
-    nationality: "asdfsadf",
-    teams: [
-      {
-        name: "team1"
-      },
-      {
-        name: "team2"
-      }
-    ],
-    sessions: [
-      {
-        date: "12312",
-        time: "12321"
-      }
-    ]
-  }
-  
-  const getSession = await querrySessionsOfPlayer(userId);
-  
- res.send("123")
-});
-*/
-  
-
-app.get('/sessionsOfPlayer', async (req, res) => {
-    const sessionsArray = await executeInflux(querrySessionsOfPlayer, queryClient);
-
-    res.send(sessionsArray)
-});
-
-app.get('/teamsOfPlayer', async (req, res) => {
-  const teamsArray = await executeInflux(querryTeamsOfPlayer, queryClient);
-  res.send(teamsArray)
-});
