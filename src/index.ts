@@ -1,54 +1,75 @@
 import { ClientOptions, InfluxDB, Point, QueryApi } from "@influxdata/influxdb-client";
 import express from 'express';
 import { resolve } from "path";
-import moment from "moment"
+import moment from "moment";
+import session from "express-session";
+
+export interface SessionResponseType {
+  'playerName': string,
+  'sessionName': string,
+  'sessionDate': string,
+  'sessionTime': string,
+  'teamName': string,
+}
+
+export interface HomepageResponseType {
+  "name": string,
+  "email": string,
+  "dob": string,
+  'nationality': string,
+  'height': number,
+  'weight': number,
+  'teams':string[],
+  'trainingSessions': SessionResponseType[],
+}
 
 const app = express();
 const port = process.env.PORT || 3000;
-const DBtoken = process.env.INFLUXDB_TOKEN || "SKCqeTd4N-0fYfMPo37Ro8Pv_d-PQX4SoEpfYMTyCdV2Ucjif9RNy-5obta8cQRqKlpB25YvOKkT4tdqxw__Gg=="  
-const url ='https://ap-southeast-2-1.aws.cloud2.influxdata.com'
-const client = new InfluxDB({url: url, token: DBtoken})
-const session = require("express-session")
+const DBtoken = process.env.INFLUXDB_TOKEN || 'SKCqeTd4N-0fYfMPo37Ro8Pv_d-PQX4SoEpfYMTyCdV2Ucjif9RNy-5obta8cQRqKlpB25YvOKkT4tdqxw__Gg==';  
+const url ='https://ap-southeast-2-1.aws.cloud2.influxdata.com';
+const client = new InfluxDB({url: url, token: DBtoken});
 
 
-let org = 'qethanmoore@gmail.com'
-let bucket = 'testBucket'
-let queryClient = client.getQueryApi(org)
+let org = 'qethanmoore@gmail.com';
+let bucket = 'testBucket';
+let queryClient = client.getQueryApi(org);
 
 app.use(
-  session ({
-    secret: "this is a key",
+  session({
+    secret: 'this is a key',
     resave:false,
     saveUninitialized: false
   })
 )
 
-app.get('/:id', async (req, res) => {
-  console.log((<any>req).username);
-  //if the username is not provided, then username is Warren
-  (<any>req).session.username =  (<any>req).username
-  if((<any>req).session.username == undefined)
-  {
-    (<string> (<any>req).session.username) = 'Warren'
+declare module 'express-session' {
+  interface SessionData {
+    username: string;
   }
-  let PLAYER = (<string>(<any>req).session.username)
+}
+
+app.get('/profile', async (req, res) => {
+  const playerUsername = 'Warren';
+  //if the username is not provided, then username is Warren
+
+  let PLAYER = playerUsername;
 
   let queryPlayersSessions  = `from(bucket: "test")
     |>range(start:-3y)
     |>filter(fn: (r)=>r["Player Name"] == "${PLAYER}")
     |>group(columns: ["Session"], mode: "by")
-    |>limit(n: 1)`
+    |>limit(n: 1)`;
 
   let queryPlayersTeams = `from(bucket: "test")
     |>range(start:-3y)
     |>filter(fn: (r)=>r["Player Name"] == "${PLAYER}")
     |>group(columns: ["_measurement"], mode:"by")
-    |>limit(n: 1)`
+    |>limit(n: 1)`;
 
   //get the information of all the training sessions of given players
   const trainingSessions = await executeInflux(queryPlayersSessions, queryClient);
-  const cleanedTrainingSessions:any[] = []
-  for(let i = 0; i<trainingSessions.length; i++ )
+  const cleanedTrainingSessions:any[] = [];
+  for (let i = 0; i<trainingSessions.length; i++ )
   {
     const session = {
       "playerName": "",
@@ -68,7 +89,97 @@ app.get('/:id', async (req, res) => {
   //get the teams that the givne player joined in
   const teams =  await executeInflux(queryPlayersTeams, queryClient);
   const cleanedTeams:string[] = []
-  for(let i = 0; i<teams.length; i++ )
+  for(let i = 0; i < teams.length; i++ )
+  {
+    cleanedTeams.push(teams[i]["_measurement"])
+  }
+
+  //define the structure of the API that will be returned to fronend
+  const homepageInfo = {
+    "name": "",
+    "email": "",
+    "dob": '',
+    'nationality':'',
+    'height':0,
+    'weight':0,
+    'teams':['', '' ],
+    'trainingSessions':[{}, {}] ,
+  }
+  homepageInfo['name'] = PLAYER 
+  homepageInfo['teams'] = cleanedTeams
+  homepageInfo['trainingSessions'] = cleanedTrainingSessions
+
+  res.send(homepageInfo)
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+app.get('/profile/:username', async (req, res) => {
+  
+  const playerUsername = req.params.username;
+  //if the username is not provided, then username is Warren
+
+  let PLAYER = playerUsername;
+  console.log(PLAYER);
+
+  let queryPlayersSessions  = `from(bucket: "test")
+    |>range(start:-3y)
+    |>filter(fn: (r)=>r["Player Name"] == "${PLAYER}")
+    |>group(columns: ["Session"], mode: "by")
+    |>limit(n: 1)`;
+
+  let queryPlayersTeams = `from(bucket: "test")
+    |>range(start:-3y)
+    |>filter(fn: (r)=>r["Player Name"] == "${PLAYER}")
+    |>group(columns: ["_measurement"], mode:"by")
+    |>limit(n: 1)`;
+
+  //get the information of all the training sessions of given players
+  const trainingSessions = await executeInflux(queryPlayersSessions, queryClient);
+  const cleanedTrainingSessions:any[] = []
+  for(let i = 0; i<trainingSessions.length; i++ )
+  {
+    const session = {
+      "playerName": "",
+      "sessionName": "",
+      "sessionDate": "",
+      "sessionTime": "",
+      "teamName": "",
+    } as SessionResponseType;
+    session["playerName"] = trainingSessions[i]["Player Name"]
+    session["sessionName"] = trainingSessions[i]["Session"].split(" ")[0]
+    session["sessionDate"] = moment(trainingSessions[i]["_time"]).format("DD-MMM-YYYY")
+    session["sessionTime"] = moment(trainingSessions[i]["_time"]).format("HH:MM")
+    session["teamName"] = trainingSessions[i]["_measurement"]
+    cleanedTrainingSessions.push(session)
+  }
+
+  //get the teams that the givne player joined in
+  const teams =  await executeInflux(queryPlayersTeams, queryClient);
+  const cleanedTeams:string[] = []
+  for(let i = 0; i < teams.length; i++ )
   {
     cleanedTeams.push(teams[i]["_measurement"])
   }
