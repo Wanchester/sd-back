@@ -3,6 +3,9 @@ import express from 'express';
 import { resolve } from "path";
 import moment from "moment";
 import session from "express-session";
+import { readFileSync } from "fs";
+import interpole from 'string-interpolation-js';
+
 
 export interface SessionResponseType {
   'playerName': string,
@@ -54,17 +57,20 @@ app.get('/profile', async (req, res) => {
 
   let PLAYER = playerUsername;
 
-  let queryPlayersSessions  = `from(bucket: "test")
-    |>range(start:-3y)
-    |>filter(fn: (r)=>r["Player Name"] == "${PLAYER}")
-    |>group(columns: ["Session"], mode: "by")
-    |>limit(n: 1)`;
-
+  let queryPlayersSessions  = readFileSync(resolve(__dirname, '../../queries/players_sessions.flux'), { encoding: 'utf8' });
+  queryPlayersSessions = interpole(queryPlayersSessions, [PLAYER]);
+  //console.log(queryPlayersSessions)
+  //let queryPlayersSessions  = env(readFileSync(resolve(__dirname, '../../queries/players_sessions.flux')), { encoding: 'utf8' });
+  let queryPlayersTeams = readFileSync(resolve(__dirname, '../../queries/players_teams.flux'), { encoding: 'utf8' });
+  queryPlayersTeams = interpole(queryPlayersTeams, [PLAYER]);
+  //console.log(queryPlayersTeams)
+  /*
   let queryPlayersTeams = `from(bucket: "test")
     |>range(start:-3y)
     |>filter(fn: (r)=>r["Player Name"] == "${PLAYER}")
     |>group(columns: ["_measurement"], mode:"by")
     |>limit(n: 1)`;
+  */
 
   //get the information of all the training sessions of given players
   const trainingSessions = await executeInflux(queryPlayersSessions, queryClient);
@@ -109,9 +115,8 @@ app.get('/profile', async (req, res) => {
   homepageInfo['teams'] = cleanedTeams
   homepageInfo['trainingSessions'] = cleanedTrainingSessions
 
-  res.send(homepageInfo)
+  res.send(homepageInfo);
 });
-
 
 
 
@@ -250,9 +255,25 @@ const executeInflux = async (fluxQuery: string, queryClient: QueryApi ) => {
 
 
 
+/*
+const promise = new Promise(() => {});
+promise.then((value) => {
+  console.log(value);
+
+  const promise = new Promise(() => {});
+  promise.then((value) => {
+    console.log(value);
+  });
+});
 
 
-
+const promise = new Promise(() => {});
+const value = await promise;
+console.log(value);
+promise = new Promise(() => {});
+value = await promise;
+console.log(value);
+*/
 
 
 
