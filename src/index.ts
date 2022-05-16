@@ -201,6 +201,7 @@ app.get('/sessions/:username', async (req, res) => {
 app.get('/sessions', async (req, res) => {
   let username  = DEFAULT_PLAYER;
   let trainningSessionsAPI = await getTrainingSessionsAPI(username);
+  console.log(trainningSessionsAPI);
   res.send(trainningSessionsAPI);
 });
 
@@ -219,26 +220,9 @@ async function getHomepageAPI(username: string) {
   queryPlayersTeams = interpole(queryPlayersTeams, [PLAYER]);   
    
   //get the information of all the training sessions of given players
-  const trainingSessions = await executeInflux(queryPlayersSessions, queryClient);
-  const cleanedTrainingSessions:any[] = []
-  for(let i = 0; i<trainingSessions.length; i++ )
-  {
-    const session = {
-      "playerName": "",
-      "sessionName": "",
-      "sessionDate": "",
-      "sessionTime": "",
-      "teamName": "",
-    } as SessionResponseType;
-    session["playerName"] = trainingSessions[i]["Player Name"]
-    session["sessionName"] = trainingSessions[i]["Session"].split(" ")[0]
-    session["sessionDate"] = moment(trainingSessions[i]["_time"]).format("DD-MMM-YYYY")
-    session["sessionTime"] = moment(trainingSessions[i]["_time"]).format("HH:MM")
-    session["teamName"] = trainingSessions[i]["_measurement"]
-    cleanedTrainingSessions.push(session)
-  }
+  const cleanedTrainingSessions = await getTrainingSessionsAPI(PLAYER);
 
-  //get the teams that the givne player joined in
+  //get the teams that the given player joined in
   const teams =  await executeInflux(queryPlayersTeams, queryClient);
   const cleanedTeams:string[] = []
   for(let i = 0; i < teams.length; i++ )
@@ -264,13 +248,16 @@ async function getHomepageAPI(username: string) {
   return homepageInfo
 }
 
+
+
 async function getTrainingSessionsAPI(username: string) {
   //get the information of all the training sessions of given players
   let PLAYER = username;
   let queryPlayersSessions  = readFileSync(resolve(__dirname, '../../queries/players_sessions.flux'), { encoding: 'utf8' });
   queryPlayersSessions = interpole(queryPlayersSessions, [PLAYER]);
-
+  
   const trainingSessions = await executeInflux(queryPlayersSessions, queryClient);
+  console.log(trainingSessions);
   const cleanedTrainingSessions:any[] = [];
   for (let i = 0; i<trainingSessions.length; i++ )
   {
@@ -290,6 +277,9 @@ async function getTrainingSessionsAPI(username: string) {
   }  
   return cleanedTrainingSessions;
 }
+
+
+
 
 //function to run the InfluxDB querry
 const executeInflux = async (fluxQuery: string, queryClient: QueryApi ) => {
