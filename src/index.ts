@@ -4,8 +4,7 @@ import { resolve } from "path";
 import moment from "moment";
 import session from "express-session";
 import { readFileSync } from "fs";
-import interpole from 'string-interpolation-js';
-
+import interpole from "string-interpolation-js";
 
 export interface SessionResponseType {
   'playerName': string,
@@ -27,14 +26,14 @@ export interface HomepageResponseType {
 }
 
 const app = express();
-const port = process.env.PORT || 3000;
-const DBtoken = process.env.INFLUXDB_TOKEN || 'SKCqeTd4N-0fYfMPo37Ro8Pv_d-PQX4SoEpfYMTyCdV2Ucjif9RNy-5obta8cQRqKlpB25YvOKkT4tdqxw__Gg==';  
+const port = process.env.SD_SERVER_PORT || 3000;
+const DBtoken = process.env.SD_SERVER_INFLUX_API_KEY || 'SKCqeTd4N-0fYfMPo37Ro8Pv_d-PQX4SoEpfYMTyCdV2Ucjif9RNy-5obta8cQRqKlpB25YvOKkT4tdqxw__Gg==';  
 const url ='https://ap-southeast-2-1.aws.cloud2.influxdata.com';
-const client = new InfluxDB({url: url, token: DBtoken});
+const client = new InfluxDB({ url: url, token: DBtoken });
 
 
 let org = 'qethanmoore@gmail.com';
-let bucket = 'testBucket';
+let bucket = 'test';
 let queryClient = client.getQueryApi(org);
 
 app.use(
@@ -59,18 +58,9 @@ app.get('/profile', async (req, res) => {
 
   let queryPlayersSessions  = readFileSync(resolve(__dirname, '../../queries/players_sessions.flux'), { encoding: 'utf8' });
   queryPlayersSessions = interpole(queryPlayersSessions, [PLAYER]);
-  //console.log(queryPlayersSessions)
-  //let queryPlayersSessions  = env(readFileSync(resolve(__dirname, '../../queries/players_sessions.flux')), { encoding: 'utf8' });
+
   let queryPlayersTeams = readFileSync(resolve(__dirname, '../../queries/players_teams.flux'), { encoding: 'utf8' });
   queryPlayersTeams = interpole(queryPlayersTeams, [PLAYER]);
-  //console.log(queryPlayersTeams)
-  /*
-  let queryPlayersTeams = `from(bucket: "test")
-    |>range(start:-3y)
-    |>filter(fn: (r)=>r["Player Name"] == "${PLAYER}")
-    |>group(columns: ["_measurement"], mode:"by")
-    |>limit(n: 1)`;
-  */
 
   //get the information of all the training sessions of given players
   const trainingSessions = await executeInflux(queryPlayersSessions, queryClient);
@@ -92,7 +82,7 @@ app.get('/profile', async (req, res) => {
     cleanedTrainingSessions.push(session)
   }
 
-  //get the teams that the givne player joined in
+  //get the teams that the given player joined in
   const teams =  await executeInflux(queryPlayersTeams, queryClient);
   const cleanedTeams:string[] = []
   for(let i = 0; i < teams.length; i++ )
@@ -100,7 +90,7 @@ app.get('/profile', async (req, res) => {
     cleanedTeams.push(teams[i]["_measurement"])
   }
 
-  //define the structure of the API that will be returned to fronend
+  //define the structure of the API that will be returned to frontend
   const homepageInfo = {
     "name": "",
     "email": "",
@@ -117,28 +107,6 @@ app.get('/profile', async (req, res) => {
 
   res.send(homepageInfo);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 app.get('/profile/:username', async (req, res) => {
@@ -246,34 +214,6 @@ const executeInflux = async (fluxQuery: string, queryClient: QueryApi ) => {
 
 
 
-
-
-
-
-
-
-
-
-
-/*
-const promise = new Promise(() => {});
-promise.then((value) => {
-  console.log(value);
-
-  const promise = new Promise(() => {});
-  promise.then((value) => {
-    console.log(value);
-  });
-});
-
-
-const promise = new Promise(() => {});
-const value = await promise;
-console.log(value);
-promise = new Promise(() => {});
-value = await promise;
-console.log(value);
-*/
 
 
 
