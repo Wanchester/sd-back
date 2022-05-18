@@ -1,0 +1,302 @@
+{
+  "0": {
+    "user": {
+      "id": "5c3ebe",
+      "name": {
+        "firstname": "5C3EBE",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "1": {
+    "user": {
+      "id": "6c3ebe",
+      "name": {
+        "firstname": "6C3EBE",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "2": {
+    "user": {
+      "id": "ballard",
+      "name": {
+        "firstname": "Ballard",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "3": {
+    "user": {
+      "id": "boucher",
+      "name": {
+        "firstname": "Boucher",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "4": {
+    "user": {
+      "id": "exon",
+      "name": {
+        "firstname": "Exon",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "5": {
+    "user": {
+      "id": "f4e2bc",
+      "name": {
+        "firstname": "F4E2BC",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "6": {
+    "user": {
+      "id": "flynn",
+      "name": {
+        "firstname": "Flynn",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "7": {
+    "user": {
+      "id": "jd",
+      "name": {
+        "firstname": "JD",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "8": {
+    "user": {
+      "id": "jbk",
+      "name": {
+        "firstname": "Jbk",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "9": {
+    "user": {
+      "id": "kemp",
+      "name": {
+        "firstname": "Kemp",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "10": {
+    "user": {
+      "id": "maibaum",
+      "name": {
+        "firstname": "Maibaum",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "11": {
+    "user": {
+      "id": "noplayer",
+      "name": {
+        "firstname": "NO PLAYER",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "12": {
+    "user": {
+      "id": "nelson",
+      "name": {
+        "firstname": "Nelson",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "13": {
+    "user": {
+      "id": "nolan",
+      "name": {
+        "firstname": "Nolan",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "14": {
+    "user": {
+      "id": "pods",
+      "name": {
+        "firstname": "Pods",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "15": {
+    "user": {
+      "id": "rigga",
+      "name": {
+        "firstname": "Rigga",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "16": {
+    "user": {
+      "id": "sibba",
+      "name": {
+        "firstname": "Sibba",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "17": {
+    "user": {
+      "id": "silv",
+      "name": {
+        "firstname": "Silv",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "18": {
+    "user": {
+      "id": "tmac",
+      "name": {
+        "firstname": "T Mac",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Player"
+    }
+  },
+  "19": {
+    "user": {
+      "id": "warren",
+      "name": {
+        "firstname": "Warren",
+        "lastname": "McTesterson"
+      },
+      "email": "ttest@test.com",
+      "team": [
+        "Team Wanchester"
+      ],
+      "dob": "01-01-1970",
+      "type": "Coach"
+    }
+  }
+}
