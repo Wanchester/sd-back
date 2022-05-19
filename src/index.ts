@@ -36,14 +36,6 @@ const client = new InfluxDB({ url: url, token: DBtoken });
 let org = 'qethanmoore@gmail.com';
 let queryClient = client.getQueryApi(org);
 
-//SQL
-const {error} = require('console');
-const { MongoClient, ServerApiVersion } = require('mongodb');
-//connection uri
-const uri = 'mongodb+srv://admin:wanchester@wancluster.hg3qh.mongodb.net/?retryWrites=true&w=majority';
-//new client
-const mongoClient = new MongoClient(uri);
-
 app.use(
   session({
     secret: 'this is a key',
@@ -58,36 +50,13 @@ declare module 'express-session' {
   }
 }
 
-//SQL query
-async function run() {
-  try {
-    // Connect the client to the server
-    await mongoClient.connect();
-    // Establish and verify connection
-    await mongoClient.db('admin').command({ ping: 1 });
-    console.log('Connected successfully to server');
-
-    const collection = mongoClient.db('dummydatabase').collection('dummycollection');
-    const cursor = collection.find({}); //find all documents
-
-    //show data
-    await cursor.forEach((doc: any) => console.log(doc));
-    //await cursor.forEach(doc => console.log( JSON.stringify(doc) ));
-  } 
-  finally {
-    // Ensures that the client will close when you finish/error
-    await mongoClient.close();
-  }
-}
-run().catch(console.dir);
-
 //function to run the InfluxDB querry
-const executeInflux = async (fluxQuery: string, queryClient: QueryApi ) => {
+const executeInflux = async (fluxQuery: string, influxClient: QueryApi ) => {
   let sessionArray : any[] = []; 
 
   await new Promise<void>((my_resolve, reject) => {
     let rejected = false;
-    queryClient.queryRows(fluxQuery, {
+    influxClient.queryRows(fluxQuery, {
       next: (row, tableMeta) => {
         const tableObject = tableMeta.toObject(row);
         sessionArray.push(tableObject);
@@ -190,7 +159,7 @@ app.get('/profile/:username', async (req, res) => {
   let homepageAPI = await getHomepageAPI(username);
   res.send(homepageAPI);
 });
-
+//
 app.get('/sessions', async (req, res) => {
   let username  = DEFAULT_PLAYER;
   let trainningSessionsAPI = await getTrainingSessionsAPI(username);
