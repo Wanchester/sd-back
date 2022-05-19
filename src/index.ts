@@ -103,23 +103,28 @@ async function getTrainingSessionsAPI(username: string) {
   return cleanedTrainingSessions;
 }
 
-async function getHomepageAPI(username: string) {
+async function getJoinedTeamsAPI(username: string) {
   let PLAYER = username;
-  
+  //get the teams that the given player joined in
   let queryPlayersTeams = readFileSync(resolve(__dirname, '../../queries/players_teams.flux'), { encoding: 'utf8' });
   queryPlayersTeams = interpole(queryPlayersTeams, [PLAYER]);   
-   
-  //get the information of all the training sessions of given players
-  const cleanedTrainingSessions = await getTrainingSessionsAPI(PLAYER);
-
-  //get the teams that the given player joined in
   const teams =  await executeInflux(queryPlayersTeams, queryClient);
   const cleanedTeams:string[] = [];
   for (let i = 0; i < teams.length; i++ ) {
     cleanedTeams.push(teams[i]._measurement);
   }
+  return cleanedTeams;
+}
 
-  //define the structure of the API that will be returned to fronend
+async function getHomepageAPI(username: string) {
+  let PLAYER = username;
+  
+  //get the information of all the training sessions of given players
+  const cleanedTrainingSessions = await getTrainingSessionsAPI(PLAYER);
+  //get the teams that given players has joined in
+  const cleanedTeams = await getJoinedTeamsAPI(PLAYER);
+
+  //define the structure of the API that will be returned to frontend
   const homepageInfo = {
     'name': '',
     'email': '',
@@ -138,8 +143,6 @@ async function getHomepageAPI(username: string) {
   return homepageInfo;
 }
 
-
-
 //API endpoints
 app.get('/profile', async (req, res) => {
   /* 
@@ -157,16 +160,28 @@ app.get('/profile/:username', async (req, res) => {
   res.send(homepageAPI);
 });
 
+app.get('/sessions', async (req, res) => {
+  let username  = DEFAULT_PLAYER;
+  let trainningSessionsAPI = await getTrainingSessionsAPI(username);
+  res.send(trainningSessionsAPI);
+});
+
 app.get('/sessions/:username', async (req, res) => {
   let username  = req.params.username;
   let trainningSessionsAPI = await getTrainingSessionsAPI(username);
   res.send(trainningSessionsAPI);
 });
 
-app.get('/sessions', async (req, res) => {
+app.get('/joinedTeams', async (req, res) => {
   let username  = DEFAULT_PLAYER;
-  let trainningSessionsAPI = await getTrainingSessionsAPI(username);
-  res.send(trainningSessionsAPI);
+  let joinedTeamsAPI = await getJoinedTeamsAPI(username);
+  res.send(joinedTeamsAPI);
+});
+
+app.get('/joinedTeams/:username', async (req, res) => {
+  let username  = req.params.username;
+  let joinedTeamsAPI = await getJoinedTeamsAPI(username);
+  res.send(joinedTeamsAPI);
 });
 
 app.listen(port, () => {
