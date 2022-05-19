@@ -4,7 +4,7 @@ import { resolve } from 'path';
 import moment from 'moment';
 import session from 'express-session';
 import { readFileSync } from 'fs';
-import interpole from 'string-interpolation-js';
+import interpole from 'string-interpolation-js'; 
 
 export interface SessionResponseType {
   'playerName': string,
@@ -25,16 +25,24 @@ export interface HomepageResponseType {
   'teams':string[],
   'trainingSessions': SessionResponseType[],
 }
-
 const app = express();
 const port = process.env.SD_SERVER_PORT || 3000;
+const DEFAULT_PLAYER = 'Warren';
+
+//Influx
 const DBtoken = process.env.SD_SERVER_INFLUX_API_KEY || 'SKCqeTd4N-0fYfMPo37Ro8Pv_d-PQX4SoEpfYMTyCdV2Ucjif9RNy-5obta8cQRqKlpB25YvOKkT4tdqxw__Gg==';  
 const url = 'https://ap-southeast-2-1.aws.cloud2.influxdata.com';
 const client = new InfluxDB({ url: url, token: DBtoken });
-const DEFAULT_PLAYER = 'Warren';
-
 let org = 'qethanmoore@gmail.com';
 let queryClient = client.getQueryApi(org);
+
+//SQL
+const {error} = require('console');
+const { MongoClient, ServerApiVersion } = require('mongodb');
+//connection uri
+const uri = 'mongodb+srv://admin:wanchester@wancluster.hg3qh.mongodb.net/?retryWrites=true&w=majority';
+//new client
+const mongoClient = new MongoClient(uri);
 
 app.use(
   session({
@@ -50,6 +58,29 @@ declare module 'express-session' {
   }
 }
 
+//SQL query
+async function run() {
+  try {
+    // Connect the client to the server
+    await mongoClient.connect();
+    // Establish and verify connection
+    await mongoClient.db('admin').command({ ping: 1 });
+    console.log('Connected successfully to server');
+
+    const collection = mongoClient.db('dummydatabase').collection('dummycollection');
+    const cursor = collection.find({}); //find all documents
+
+    //show data
+    await cursor.forEach((doc: any) => console.log(doc));
+    //await cursor.forEach(doc => console.log( JSON.stringify(doc) ));
+  } 
+  finally {
+    // Ensures that the client will close when you finish/error
+    await mongoClient.close();
+  }
+}
+run().catch(console.dir);
+
 //function to run the InfluxDB querry
 const executeInflux = async (fluxQuery: string, queryClient: QueryApi ) => {
   let sessionArray : any[] = []; 
@@ -61,9 +92,9 @@ const executeInflux = async (fluxQuery: string, queryClient: QueryApi ) => {
         const tableObject = tableMeta.toObject(row);
         sessionArray.push(tableObject);
       },
-      error: (error) => {
+      error: (my_error) => {
         rejected = true;
-        reject(error);
+        reject(my_error);
       },
       complete: () => {
         console.log('\nQuery Successfully');

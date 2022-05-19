@@ -36,6 +36,7 @@
     "express-session": "^1.17.3",
     "js": "^0.1.0",
     "moment": "^2.29.3",
+    "mongodb": "^4.6.0",
     "string-env-interpolation": "^1.0.1",
     "string-interpolation-js": "^1.0.5"
   },
