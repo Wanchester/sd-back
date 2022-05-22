@@ -64,7 +64,6 @@ const SQLretrieve = async (query: any, params: any[] = []) => {
       let statement = db.prepare(query);
       statement.each(params, function (err: any, row:any) {
         data.push(row); //pushing rows into array
-        //console.log(row)
       }, 
       function () { // calling function when all rows have been pulled
         //db.close(); //closing connection
@@ -72,7 +71,6 @@ const SQLretrieve = async (query: any, params: any[] = []) => {
       });
     });
   });
-  //console.log(data);
   return data;
 };
 
@@ -142,7 +140,6 @@ async function getTrainingSessionAPI(username: string) {
   if ('error' in personalInfo[0]) {
     return personalInfo;
   }
-  console.log(personalInfo[0]);
   let PLAYER = personalInfo[0].name;
   //get the information of all the training sessions of given players
   let queryPlayerSession  = readFileSync(resolve(__dirname, '../../queries/players_sessions.flux'), { encoding: 'utf8' });
@@ -165,7 +162,6 @@ async function getTrainingSessionAPI(username: string) {
     aSession.teamName = trainingSession[i]._measurement;
     cleanedTrainingSession.push(aSession);
   }  
-  console.log(cleanedTrainingSession);
   return cleanedTrainingSession;
 }
 
@@ -253,8 +249,38 @@ app.get('/profile/:username', async (req, res) => {
 // PUT requests
 app.put('/profile/:username', async (req, res) => {
   let reqBody = req.body;
-  console.log(reqBody);
-  res.send(reqBody);
+  let username  = req.params.username;
+  const personalInfo = await getPersonalInfoAPI(username);
+  if ('error' in personalInfo[0]) {
+    res.send(personalInfo);
+    return personalInfo;
+  } else {
+    if ('name' in reqBody) {
+      const updateStatement = db.prepare('update users set name = ? where username = ?;');
+      updateStatement.run(req.body.name, username);
+    }
+    if ('email' in reqBody) {
+      const updateStatement = db.prepare('update users set email = ? where username = ?;');
+      updateStatement.run(req.body.email, username);
+    }
+    if ('dob' in reqBody) {
+      const updateStatement = db.prepare('update users set dob = ? where username = ?;');
+      updateStatement.run(req.body.dob, username);
+    }
+    if ('nationality' in reqBody) {
+      const updateStatement = db.prepare('update users set nationality = ? where username = ?;');
+      updateStatement.run(req.body.nationality, username);
+    }
+    if ('height' in reqBody) {
+      const updateStatement = db.prepare('update users set height = ? where username = ?;');
+      updateStatement.run(req.body.height, username);
+    }
+    if ('weight' in reqBody) {
+      const updateStatement = db.prepare('update users set weight = ? where username = ?;');
+      updateStatement.run(req.body.weight, username);
+    }
+    res.send(reqBody);
+  }
 });
 
 app.listen(port, () => {
