@@ -1,13 +1,13 @@
-import { ClientOptions, InfluxDB, Point, QueryApi } from '@influxdata/influxdb-client';
-import { devNull } from 'os';
+import { InfluxDB, QueryApi } from '@influxdata/influxdb-client';
 import express from 'express';
-import { resolve } from 'path';
+import { resolve as pathResolve } from 'path';
 import moment from 'moment';
 import session from 'express-session';
 import { readFileSync } from 'fs';
 import interpole from 'string-interpolation-js'; 
 import bodyParser from 'body-parser';
 import console from 'console';
+import _ from 'lodash';
 
 export interface SessionResponseType {
   'playerName': string,
@@ -102,7 +102,7 @@ const executeInflux = async (fluxQuery: string, influxClient: QueryApi ) => {
 
 async function getPersonalInfoAPI(username: string) {
   //search the player in the SQL
-  const query = 'select * from Users where username = ?';
+  const query = 'select * from user where username = ?';
   let paramsLst = [username];
   let playerInfo = await SQLretrieve(query, paramsLst);
 
@@ -123,7 +123,7 @@ async function getJoinedTeamAPI(username: string) {
   }
   let PLAYER = personalInfo[0].name;
   //get the teams that the given player joined in
-  let queryPlayerTeam = readFileSync(resolve(__dirname, '../../queries/players_teams.flux'), { encoding: 'utf8' });
+  let queryPlayerTeam = readFileSync(pathResolve(__dirname, '../../queries/players_teams.flux'), { encoding: 'utf8' });
   queryPlayerTeam = interpole(queryPlayerTeam, [PLAYER]);   
   const teams =  await executeInflux(queryPlayerTeam, queryClient);
   const cleanedTeams:string[] = [];
@@ -142,10 +142,11 @@ async function getTrainingSessionAPI(username: string) {
   }
   let PLAYER = personalInfo[0].name;
   //get the information of all the training sessions of given players
-  let queryPlayerSession  = readFileSync(resolve(__dirname, '../../queries/players_sessions.flux'), { encoding: 'utf8' });
+  let queryPlayerSession  = readFileSync(pathResolve(__dirname, '../../queries/players_sessions.flux'), { encoding: 'utf8' });
   queryPlayerSession = interpole(queryPlayerSession, [PLAYER]);
-  
+  console.log(PLAYER);
   const trainingSession = await executeInflux(queryPlayerSession, queryClient);
+
   const cleanedTrainingSession:any[] = [];
   for (let i = 0; i < trainingSession.length; i++ ) {
     const aSession = {
@@ -186,8 +187,8 @@ async function getHomepageAPI(username: string) {
     'height':0,
     'weight':0,
     'role':'',
-    'teams':['', '' ],
-    'trainingSessions':[{}, {}],
+    'team':[''],
+    'trainingSession':[{}],
   };
   homepageInfo.username = username;
   homepageInfo.name = playerName;
@@ -197,9 +198,9 @@ async function getHomepageAPI(username: string) {
   homepageInfo.height = personalInfo[0].height;
   homepageInfo.weight = personalInfo[0].weight;
   homepageInfo.role = personalInfo[0].role;
-  homepageInfo.teams = teams;
+  homepageInfo.team = teams;
   if (personalInfo[0].role == 'Player') {
-    homepageInfo.trainingSessions = trainingSession;
+    homepageInfo.trainingSession = trainingSession;
   }
   return homepageInfo;
 }
@@ -246,46 +247,14 @@ app.get('/profile/:username', async (req, res) => {
   res.send(homepageAPI);
 });
 
-// PUT requests
-app.put('/profile/:username', async (req, res) => {
-  let reqBody = req.body;
-  let username  = req.params.username;
-  const personalInfo = await getPersonalInfoAPI(username);
-  if ('error' in personalInfo[0]) {
-    res.send(personalInfo);
-    return personalInfo;
-  } else {
-    if ('name' in reqBody) {
-      const updateStatement = db.prepare('update users set name = ? where username = ?;');
-      updateStatement.run(req.body.name, username);
-    }
-    if ('email' in reqBody) {
-      const updateStatement = db.prepare('update users set email = ? where username = ?;');
-      updateStatement.run(req.body.email, username);
-    }
-    if ('dob' in reqBody) {
-      const updateStatement = db.prepare('update users set dob = ? where username = ?;');
-      updateStatement.run(req.body.dob, username);
-    }
-    if ('nationality' in reqBody) {
-      const updateStatement = db.prepare('update users set nationality = ? where username = ?;');
-      updateStatement.run(req.body.nationality, username);
-    }
-    if ('height' in reqBody) {
-      const updateStatement = db.prepare('update users set height = ? where username = ?;');
-      updateStatement.run(req.body.height, username);
-    }
-    if ('weight' in reqBody) {
-      const updateStatement = db.prepare('update users set weight = ? where username = ?;');
-      updateStatement.run(req.body.weight, username);
-    }
-    res.send(reqBody);
-  }
-});
-
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
 });
+
+if (_.isString('hi')) {
+  console.log(1);
+}
+
 
 
 
