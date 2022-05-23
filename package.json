@@ -52,6 +52,7 @@
     "@types/lodash": "^4.14.182",
     "@types/mocha": "^9.1.1",
     "@types/node": "^17.0.31",
+    "@types/sqlite3": "^3.1.8",
     "@typescript-eslint/eslint-plugin": "^5.21.0",
     "chai": "^4.3.6",
     "eslint": "^8.14.0",

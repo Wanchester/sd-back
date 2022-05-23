@@ -1,36 +1,46 @@
+import { QueryApi } from '@influxdata/influxdb-client';
+import { Database } from 'sqlite3';
 
+//function to retrieve information from SQL database
+export const SQLretrieve = async ( sqlDB: Database, query: any, params: any[] = []) => {
+  let data : any[] = []; 
+  await new Promise<void>((resolve) => {
+    sqlDB.serialize(function () {
+      let statement = sqlDB.prepare(query);
+      statement.each(params, function (err: any, row:any) {
+        data.push(row); //pushing rows into array
+      }, 
+      function () { // calling function when all rows have been pulled
+        //db.close(); //closing connection
+        resolve();
+      });
+    });
+  });
+  return data;
+};
 
+//function to run the InfluxDB querry
+export const executeInflux = async (fluxQuery: string, influxClient: QueryApi) => {
+  let sessionArray : any[] = []; 
 
-
-
-async function getTrainingSessionAPI(username: string) {
-    //search the personal information of given username from SQL database
-    const personalInfo = await getPersonalInfoAPI(username);
-    if ('error' in personalInfo[0]) {
-      return personalInfo;
-    }
-    let PLAYER = personalInfo[0].name;
-    //get the information of all the training sessions of given players
-    let queryPlayerSession  = readFileSync(pathResolve(__dirname, '../../queries/players_sessions.flux'), { encoding: 'utf8' });
-    queryPlayerSession = interpole(queryPlayerSession, [PLAYER]);
-    console.log(PLAYER);
-    const trainingSession = await executeInflux(queryPlayerSession, queryClient);
-  
-    const cleanedTrainingSession:any[] = [];
-    for (let i = 0; i < trainingSession.length; i++ ) {
-      const aSession = {
-        'playerName': '',
-        'sessionName': '',
-        'sessionDate': '',
-        'sessionTime': '',
-        'teamName': '',
-      } as SessionResponseType;
-      aSession.playerName = trainingSession[i]['Player Name'];
-      aSession.sessionName = trainingSession[i].Session.split(' ')[0];
-      aSession.sessionDate = moment(trainingSession[i]._time).format('DD-MMM-YYYY');
-      aSession.sessionTime = moment(trainingSession[i]._time).format('HH:MM');
-      aSession.teamName = trainingSession[i]._measurement;
-      cleanedTrainingSession.push(aSession);
-    }  
-    return cleanedTrainingSession;
-  }
+  await new Promise<void>((resolve, reject) => {
+    let rejected = false;
+    influxClient.queryRows(fluxQuery, {
+      next: (row, tableMeta) => {
+        const tableObject = tableMeta.toObject(row);
+        sessionArray.push(tableObject);
+      },
+      error: (my_error) => {
+        rejected = true;
+        reject(my_error);
+      },
+      complete: () => {
+        console.log('\nQuery Successfully');
+        if (!rejected) {
+          resolve();
+        }
+      },
+    });
+  });
+  return sessionArray;
+};

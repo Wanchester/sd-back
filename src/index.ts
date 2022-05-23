@@ -8,6 +8,10 @@ import interpole from 'string-interpolation-js';
 import bodyParser from 'body-parser';
 import console from 'console';
 import _ from 'lodash';
+import sqlite3 from 'sqlite3';
+
+import { SQLretrieve, executeInflux } from './utils';
+
 
 export interface SessionResponseType {
   'playerName': string,
@@ -33,7 +37,6 @@ const app = express();
 const port = process.env.SD_SERVER_PORT || 3000;
 const DEFAULT_USERNAME = 'warren';
 //SQL
-const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('test.db');
 //Influx
 const DBtoken = process.env.SD_SERVER_INFLUX_API_KEY || 'SKCqeTd4N-0fYfMPo37Ro8Pv_d-PQX4SoEpfYMTyCdV2Ucjif9RNy-5obta8cQRqKlpB25YvOKkT4tdqxw__Gg==';  
@@ -56,55 +59,12 @@ declare module 'express-session' {
   }
 }
 
-//function to retrieve information from SQL database
-const SQLretrieve = async (query: any, params: any[] = []) => {
-  let data : any[] = []; 
-  await new Promise<void>((resolve) => {
-    db.serialize(function () {
-      let statement = db.prepare(query);
-      statement.each(params, function (err: any, row:any) {
-        data.push(row); //pushing rows into array
-      }, 
-      function () { // calling function when all rows have been pulled
-        //db.close(); //closing connection
-        resolve();
-      });
-    });
-  });
-  return data;
-};
-
-//function to run the InfluxDB querry
-const executeInflux = async (fluxQuery: string, influxClient: QueryApi ) => {
-  let sessionArray : any[] = []; 
-
-  await new Promise<void>((resolve, reject) => {
-    let rejected = false;
-    influxClient.queryRows(fluxQuery, {
-      next: (row, tableMeta) => {
-        const tableObject = tableMeta.toObject(row);
-        sessionArray.push(tableObject);
-      },
-      error: (my_error) => {
-        rejected = true;
-        reject(my_error);
-      },
-      complete: () => {
-        console.log('\nQuery Successfully');
-        if (!rejected) {
-          resolve();
-        }
-      },
-    });
-  });
-  return sessionArray;
-};
 
 async function getPersonalInfoAPI(username: string) {
   //search the player in the SQL
   const query = 'select * from user where username = ?';
   let paramsLst = [username];
-  let playerInfo = await SQLretrieve(query, paramsLst);
+  let playerInfo = await SQLretrieve(db, query, paramsLst);
 
   if (playerInfo.length == 0) {
     return [{
@@ -207,13 +167,13 @@ async function getHomepageAPI(username: string) {
 
 // API endpoints
 // GET requests
-app.get('/joinedTeam', async (req, res) => {
+app.get('/team', async (req, res) => {
   let username  = DEFAULT_USERNAME;
   let joinedTeamAPI = await getJoinedTeamAPI(username);
   res.send(joinedTeamAPI);
 });
 
-app.get('/joinedTeam/:username', async (req, res) => {
+app.get('/team/:username', async (req, res) => {
   let username  = req.params.username;
   let joinedTeamAPI = await getJoinedTeamAPI(username);
   res.send(joinedTeamAPI);
