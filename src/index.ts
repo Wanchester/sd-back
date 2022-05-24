@@ -12,7 +12,7 @@ import sqlite3 from 'sqlite3';
 import { Database } from 'sqlite3';
 
 import { SQLretrieve, executeInflux, callBasedOnRole, getPersonalInfoAPI } from './utils';
-
+import { getJoinedTeamAPI } from './team';
 
 export interface SessionResponseType {
   'playerName': string,
@@ -61,39 +61,24 @@ declare module 'express-session' {
   }
 }
 
-// async function getPersonalInfoAPI(username: string) {
-//   //search the player in the SQL
-//   const query = 'select * from user where username = ?';
-//   let paramsLst = [username];
-//   let playerInfo = await SQLretrieve(db, query, paramsLst);
-
-//   if (playerInfo.length == 0) {
-//     return [{
-//       'error': 'given username is not found',
-//     }];
+// async function getJoinedTeamAPI(db: Database, username: string ) {
+//   //search the personal information of given username from SQL database
+//   const personalInfo = await getPersonalInfoAPI( db, username);
+//   if ('error' in personalInfo[0]) {
+//     return personalInfo;
 //   }
-//   return playerInfo;
+//   let PLAYER = personalInfo[0].name;
+//   //get the teams that the given player joined in
+//   let queryPlayerTeam = readFileSync(pathResolve(__dirname, '../../queries/players_teams.flux'), { encoding: 'utf8' });
+//   queryPlayerTeam = interpole(queryPlayerTeam, [PLAYER]);   
+//   const teams =  await executeInflux(queryPlayerTeam, queryClient);
+//   const cleanedTeams:string[] = [];
 
+//   for (let i = 0; i < teams.length; i++ ) {
+//     cleanedTeams.push(teams[i]._measurement);
+//   }
+//   return cleanedTeams;
 // }
-
-async function getJoinedTeamAPI(db: Database, username: string ) {
-  //search the personal information of given username from SQL database
-  const personalInfo = await getPersonalInfoAPI( db, username);
-  if ('error' in personalInfo[0]) {
-    return personalInfo;
-  }
-  let PLAYER = personalInfo[0].name;
-  //get the teams that the given player joined in
-  let queryPlayerTeam = readFileSync(pathResolve(__dirname, '../../queries/players_teams.flux'), { encoding: 'utf8' });
-  queryPlayerTeam = interpole(queryPlayerTeam, [PLAYER]);   
-  const teams =  await executeInflux(queryPlayerTeam, queryClient);
-  const cleanedTeams:string[] = [];
-
-  for (let i = 0; i < teams.length; i++ ) {
-    cleanedTeams.push(teams[i]._measurement);
-  }
-  return cleanedTeams;
-}
 
 async function getTrainingSessionAPI(db: Database, username: string) {
   //search the personal information of given username from SQL database
@@ -135,7 +120,7 @@ async function getProfileAPI(db: Database, username: string) {
   }
   let playerName = personalInfo[0].name;
   //get the teams that given players has joined in
-  const teams = await getJoinedTeamAPI(db, username);
+  const teams = await getJoinedTeamAPI(db, queryClient, username);
   //get the information of all the training sessions of given players
   const trainingSession = await getTrainingSessionAPI(db, username);
   //define the structure of the API that will be returned to frontend
@@ -164,12 +149,6 @@ async function getProfileAPI(db: Database, username: string) {
   await callBasedOnRole(db, username, () => {
     homepageInfo.trainingSession = trainingSession;
   });
-
-  /*
-  if (personalInfo[0].role == 'Player') {
-    homepageInfo.trainingSession = trainingSession;
-  }
-  */
   return homepageInfo;
 }
 
@@ -177,13 +156,13 @@ async function getProfileAPI(db: Database, username: string) {
 // GET requests
 app.get('/team', async (req, res) => {
   let username  = DEFAULT_USERNAME;
-  let joinedTeamAPI = await getJoinedTeamAPI(db, username);
+  let joinedTeamAPI = await getJoinedTeamAPI(db, queryClient, username);
   res.send(joinedTeamAPI);
 });
 
 app.get('/team/:username', async (req, res) => {
   let username  = req.params.username;
-  let joinedTeamAPI = await getJoinedTeamAPI(db, username);
+  let joinedTeamAPI = await getJoinedTeamAPI(db, queryClient, username);
   res.send(joinedTeamAPI);
 });
 
