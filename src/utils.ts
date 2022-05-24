@@ -45,7 +45,7 @@ export const executeInflux = async (fluxQuery: string, influxClient: QueryApi) =
   return sessionArray;
 };
 
-
+//role management
 export async function callBasedOnRole(
   sqlDB: Database,
   username: string | null = null,
