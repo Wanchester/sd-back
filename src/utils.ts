@@ -44,3 +44,36 @@ export const executeInflux = async (fluxQuery: string, influxClient: QueryApi) =
   });
   return sessionArray;
 };
+
+//
+export async function callBasedOnRole(
+  sqlDB: Database,
+  username: string | null = null,
+  ifPlayer: (() => void) | null = null,
+  ifCoach: (() => void) | null = null,
+  ifAdmin: (() => void) | null = null,
+  paramLst: any[]= [],
+): Promise<void> {
+  //search the player in the SQL and get the role of that username
+  let role = '';
+  const query = 'select * from user where username = ?';
+  let playerInfo = await SQLretrieve( sqlDB, query, [username]);
+
+  if (playerInfo.length == 0) {
+    //return [{ 'error': 'given username is not found',}];
+  } else {
+    role = playerInfo[0].role;
+  }
+  //return playerInfo;
+  switch (role) {
+    case 'Player':
+      ifPlayer?.apply(null);
+      return;
+    case 'coach':
+      ifCoach?.apply(null);
+      return;
+    case 'admin':
+      ifAdmin?.apply(null);
+      return;
+  }
+}

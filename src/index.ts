@@ -10,7 +10,7 @@ import console from 'console';
 import _ from 'lodash';
 import sqlite3 from 'sqlite3';
 
-import { SQLretrieve, executeInflux } from './utils';
+import { SQLretrieve, executeInflux, callBasedOnRole } from './utils';
 
 
 export interface SessionResponseType {
@@ -33,6 +33,7 @@ export interface HomepageResponseType {
   'teams':string[],
   'trainingSessions': SessionResponseType[],
 }
+
 const app = express();
 const port = process.env.SD_SERVER_PORT || 3000;
 const DEFAULT_USERNAME = 'warren';
@@ -58,7 +59,6 @@ declare module 'express-session' {
     username: string;
   }
 }
-
 
 async function getPersonalInfoAPI(username: string) {
   //search the player in the SQL
@@ -126,7 +126,7 @@ async function getTrainingSessionAPI(username: string) {
   return cleanedTrainingSession;
 }
 
-async function getHomepageAPI(username: string) {
+async function getProfileAPI(username: string) {
   //search the personal information of given username from SQL database
   const personalInfo = await getPersonalInfoAPI(username);
   if ('error' in personalInfo[0]) {
@@ -159,9 +159,16 @@ async function getHomepageAPI(username: string) {
   homepageInfo.weight = personalInfo[0].weight;
   homepageInfo.role = personalInfo[0].role;
   homepageInfo.team = teams;
+
+  await callBasedOnRole(db, username, () => {
+    homepageInfo.trainingSession = trainingSession;
+  });
+
+  /*
   if (personalInfo[0].role == 'Player') {
     homepageInfo.trainingSession = trainingSession;
   }
+  */
   return homepageInfo;
 }
 
@@ -197,15 +204,19 @@ app.get('/profile', async (req, res) => {
   Currently, the default users that will be returned is Warren
   */
   let username  = DEFAULT_USERNAME;
-  let homepageAPI = await getHomepageAPI(username);
+  let homepageAPI = await getProfileAPI(username);
   res.send(homepageAPI);
 });
 
 app.get('/profile/:username', async (req, res) => {
   let username  = req.params.username;
-  let homepageAPI = await getHomepageAPI(username);
+  let homepageAPI = await getProfileAPI(username);
   res.send(homepageAPI);
 });
+
+
+
+
 
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
