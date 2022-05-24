@@ -13,6 +13,7 @@ import { Database } from 'sqlite3';
 
 import { SQLretrieve, executeInflux, callBasedOnRole, getPersonalInfoAPI } from './utils';
 import { getJoinedTeamAPI } from './team';
+import { getTrainingSessionAPI } from './trainingSession';
 
 export interface SessionResponseType {
   'playerName': string,
@@ -61,56 +62,37 @@ declare module 'express-session' {
   }
 }
 
-// async function getJoinedTeamAPI(db: Database, username: string ) {
+// async function getTrainingSessionAPI(db: Database, username: string) {
 //   //search the personal information of given username from SQL database
-//   const personalInfo = await getPersonalInfoAPI( db, username);
+//   const personalInfo = await getPersonalInfoAPI(db, username);
 //   if ('error' in personalInfo[0]) {
 //     return personalInfo;
 //   }
 //   let PLAYER = personalInfo[0].name;
-//   //get the teams that the given player joined in
-//   let queryPlayerTeam = readFileSync(pathResolve(__dirname, '../../queries/players_teams.flux'), { encoding: 'utf8' });
-//   queryPlayerTeam = interpole(queryPlayerTeam, [PLAYER]);   
-//   const teams =  await executeInflux(queryPlayerTeam, queryClient);
-//   const cleanedTeams:string[] = [];
+//   //get the information of all the training sessions of given players
+//   let queryPlayerSession  = readFileSync(pathResolve(__dirname, '../../queries/players_sessions.flux'), { encoding: 'utf8' });
+//   queryPlayerSession = interpole(queryPlayerSession, [PLAYER]);
+//   console.log(PLAYER);
+//   const trainingSession = await executeInflux(queryPlayerSession, queryClient);
 
-//   for (let i = 0; i < teams.length; i++ ) {
-//     cleanedTeams.push(teams[i]._measurement);
-//   }
-//   return cleanedTeams;
+//   const cleanedTrainingSession:any[] = [];
+//   for (let i = 0; i < trainingSession.length; i++ ) {
+//     const aSession = {
+//       'playerName': '',
+//       'sessionName': '',
+//       'sessionDate': '',
+//       'sessionTime': '',
+//       'teamName': '',
+//     } as SessionResponseType;
+//     aSession.playerName = trainingSession[i]['Player Name'];
+//     aSession.sessionName = trainingSession[i].Session.split(' ')[0];
+//     aSession.sessionDate = moment(trainingSession[i]._time).format('DD-MMM-YYYY');
+//     aSession.sessionTime = moment(trainingSession[i]._time).format('HH:MM');
+//     aSession.teamName = trainingSession[i]._measurement;
+//     cleanedTrainingSession.push(aSession);
+//   }  
+//   return cleanedTrainingSession;
 // }
-
-async function getTrainingSessionAPI(db: Database, username: string) {
-  //search the personal information of given username from SQL database
-  const personalInfo = await getPersonalInfoAPI(db, username);
-  if ('error' in personalInfo[0]) {
-    return personalInfo;
-  }
-  let PLAYER = personalInfo[0].name;
-  //get the information of all the training sessions of given players
-  let queryPlayerSession  = readFileSync(pathResolve(__dirname, '../../queries/players_sessions.flux'), { encoding: 'utf8' });
-  queryPlayerSession = interpole(queryPlayerSession, [PLAYER]);
-  console.log(PLAYER);
-  const trainingSession = await executeInflux(queryPlayerSession, queryClient);
-
-  const cleanedTrainingSession:any[] = [];
-  for (let i = 0; i < trainingSession.length; i++ ) {
-    const aSession = {
-      'playerName': '',
-      'sessionName': '',
-      'sessionDate': '',
-      'sessionTime': '',
-      'teamName': '',
-    } as SessionResponseType;
-    aSession.playerName = trainingSession[i]['Player Name'];
-    aSession.sessionName = trainingSession[i].Session.split(' ')[0];
-    aSession.sessionDate = moment(trainingSession[i]._time).format('DD-MMM-YYYY');
-    aSession.sessionTime = moment(trainingSession[i]._time).format('HH:MM');
-    aSession.teamName = trainingSession[i]._measurement;
-    cleanedTrainingSession.push(aSession);
-  }  
-  return cleanedTrainingSession;
-}
 
 async function getProfileAPI(db: Database, username: string) {
   //search the personal information of given username from SQL database
@@ -122,7 +104,7 @@ async function getProfileAPI(db: Database, username: string) {
   //get the teams that given players has joined in
   const teams = await getJoinedTeamAPI(db, queryClient, username);
   //get the information of all the training sessions of given players
-  const trainingSession = await getTrainingSessionAPI(db, username);
+  const trainingSession = await getTrainingSessionAPI(db, queryClient, username);
   //define the structure of the API that will be returned to frontend
   const homepageInfo = {
     'username':'',
@@ -168,13 +150,13 @@ app.get('/team/:username', async (req, res) => {
 
 app.get('/session', async (req, res) => {
   let username  = DEFAULT_USERNAME;
-  let trainningSessionAPI = await getTrainingSessionAPI(db, username);
+  let trainningSessionAPI = await getTrainingSessionAPI(db, queryClient, username);
   res.send(trainningSessionAPI);
 });
 
 app.get('/session/:username', async (req, res) => {
   let username  = req.params.username;
-  let trainningSessionAPI = await getTrainingSessionAPI(db, username);
+  let trainningSessionAPI = await getTrainingSessionAPI(db, queryClient, username);
   res.send(trainningSessionAPI);
 });
 
