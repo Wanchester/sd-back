@@ -14,6 +14,7 @@ import { Database } from 'sqlite3';
 import { SQLretrieve, executeInflux, callBasedOnRole, getPersonalInfoAPI } from './utils';
 import { getJoinedTeamAPI } from './team';
 import { getTrainingSessionAPI } from './trainingSession';
+import { getProfileAPI } from './profile';
 
 export interface SessionResponseType {
   'playerName': string,
@@ -62,77 +63,45 @@ declare module 'express-session' {
   }
 }
 
-// async function getTrainingSessionAPI(db: Database, username: string) {
+// async function getProfileAPI(sqlDB: Database, queryClient: QueryApi, username: string) {
 //   //search the personal information of given username from SQL database
 //   const personalInfo = await getPersonalInfoAPI(db, username);
 //   if ('error' in personalInfo[0]) {
 //     return personalInfo;
 //   }
-//   let PLAYER = personalInfo[0].name;
+//   let playerName = personalInfo[0].name;
+//   //get the teams that given players has joined in
+//   const teams = await getJoinedTeamAPI(sqlDB, queryClient, username);
 //   //get the information of all the training sessions of given players
-//   let queryPlayerSession  = readFileSync(pathResolve(__dirname, '../../queries/players_sessions.flux'), { encoding: 'utf8' });
-//   queryPlayerSession = interpole(queryPlayerSession, [PLAYER]);
-//   console.log(PLAYER);
-//   const trainingSession = await executeInflux(queryPlayerSession, queryClient);
+//   const trainingSession = await getTrainingSessionAPI(sqlDB, queryClient, username);
+//   //define the structure of the API that will be returned to frontend
+//   const homepageInfo = {
+//     'username':'',
+//     'name': '',
+//     'email': '',
+//     'dob': '',
+//     'nationality':'',
+//     'height':0,
+//     'weight':0,
+//     'role':'',
+//     'team':[''],
+//     'trainingSession':[{}],
+//   };
+//   homepageInfo.username = username;
+//   homepageInfo.name = playerName;
+//   homepageInfo.email = personalInfo[0].email;
+//   homepageInfo.dob = personalInfo[0].dob;
+//   homepageInfo.nationality = personalInfo[0].nationality;
+//   homepageInfo.height = personalInfo[0].height;
+//   homepageInfo.weight = personalInfo[0].weight;
+//   homepageInfo.role = personalInfo[0].role;
+//   homepageInfo.team = teams;
 
-//   const cleanedTrainingSession:any[] = [];
-//   for (let i = 0; i < trainingSession.length; i++ ) {
-//     const aSession = {
-//       'playerName': '',
-//       'sessionName': '',
-//       'sessionDate': '',
-//       'sessionTime': '',
-//       'teamName': '',
-//     } as SessionResponseType;
-//     aSession.playerName = trainingSession[i]['Player Name'];
-//     aSession.sessionName = trainingSession[i].Session.split(' ')[0];
-//     aSession.sessionDate = moment(trainingSession[i]._time).format('DD-MMM-YYYY');
-//     aSession.sessionTime = moment(trainingSession[i]._time).format('HH:MM');
-//     aSession.teamName = trainingSession[i]._measurement;
-//     cleanedTrainingSession.push(aSession);
-//   }  
-//   return cleanedTrainingSession;
+//   await callBasedOnRole(db, username, () => {
+//     homepageInfo.trainingSession = trainingSession;
+//   });
+//   return homepageInfo;
 // }
-
-async function getProfileAPI(db: Database, username: string) {
-  //search the personal information of given username from SQL database
-  const personalInfo = await getPersonalInfoAPI(db, username);
-  if ('error' in personalInfo[0]) {
-    return personalInfo;
-  }
-  let playerName = personalInfo[0].name;
-  //get the teams that given players has joined in
-  const teams = await getJoinedTeamAPI(db, queryClient, username);
-  //get the information of all the training sessions of given players
-  const trainingSession = await getTrainingSessionAPI(db, queryClient, username);
-  //define the structure of the API that will be returned to frontend
-  const homepageInfo = {
-    'username':'',
-    'name': '',
-    'email': '',
-    'dob': '',
-    'nationality':'',
-    'height':0,
-    'weight':0,
-    'role':'',
-    'team':[''],
-    'trainingSession':[{}],
-  };
-  homepageInfo.username = username;
-  homepageInfo.name = playerName;
-  homepageInfo.email = personalInfo[0].email;
-  homepageInfo.dob = personalInfo[0].dob;
-  homepageInfo.nationality = personalInfo[0].nationality;
-  homepageInfo.height = personalInfo[0].height;
-  homepageInfo.weight = personalInfo[0].weight;
-  homepageInfo.role = personalInfo[0].role;
-  homepageInfo.team = teams;
-
-  await callBasedOnRole(db, username, () => {
-    homepageInfo.trainingSession = trainingSession;
-  });
-  return homepageInfo;
-}
 
 // API endpoints
 // GET requests
@@ -166,13 +135,13 @@ app.get('/profile', async (req, res) => {
   Currently, the default users that will be returned is Warren
   */
   let username  = DEFAULT_USERNAME;
-  let homepageAPI = await getProfileAPI(db, username);
+  let homepageAPI = await getProfileAPI(db, queryClient ,username);
   res.send(homepageAPI);
 });
 
 app.get('/profile/:username', async (req, res) => {
   let username  = req.params.username;
-  let homepageAPI = await getProfileAPI(db, username);
+  let homepageAPI = await getProfileAPI(db, queryClient ,username);
   res.send(homepageAPI);
 });
 
@@ -180,9 +149,6 @@ app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
 });
 
-if (_.isString('hi')) {
-  console.log(1);
-}
 
 
 
