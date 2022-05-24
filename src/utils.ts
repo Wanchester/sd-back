@@ -45,7 +45,7 @@ export const executeInflux = async (fluxQuery: string, influxClient: QueryApi) =
   return sessionArray;
 };
 
-//
+
 export async function callBasedOnRole(
   sqlDB: Database,
   username: string | null = null,
@@ -76,4 +76,18 @@ export async function callBasedOnRole(
       ifAdmin?.apply(null);
       return;
   }
+}
+
+export async function getPersonalInfoAPI(sqlDB: Database, username: string) {
+  //search the player in the SQL
+  const query = 'select * from user where username = ?';
+  let paramsLst = [username];
+  let playerInfo = await SQLretrieve(sqlDB, query, paramsLst);
+
+  if (playerInfo.length == 0) {
+    return [{
+      'error': 'given username is not found',
+    }];
+  }
+  return playerInfo;
 }

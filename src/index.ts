@@ -9,8 +9,9 @@ import bodyParser from 'body-parser';
 import console from 'console';
 import _ from 'lodash';
 import sqlite3 from 'sqlite3';
+import { Database } from 'sqlite3';
 
-import { SQLretrieve, executeInflux, callBasedOnRole } from './utils';
+import { SQLretrieve, executeInflux, callBasedOnRole, getPersonalInfoAPI } from './utils';
 
 
 export interface SessionResponseType {
@@ -60,24 +61,24 @@ declare module 'express-session' {
   }
 }
 
-async function getPersonalInfoAPI(username: string) {
-  //search the player in the SQL
-  const query = 'select * from user where username = ?';
-  let paramsLst = [username];
-  let playerInfo = await SQLretrieve(db, query, paramsLst);
+// async function getPersonalInfoAPI(username: string) {
+//   //search the player in the SQL
+//   const query = 'select * from user where username = ?';
+//   let paramsLst = [username];
+//   let playerInfo = await SQLretrieve(db, query, paramsLst);
 
-  if (playerInfo.length == 0) {
-    return [{
-      'error': 'given username is not found',
-    }];
-  }
-  return playerInfo;
+//   if (playerInfo.length == 0) {
+//     return [{
+//       'error': 'given username is not found',
+//     }];
+//   }
+//   return playerInfo;
 
-}
+// }
 
-async function getJoinedTeamAPI(username: string) {
+async function getJoinedTeamAPI(db: Database, username: string ) {
   //search the personal information of given username from SQL database
-  const personalInfo = await getPersonalInfoAPI(username);
+  const personalInfo = await getPersonalInfoAPI( db, username);
   if ('error' in personalInfo[0]) {
     return personalInfo;
   }
@@ -94,9 +95,9 @@ async function getJoinedTeamAPI(username: string) {
   return cleanedTeams;
 }
 
-async function getTrainingSessionAPI(username: string) {
+async function getTrainingSessionAPI(db: Database, username: string) {
   //search the personal information of given username from SQL database
-  const personalInfo = await getPersonalInfoAPI(username);
+  const personalInfo = await getPersonalInfoAPI(db, username);
   if ('error' in personalInfo[0]) {
     return personalInfo;
   }
@@ -126,17 +127,17 @@ async function getTrainingSessionAPI(username: string) {
   return cleanedTrainingSession;
 }
 
-async function getProfileAPI(username: string) {
+async function getProfileAPI(db: Database, username: string) {
   //search the personal information of given username from SQL database
-  const personalInfo = await getPersonalInfoAPI(username);
+  const personalInfo = await getPersonalInfoAPI(db, username);
   if ('error' in personalInfo[0]) {
     return personalInfo;
   }
   let playerName = personalInfo[0].name;
   //get the teams that given players has joined in
-  const teams = await getJoinedTeamAPI(username);
+  const teams = await getJoinedTeamAPI(db, username);
   //get the information of all the training sessions of given players
-  const trainingSession = await getTrainingSessionAPI(username);
+  const trainingSession = await getTrainingSessionAPI(db, username);
   //define the structure of the API that will be returned to frontend
   const homepageInfo = {
     'username':'',
@@ -176,25 +177,25 @@ async function getProfileAPI(username: string) {
 // GET requests
 app.get('/team', async (req, res) => {
   let username  = DEFAULT_USERNAME;
-  let joinedTeamAPI = await getJoinedTeamAPI(username);
+  let joinedTeamAPI = await getJoinedTeamAPI(db, username);
   res.send(joinedTeamAPI);
 });
 
 app.get('/team/:username', async (req, res) => {
   let username  = req.params.username;
-  let joinedTeamAPI = await getJoinedTeamAPI(username);
+  let joinedTeamAPI = await getJoinedTeamAPI(db, username);
   res.send(joinedTeamAPI);
 });
 
 app.get('/session', async (req, res) => {
   let username  = DEFAULT_USERNAME;
-  let trainningSessionAPI = await getTrainingSessionAPI(username);
+  let trainningSessionAPI = await getTrainingSessionAPI(db, username);
   res.send(trainningSessionAPI);
 });
 
 app.get('/session/:username', async (req, res) => {
   let username  = req.params.username;
-  let trainningSessionAPI = await getTrainingSessionAPI(username);
+  let trainningSessionAPI = await getTrainingSessionAPI(db, username);
   res.send(trainningSessionAPI);
 });
 
@@ -204,19 +205,15 @@ app.get('/profile', async (req, res) => {
   Currently, the default users that will be returned is Warren
   */
   let username  = DEFAULT_USERNAME;
-  let homepageAPI = await getProfileAPI(username);
+  let homepageAPI = await getProfileAPI(db, username);
   res.send(homepageAPI);
 });
 
 app.get('/profile/:username', async (req, res) => {
   let username  = req.params.username;
-  let homepageAPI = await getProfileAPI(username);
+  let homepageAPI = await getProfileAPI(db, username);
   res.send(homepageAPI);
 });
-
-
-
-
 
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
