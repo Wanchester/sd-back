@@ -18,6 +18,7 @@ export async function getJoinedTeamAPI(db: Database, queryClient: QueryApi, user
   //get the teams that the given player joined in
   let queryPlayerTeam = readFileSync(pathResolve(__dirname, '../../queries/players_teams.flux'), { encoding: 'utf8' });
   queryPlayerTeam = interpole(queryPlayerTeam, [PLAYER]);
+  //let queryPlayerTeam = 'test exception';
   const teams = await executeInflux(queryPlayerTeam, queryClient);
   const cleanedTeams: string[] = [];
 
@@ -29,15 +30,31 @@ export async function getJoinedTeamAPI(db: Database, queryClient: QueryApi, user
 
 export default function bindGetTeams(app: Express, db: Database, queryClient: QueryApi) {
   app.get('/teams', async (req, res) => {
-    let username = DEFAULT_USERNAME;
-    let joinedTeamAPI = await getJoinedTeamAPI(db, queryClient, username);
-    res.send(joinedTeamAPI);
+    try {
+      let username = DEFAULT_USERNAME;
+      let joinedTeamAPI = await getJoinedTeamAPI(db, queryClient, username);
+      res.send(joinedTeamAPI);
+    } catch (error) {
+      res.send({
+        error: (error as Error).message,
+        name: (error as Error).name,
+        stack: (error as Error).stack,
+      });
+    }
   });
 
   app.get('/teams/:username', async (req, res) => {
-    let username  = req.params.username;
-    let joinedTeamAPI = await getJoinedTeamAPI(db, queryClient, username);
-    res.send(joinedTeamAPI);
+    try {
+      let username  = req.params.username;
+      let joinedTeamAPI = await getJoinedTeamAPI(db, queryClient, username);
+      res.send(joinedTeamAPI);
+    } catch (error) {
+      res.send({
+        error: (error as Error).message,
+        name: (error as Error).name,
+        stack: (error as Error).stack,
+      });
+    }
   });
 }
 

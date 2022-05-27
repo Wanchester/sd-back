@@ -1,6 +1,8 @@
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 
+export const DEFAULT_USERNAME = 'warren';
+
 //function to retrieve information from SQL database
 export const SQLretrieve = async ( sqlDB: Database, query: any, params: any[] = []) => {
   let data : any[] = []; 
@@ -18,7 +20,7 @@ export const SQLretrieve = async ( sqlDB: Database, query: any, params: any[] = 
   return data;
 };
 
-//function to run the InfluxDB querry
+//function to run the InfluxDB query
 export const executeInflux = async (fluxQuery: string, influxClient: QueryApi) => {
   let sessionArray : any[] = []; 
   await new Promise<void>((resolve, reject) => {
@@ -28,9 +30,10 @@ export const executeInflux = async (fluxQuery: string, influxClient: QueryApi) =
         const tableObject = tableMeta.toObject(row);
         sessionArray.push(tableObject);
       },
-      error: (my_error) => {
+      error: (error) => {
         rejected = true;
-        reject(my_error);
+        error.message = 'e5001: Error when querying InfluxDB';
+        reject(error);
       },
       complete: () => {
         console.log('\nQuery Successfully');
@@ -58,10 +61,11 @@ export async function callBasedOnRole <P extends Array<unknown> = never[]>(
   let playerInfo = await SQLretrieve( sqlDB, query, [username]);
 
   if (playerInfo.length == 0) {
-    throw new Error('Given username is not found');
+    throw new Error('e4041: Given username is not found');
   } else {
     role = playerInfo[0].role;
   }
+
   //return playerInfo;
   switch (role) {
     case 'Player':
@@ -83,9 +87,7 @@ export async function getPersonalInfoAPI(sqlDB: Database, username: string) {
   let playerInfo = await SQLretrieve(sqlDB, query, paramsLst);
 
   if (playerInfo.length == 0) {
-    return [{
-      'error': 'given username is not found',
-    }];
+    throw new Error('e4041: Given username is not found');
   }
   return playerInfo;
 }

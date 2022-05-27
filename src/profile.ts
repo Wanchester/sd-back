@@ -2,7 +2,7 @@ import { QueryApi } from "@influxdata/influxdb-client";
 import { Database } from "sqlite3";
 import { getJoinedTeamAPI } from "./team";
 import { getTrainingSessionAPI } from "./trainingSession";
-import { getPersonalInfoAPI, callBasedOnRole, DEFAULT_USERNAME} from "./utils";
+import { getPersonalInfoAPI, callBasedOnRole, DEFAULT_USERNAME } from "./utils";
 import { Express } from 'express';
 
 
