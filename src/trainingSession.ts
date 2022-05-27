@@ -42,14 +42,30 @@ export async function getTrainingSessionAPI(db: Database, queryClient: QueryApi,
 
 export default function bindGetTrainingSessions(app: Express, db: Database, queryClient: QueryApi) {
   app.get('/trainingSessions', async (req, res) => {
-    let username  = DEFAULT_USERNAME;
-    let trainingSessionAPI = await getTrainingSessionAPI(db, queryClient, username);
-    res.send(trainingSessionAPI);
+    try {
+      let username  = DEFAULT_USERNAME;
+      let trainingSessionAPI = await getTrainingSessionAPI(db, queryClient, username);
+      res.send(trainingSessionAPI);
+    } catch (error) {
+      res.send({
+        error: (error as Error).message,
+        name: (error as Error).name,
+        stack: (error as Error).stack,
+      });
+    }
   });
 
   app.get('/trainingSessions/:username', async (req, res) => {
-    let username  = req.params.username;
-    let trainingSessionAPI = await getTrainingSessionAPI(db, queryClient, username);
-    res.send(trainingSessionAPI);
+    try {
+      let username  = req.params.username;
+      let trainingSessionAPI = await getTrainingSessionAPI(db, queryClient, username);
+      res.send(trainingSessionAPI);
+    } catch (error) {
+      res.send({
+        error: (error as Error).message,
+        name: (error as Error).name,
+        stack: (error as Error).stack,
+      });
+    }
   });
 }

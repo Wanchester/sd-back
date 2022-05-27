@@ -55,18 +55,6 @@ export async function callBasedOnRole <P extends Array<unknown> = never[]>(
   ifAdmin: ((...args: P) => void) | null = null,
   paramList: P | null = null,
 ): Promise<void> {
-  //search the player in the SQL and get the role of that username
-  /*
-  let role = '';
-  const query = 'select * from user where username = ?';
-  let playerInfo = await SQLretrieve( sqlDB, query, [username]);
-
-  if (playerInfo.length == 0) {
-    throw new Error('e4041: Given username is not found');
-  } else {
-    role = playerInfo[0].role;
-  }
-  */
   const playerInfo = await getPersonalInfoAPI(sqlDB, username);
   const role = playerInfo[0].role;
   //return playerInfo;

@@ -60,14 +60,23 @@ export default function bindGetProfile(app: Express, db: Database, queryClient: 
     } catch (error) {
       res.send({
         error: (error as Error).message,
+        name: (error as Error).name,
+        stack: (error as Error).stack,
       });
     }
-
   });
 
   app.get('/profile/:username', async (req, res) => {
-    let username  = req.params.username;
-    let homepageAPI = await getProfileAPI(db, queryClient ,username);
-    res.send(homepageAPI);
+    try {
+      let username  = req.params.username;
+      let homepageAPI = await getProfileAPI(db, queryClient ,username);
+      res.send(homepageAPI);
+    } catch (error) {
+      res.send({
+        error: (error as Error).message,
+        name: (error as Error).name,
+        stack: (error as Error).stack,
+      });
+    }
   });
 }
