@@ -49,13 +49,14 @@ export const executeInflux = async (fluxQuery: string, influxClient: QueryApi) =
 //role management
 export async function callBasedOnRole <P extends Array<unknown> = never[]>(
   sqlDB: Database,
-  username: string | null = null,
+  username: string,
   ifPlayer: ((...args: P) => void) | null = null,
   ifCoach: ((...args: P) => void) | null = null,
   ifAdmin: ((...args: P) => void) | null = null,
   paramList: P | null = null,
 ): Promise<void> {
   //search the player in the SQL and get the role of that username
+  /*
   let role = '';
   const query = 'select * from user where username = ?';
   let playerInfo = await SQLretrieve( sqlDB, query, [username]);
@@ -65,7 +66,9 @@ export async function callBasedOnRole <P extends Array<unknown> = never[]>(
   } else {
     role = playerInfo[0].role;
   }
-
+  */
+  const playerInfo = await getPersonalInfoAPI(sqlDB, username);
+  const role = playerInfo[0].role;
   //return playerInfo;
   switch (role) {
     case 'Player':
