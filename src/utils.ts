@@ -11,7 +11,6 @@ export const SQLretrieve = async ( sqlDB: Database, query: any, params: any[] = 
         data.push(row); //pushing rows into array
       }, 
       function () { // calling function when all rows have been pulled
-        //db.close(); //closing connection
         resolve();
       });
     });
@@ -22,7 +21,6 @@ export const SQLretrieve = async ( sqlDB: Database, query: any, params: any[] = 
 //function to run the InfluxDB querry
 export const executeInflux = async (fluxQuery: string, influxClient: QueryApi) => {
   let sessionArray : any[] = []; 
-
   await new Promise<void>((resolve, reject) => {
     let rejected = false;
     influxClient.queryRows(fluxQuery, {
@@ -46,13 +44,13 @@ export const executeInflux = async (fluxQuery: string, influxClient: QueryApi) =
 };
 
 //role management
-export async function callBasedOnRole(
+export async function callBasedOnRole <P extends Array<unknown> = never[]>(
   sqlDB: Database,
   username: string | null = null,
-  ifPlayer: (() => void) | null = null,
-  ifCoach: (() => void) | null = null,
-  ifAdmin: (() => void) | null = null,
-  paramLst: any[]= [],
+  ifPlayer: ((...args: P) => void) | null = null,
+  ifCoach: ((...args: P) => void) | null = null,
+  ifAdmin: ((...args: P) => void) | null = null,
+  paramList: P | null = null,
 ): Promise<void> {
   //search the player in the SQL and get the role of that username
   let role = '';
@@ -60,20 +58,20 @@ export async function callBasedOnRole(
   let playerInfo = await SQLretrieve( sqlDB, query, [username]);
 
   if (playerInfo.length == 0) {
-    //return [{ 'error': 'given username is not found',}];
+    throw new Error('Given username is not found');
   } else {
     role = playerInfo[0].role;
   }
   //return playerInfo;
   switch (role) {
     case 'Player':
-      ifPlayer?.apply(null);
+      ifPlayer?.apply(null, paramList!);
       return;
     case 'coach':
-      ifCoach?.apply(null);
+      ifCoach?.apply(null, paramList!);
       return;
     case 'admin':
-      ifAdmin?.apply(null);
+      ifAdmin?.apply(null, paramList!);
       return;
   }
 }
