@@ -8,7 +8,7 @@ import { Express } from 'express';
 
 const DEFAULT_USERNAME = 'warren';
 
-export async function getJoinedTeamAPI(db: Database, queryClient: QueryApi, username: string) {
+export async function getTeamsAPI(db: Database, queryClient: QueryApi, username: string) {
   //search the personal information of given username from SQL database
   const personalInfo = await getPersonalInfoAPI(db, username);
   if ('error' in personalInfo[0]) {
@@ -32,8 +32,8 @@ export default function bindGetTeams(app: Express, db: Database, queryClient: Qu
   app.get('/teams', async (req, res) => {
     try {
       let username = DEFAULT_USERNAME;
-      let joinedTeamAPI = await getJoinedTeamAPI(db, queryClient, username);
-      res.send(joinedTeamAPI);
+      let teamsAPI = await getTeamsAPI(db, queryClient, username);
+      res.send(teamsAPI);
     } catch (error) {
       res.send({
         error: (error as Error).message,
@@ -46,8 +46,8 @@ export default function bindGetTeams(app: Express, db: Database, queryClient: Qu
   app.get('/teams/:username', async (req, res) => {
     try {
       let username  = req.params.username;
-      let joinedTeamAPI = await getJoinedTeamAPI(db, queryClient, username);
-      res.send(joinedTeamAPI);
+      let teamsAPI = await getTeamsAPI(db, queryClient, username);
+      res.send(teamsAPI);
     } catch (error) {
       res.send({
         error: (error as Error).message,

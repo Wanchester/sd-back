@@ -12,8 +12,8 @@ import sqlite3 from 'sqlite3';
 import { Database } from 'sqlite3';
 
 import { SQLretrieve, executeInflux, callBasedOnRole, getPersonalInfoAPI } from './utils';
-import bindGetTeams, { getJoinedTeamAPI } from './team';
-import bindGetTrainingSessions, { getTrainingSessionAPI } from './trainingSession';
+import bindGetTeams, { getTeamsAPI } from './team';
+import bindGetTrainingSessions, { getTrainingSessionsAPI } from './trainingSession';
 import bindGetProfile, { getProfileAPI } from './profile';
 
 

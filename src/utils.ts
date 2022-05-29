@@ -17,18 +17,31 @@ export const SQLretrieve = async ( sqlDB: Database, query: any, params: any[] = 
       });
     });
   });
+ 
   return data;
 };
 
+export async function getPersonalInfoAPI(sqlDB: Database, username: string) {
+  //search the player in the SQL
+  const query = 'select * from user where username = ?';
+  let paramsLst = [username];
+  let playerInfo = await SQLretrieve(sqlDB, query, paramsLst);
+
+  if (playerInfo.length == 0) {
+    throw new Error('e4041: Given username is not found');
+  }
+  return playerInfo;
+}
+
 //function to run the InfluxDB query
 export const executeInflux = async (fluxQuery: string, influxClient: QueryApi) => {
-  let sessionArray : any[] = []; 
+  let resultArray : any[] = []; 
   await new Promise<void>((resolve, reject) => {
     let rejected = false;
     influxClient.queryRows(fluxQuery, {
       next: (row, tableMeta) => {
         const tableObject = tableMeta.toObject(row);
-        sessionArray.push(tableObject);
+        resultArray.push(tableObject);
       },
       error: (error) => {
         rejected = true;
@@ -43,7 +56,7 @@ export const executeInflux = async (fluxQuery: string, influxClient: QueryApi) =
       },
     });
   });
-  return sessionArray;
+  return resultArray;
 };
 
 //role management
@@ -71,14 +84,3 @@ export async function callBasedOnRole <P extends Array<unknown> = never[]>(
   }
 }
 
-export async function getPersonalInfoAPI(sqlDB: Database, username: string) {
-  //search the player in the SQL
-  const query = 'select * from user where username = ?';
-  let paramsLst = [username];
-  let playerInfo = await SQLretrieve(sqlDB, query, paramsLst);
-
-  if (playerInfo.length == 0) {
-    throw new Error('e4041: Given username is not found');
-  }
-  return playerInfo;
-}

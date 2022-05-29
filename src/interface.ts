@@ -4,6 +4,7 @@ export interface SessionResponseType {
   'sessionDate': string,
   'sessionTime': string,
   'teamName': string,
+  'duration':string,
 }
 
 export interface HomepageResponseType {

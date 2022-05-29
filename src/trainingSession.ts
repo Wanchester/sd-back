@@ -7,10 +7,12 @@ import { getPersonalInfoAPI, executeInflux } from './utils';
 import { resolve as pathResolve } from 'path';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
+//var TimeFormat = require('hh-mm-ss');
+import TimeFormat from 'hh-mm-ss';
 
 const DEFAULT_USERNAME = 'warren';
 
-export async function getTrainingSessionAPI(db: Database, queryClient: QueryApi, username: string) {
+export async function getTrainingSessionsAPI(db: Database, queryClient: QueryApi, username: string) {
   //search the personal information of given username from SQL database
   const personalInfo = await getPersonalInfoAPI(db, username);
   if ('error' in personalInfo[0]) {
@@ -20,32 +22,34 @@ export async function getTrainingSessionAPI(db: Database, queryClient: QueryApi,
   //get the information of all the training sessions of given players
   let queryPlayerSession  = readFileSync(pathResolve(__dirname, '../../queries/players_sessions.flux'), { encoding: 'utf8' });
   queryPlayerSession = interpole(queryPlayerSession, [PLAYER]);
-  const trainingSession = await executeInflux(queryPlayerSession, queryClient);
-  const cleanedTrainingSession:any[] = [];
-  for (let i = 0; i < trainingSession.length; i++ ) {
+  const trainingSessions = await executeInflux(queryPlayerSession, queryClient);
+  const cleanedTrainingSessions:any[] = [];
+  for (let i = 0; i < trainingSessions.length; i++ ) {
     const aSession = {
       'playerName': '',
       'sessionName': '',
       'sessionDate': '',
       'sessionTime': '',
       'teamName': '',
+      'duration':'',
     } as SessionResponseType;
-    aSession.playerName = trainingSession[i]['Player Name'];
-    aSession.sessionName = trainingSession[i].Session.split(' ')[0];
-    aSession.sessionDate = moment(trainingSession[i]._time).format('DD-MM-YYYY');
-    aSession.sessionTime = moment(trainingSession[i]._time).format('HH:MM');
-    aSession.teamName = trainingSession[i]._measurement;
-    cleanedTrainingSession.push(aSession);
+    aSession.playerName = trainingSessions[i]['Player Name'];
+    aSession.sessionName = trainingSessions[i].Session.split(' ')[0];
+    aSession.sessionDate = moment(trainingSessions[i]._time).format('DD-MM-YYYY');
+    aSession.sessionTime = moment(trainingSessions[i]._time).format('HH:MM');
+    aSession.teamName = trainingSessions[i]._measurement;
+    aSession.duration =  TimeFormat.fromS(trainingSessions[i].elapsed);
+    cleanedTrainingSessions.push(aSession);
   }  
-  return cleanedTrainingSession;
+  return cleanedTrainingSessions;
 }
 
 export default function bindGetTrainingSessions(app: Express, db: Database, queryClient: QueryApi) {
   app.get('/trainingSessions', async (req, res) => {
     try {
       let username  = DEFAULT_USERNAME;
-      let trainingSessionAPI = await getTrainingSessionAPI(db, queryClient, username);
-      res.send(trainingSessionAPI);
+      let trainingSessionsAPI = await getTrainingSessionsAPI(db, queryClient, username);
+      res.send(trainingSessionsAPI);
     } catch (error) {
       res.send({
         error: (error as Error).message,
@@ -58,8 +62,8 @@ export default function bindGetTrainingSessions(app: Express, db: Database, quer
   app.get('/trainingSessions/:username', async (req, res) => {
     try {
       let username  = req.params.username;
-      let trainingSessionAPI = await getTrainingSessionAPI(db, queryClient, username);
-      res.send(trainingSessionAPI);
+      let trainingSessionsAPI = await getTrainingSessionsAPI(db, queryClient, username);
+      res.send(trainingSessionsAPI);
     } catch (error) {
       res.send({
         error: (error as Error).message,
