@@ -1,20 +1,12 @@
-import { InfluxDB, QueryApi } from '@influxdata/influxdb-client';
+import { InfluxDB } from '@influxdata/influxdb-client';
 import express from 'express';
-import { resolve as pathResolve } from 'path';
-import moment from 'moment';
 import session from 'express-session';
-import { readFileSync } from 'fs';
-import interpole from 'string-interpolation-js'; 
 import bodyParser from 'body-parser';
 import console from 'console';
-import _ from 'lodash';
 import sqlite3 from 'sqlite3';
-import { Database } from 'sqlite3';
-
-import { SQLretrieve, executeInflux, callBasedOnRole, getPersonalInfoAPI } from './utils';
-import bindGetTeams, { getTeamsAPI } from './team';
-import bindGetTrainingSessions, { getTrainingSessionsAPI } from './trainingSession';
-import bindGetProfile, { getProfileAPI } from './profile';
+import bindGetTeams from './team';
+import bindGetTrainingSessions from './trainingSession';
+import bindGetProfile from './profile';
 
 
 const app = express();
