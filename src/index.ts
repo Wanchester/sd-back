@@ -7,24 +7,24 @@ import sqlite3 from 'sqlite3';
 import bindGetTeams from './team';
 import bindGetTrainingSessions from './trainingSession';
 import bindGetProfile from './profile';
-
+import 'dotenv/config';
 
 const app = express();
 const port = process.env.SD_SERVER_PORT || 3000;
 //SQL
 const db = new sqlite3.Database('test.db');
 //Influx
-const DBtoken = process.env.SD_SERVER_INFLUX_API_KEY || 'SKCqeTd4N-0fYfMPo37Ro8Pv_d-PQX4SoEpfYMTyCdV2Ucjif9RNy-5obta8cQRqKlpB25YvOKkT4tdqxw__Gg==';  
+const DBtoken = process.env.SD_SERVER_INFLUX_API_KEY;
 const url = 'https://ap-southeast-2-1.aws.cloud2.influxdata.com';
 const client = new InfluxDB({ url: url, token: DBtoken });
-const org = 'qethanmoore@gmail.com';
+const org = process.env.SD_SERVER_INFLUX_EMAIL as string;
 const queryClient = client.getQueryApi(org);
 
-app.use(bodyParser.json());  //to read the body of the request from backend
+app.use(bodyParser.json()); //to read the body of the request from backend
 app.use(
   session({
     secret: 'this is a key',
-    resave:false,
+    resave: false,
     saveUninitialized: false,
   }),
 );
@@ -44,9 +44,3 @@ bindGetProfile(app, db, queryClient);
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
 });
-
-
-
-
-
-

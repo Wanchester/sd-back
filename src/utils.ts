@@ -4,20 +4,27 @@ import { Database } from 'sqlite3';
 export const DEFAULT_USERNAME = 'warren';
 
 //function to retrieve information from SQL database
-export const SQLretrieve = async ( sqlDB: Database, query: any, params: any[] = []) => {
-  let data : any[] = []; 
+export const SQLretrieve = async (
+  sqlDB: Database,
+  query: any,
+  params: any[] = [],
+) => {
+  let data: any[] = [];
   await new Promise<void>((resolve) => {
     sqlDB.serialize(function () {
       let statement = sqlDB.prepare(query);
-      statement.each(params, function (err: any, row:any) {
-        data.push(row); //pushing rows into array
-      }, 
-      function () { // calling function when all rows have been pulled
-        resolve();
-      });
+      statement.each(
+        params,
+        function (err: any, row: any) {
+          data.push(row); //pushing rows into array
+        },
+        function () {
+          // calling function when all rows have been pulled
+          resolve();
+        },
+      );
     });
   });
- 
   return data;
 };
 
@@ -34,8 +41,11 @@ export async function getPersonalInfoAPI(sqlDB: Database, username: string) {
 }
 
 //function to run the InfluxDB query
-export const executeInflux = async (fluxQuery: string, influxClient: QueryApi) => {
-  let resultArray : any[] = []; 
+export const executeInflux = async (
+  fluxQuery: string,
+  influxClient: QueryApi,
+) => {
+  let resultArray: any[] = [];
   await new Promise<void>((resolve, reject) => {
     let rejected = false;
     influxClient.queryRows(fluxQuery, {
@@ -60,7 +70,7 @@ export const executeInflux = async (fluxQuery: string, influxClient: QueryApi) =
 };
 
 //role management
-export async function callBasedOnRole <P extends Array<unknown> = never[]>(
+export async function callBasedOnRole<P extends Array<unknown> = never[]>(
   sqlDB: Database,
   username: string,
   ifPlayer: ((...args: P) => void) | null = null,
@@ -83,4 +93,3 @@ export async function callBasedOnRole <P extends Array<unknown> = never[]>(
       return;
   }
 }
-
