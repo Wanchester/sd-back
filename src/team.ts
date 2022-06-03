@@ -55,8 +55,8 @@ export default function bindGetTeams(
       res.send({
         error: (error as Error).message,
         name: (error as Error).name,
-        stack: (error as Error).stack,
       });
+      console.log((error as Error).stack);
     }
   });
 
@@ -79,11 +79,11 @@ export default function bindGetTeams(
       )) as any[];
       res.send(teamsAPI);
     } catch (error) {
-      res.status(400);
       res.send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
+      console.log((error as Error).stack);
     }
   });
 }

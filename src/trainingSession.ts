@@ -71,8 +71,8 @@ export default function bindGetTrainingSessions(
       res.send({
         error: (error as Error).message,
         name: (error as Error).name,
-        stack: (error as Error).stack,
       });
+      console.log((error as Error).stack);
     }
   });
 
@@ -89,8 +89,8 @@ export default function bindGetTrainingSessions(
       res.send({
         error: (error as Error).message,
         name: (error as Error).name,
-        stack: (error as Error).stack,
       });
+      console.log((error as Error).stack);
     }
   });
 }
