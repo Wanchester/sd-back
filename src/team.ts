@@ -1,7 +1,12 @@
 import { readFileSync } from 'fs';
 import { Database } from 'sqlite3';
 import interpole from 'string-interpolation-js';
-import { getPersonalInfoAPI, executeInflux, DEFAULT_USERNAME } from './utils';
+import {
+  getPersonalInfoAPI,
+  executeInflux,
+  DEFAULT_USERNAME,
+  callBasedOnRole,
+} from './utils';
 import { resolve as pathResolve } from 'path';
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
@@ -57,14 +62,27 @@ export default function bindGetTeams(
 
   app.get('/teams/:username', async (req, res) => {
     try {
-      let username = req.params.username;
-      let teamsAPI = await getTeamsAPI(db, queryClient, username);
+      // const sess = req.session;
+      let username = 'coach1'; // username will be set to the username from session variable when log in feature is implement 
+      let teamsAPI = (await callBasedOnRole(
+        db,
+        username!,
+        () => {
+          throw new Error('You are not allowed to make the request');
+        },
+        async () => {
+          return getTeamsAPI(db, queryClient, req.params.username);
+        },
+        async () => {
+          return getTeamsAPI(db, queryClient, req.params.username);
+        },
+      )) as any[];
       res.send(teamsAPI);
     } catch (error) {
+      res.status(400);
       res.send({
         error: (error as Error).message,
         name: (error as Error).name,
-        stack: (error as Error).stack,
       });
     }
   });

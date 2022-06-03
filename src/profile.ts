@@ -74,8 +74,8 @@ export default function bindGetProfile(
       res.send({
         error: (error as Error).message,
         name: (error as Error).name,
-        stack: (error as Error).stack,
       });
+      console.error(error);
     }
   });
 
@@ -88,8 +88,8 @@ export default function bindGetProfile(
       res.send({
         error: (error as Error).message,
         name: (error as Error).name,
-        stack: (error as Error).stack,
       });
+      console.error(error);
     }
   });
 }

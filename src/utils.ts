@@ -6,7 +6,7 @@ export const DEFAULT_USERNAME = 'warren';
 //function to retrieve information from SQL database
 export const SQLretrieve = async (
   sqlDB: Database,
-  query: any,
+  query: string,
   params: any[] = [],
 ) => {
   let data: any[] = [];
@@ -70,26 +70,27 @@ export const executeInflux = async (
 };
 
 //role management
-export async function callBasedOnRole<P extends Array<unknown> = never[]>(
+export async function callBasedOnRole<
+  P extends Array<unknown> = never[],
+  IfP = void,
+  IfC = void,
+  IfA = void,
+>(
   sqlDB: Database,
   username: string,
-  ifPlayer: ((...args: P) => void) | null = null,
-  ifCoach: ((...args: P) => void) | null = null,
-  ifAdmin: ((...args: P) => void) | null = null,
+  ifPlayer: ((...args: P) => IfP | Promise<IfP>) | null = null,
+  ifCoach: ((...args: P) => IfC | Promise<IfC>) | null = null,
+  ifAdmin: ((...args: P) => IfA | Promise<IfA>) | null = null,
   paramList: P | null = null,
-): Promise<void> {
+): Promise<IfP | IfC | IfA | undefined> {
   const playerInfo = await getPersonalInfoAPI(sqlDB, username);
   const role = playerInfo[0].role;
-  //return playerInfo;
   switch (role) {
     case 'Player':
-      ifPlayer?.apply(null, paramList!);
-      return;
-    case 'coach':
-      ifCoach?.apply(null, paramList!);
-      return;
-    case 'admin':
-      ifAdmin?.apply(null, paramList!);
-      return;
+      return ifPlayer?.apply(null, paramList!);
+    case 'Coach':
+      return ifCoach?.apply(null, paramList!);
+    case 'Admin':
+      return ifAdmin?.apply(null, paramList!);
   }
 }
