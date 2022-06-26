@@ -40,16 +40,28 @@ export async function getTeamsAPI(
     }
     return cleanedTeams;
   } else if (role == 'coach') {
-    //const queryPlayerTeam = 'select teamName from TeamCoach where username = ?';
-    let queryPlayerTeam = 'test exception';
-    const teams = await SQLretrieve(db, queryPlayerTeam, [username]);
-    console.log(teams);
-    const cleanedTeams: string[] = [];
-    for (let i = 0; i < teams.length; i++) {
-      cleanedTeams.push(teams[i].teamName);
-    }
-    return cleanedTeams;
+    const queryPlayerTeam = 'select teamName from TeamCoach where username = ?';
+    //const queryPlayerTeam = 'test exceptopn';
+    db.get(queryPlayerTeam, [username], (err, row) => {
+      // process the row here 
+      if (err) {
+        throw new Error('hehe');
+      } else {
+        console.log(row);
+      }
+    });
+    // let teams; 
+    //teams = await SQLretrieve(db, queryPlayerTeam, [username]);
+    // console.log('haha');
+    // console.log(teams);
+    // const cleanedTeams: string[] = [];
+    // for (let i = 0; i < teams.length; i++) {
+    //   cleanedTeams.push(teams[i].teamName);
+    // }
+    // return cleanedTeams;
   }
+  
+
 }
 
 //API return points
