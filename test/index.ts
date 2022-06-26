@@ -29,6 +29,11 @@ function assertHomepageResponse(homepage: any) {
   );
 }
 
+function assertTeamResponse(team: any) {
+  assert.isArray(team);
+  team.forEach((value: any) => assert.isString(value));
+}
+
 describe('Test Express server endpoints', () => {
   const app = startExpressServer();
 
@@ -41,4 +46,25 @@ describe('Test Express server endpoints', () => {
         assertHomepageResponse(res.body);
       });
   });
+
+  it('GET /profile/:username endpoint', () => {
+    request(app)
+      .get('/profile/:username')
+      .expect(200)
+      .expect('Content-Type', /json/)
+      .expect((res) => {
+        assertHomepageResponse(res.body);
+      });
+  });
+
+  it('GET /teams endpoint', () => {
+    request(app)
+      .get('/teams')
+      .expect(200)
+      .expect('Content-Type', /json/)
+      .expect((res) => {
+        assertTeamResponse(res.body);
+      });
+  });
+
 });
