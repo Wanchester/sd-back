@@ -87,11 +87,11 @@ export async function callBasedOnRole<
   const role = playerInfo.role;
 
   switch (role) {
-    case 'Player':
+    case 'player':
       return ifPlayer?.apply(null, paramList!);
-    case 'Coach':
+    case 'coach':
       return ifCoach?.apply(null, paramList!);
-    case 'Admin':
+    case 'admin':
       return ifAdmin?.apply(null, paramList!);
   }
 }

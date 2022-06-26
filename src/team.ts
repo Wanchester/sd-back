@@ -6,6 +6,7 @@ import {
   executeInflux,
   DEFAULT_USERNAME,
   callBasedOnRole,
+  SQLretrieve,
 } from './utils';
 import { resolve as pathResolve } from 'path';
 import { QueryApi } from '@influxdata/influxdb-client';
@@ -21,21 +22,34 @@ export async function getTeamsAPI(
   if ('error' in personalInfo) {
     return personalInfo;
   }
-  const PLAYER = personalInfo.name;
-  //get the teams that the given player joined in
-  let queryPlayerTeam = readFileSync(
-    pathResolve(__dirname, '../../queries/players_teams.flux'),
-    { encoding: 'utf8' },
-  );
-  queryPlayerTeam = interpole(queryPlayerTeam, [PLAYER]);
-  //let queryPlayerTeam = 'test exception';
-  const teams = await executeInflux(queryPlayerTeam, queryClient);
-  const cleanedTeams: string[] = [];
+  const role = personalInfo.role; 
+  if (role == 'player') {
+    const PLAYER = personalInfo.name;
+    //get the teams that the given player joined in
+    let queryPlayerTeam = readFileSync(
+      pathResolve(__dirname, '../../queries/players_teams.flux'),
+      { encoding: 'utf8' },
+    );
+    queryPlayerTeam = interpole(queryPlayerTeam, [PLAYER]);
+    //queryPlayerTeam = 'test exception';
+    const teams = await executeInflux(queryPlayerTeam, queryClient);
+    const cleanedTeams: string[] = [];
 
-  for (let i = 0; i < teams.length; i++) {
-    cleanedTeams.push(teams[i]._measurement);
+    for (let i = 0; i < teams.length; i++) {
+      cleanedTeams.push(teams[i]._measurement);
+    }
+    return cleanedTeams;
+  } else if (role == 'coach') {
+    //const queryPlayerTeam = 'select teamName from TeamCoach where username = ?';
+    let queryPlayerTeam = 'test exception';
+    const teams = await SQLretrieve(db, queryPlayerTeam, [username]);
+    console.log(teams);
+    const cleanedTeams: string[] = [];
+    for (let i = 0; i < teams.length; i++) {
+      cleanedTeams.push(teams[i].teamName);
+    }
+    return cleanedTeams;
   }
-  return cleanedTeams;
 }
 
 //API return points
