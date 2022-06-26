@@ -16,10 +16,10 @@ export async function getTrainingSessionsAPI(
 ) {
   //search the personal information of given username from SQL database
   const personalInfo = await getPersonalInfoAPI(db, username);
-  if ('error' in personalInfo[0]) {
+  if ('error' in personalInfo) {
     return personalInfo;
   }
-  let PLAYER = personalInfo[0].name;
+  let PLAYER = personalInfo.name;
   //get the information of all the training sessions of given players
   let queryPlayerSession = readFileSync(
     pathResolve(__dirname, '../../queries/players_sessions.flux'),

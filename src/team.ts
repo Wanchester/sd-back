@@ -18,10 +18,10 @@ export async function getTeamsAPI(
 ) {
   //search the personal information of given username from SQL database
   const personalInfo = await getPersonalInfoAPI(db, username);
-  if ('error' in personalInfo[0]) {
+  if ('error' in personalInfo) {
     return personalInfo;
   }
-  const PLAYER = personalInfo[0].name;
+  const PLAYER = personalInfo.name;
   //get the teams that the given player joined in
   let queryPlayerTeam = readFileSync(
     pathResolve(__dirname, '../../queries/players_teams.flux'),
@@ -38,6 +38,7 @@ export async function getTeamsAPI(
   return cleanedTeams;
 }
 
+//API return points
 export default function bindGetTeams(
   app: Express,
   db: Database,
@@ -63,7 +64,8 @@ export default function bindGetTeams(
   app.get('/teams/:username', async (req, res) => {
     try {
       // const sess = req.session;
-      let username = 'coach1'; // username will be set to the username from session variable when log in feature is implement 
+      let username = 'coach1'; // username will be set to the username from session variable when log in feature is implemented
+      //right now, just let the username = 'coach1' so that it has the right to see the teams list of all players.
       let teamsAPI = (await callBasedOnRole(
         db,
         username!,

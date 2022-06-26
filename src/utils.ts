@@ -37,7 +37,7 @@ export async function getPersonalInfoAPI(sqlDB: Database, username: string) {
   if (playerInfo.length == 0) {
     throw new Error('e4041: Given username is not found');
   }
-  return playerInfo;
+  return playerInfo[0];
 }
 
 //function to run the InfluxDB query
@@ -84,7 +84,8 @@ export async function callBasedOnRole<
   paramList: P | null = null,
 ): Promise<IfP | IfC | IfA | undefined> {
   const playerInfo = await getPersonalInfoAPI(sqlDB, username);
-  const role = playerInfo[0].role;
+  const role = playerInfo.role;
+
   switch (role) {
     case 'Player':
       return ifPlayer?.apply(null, paramList!);

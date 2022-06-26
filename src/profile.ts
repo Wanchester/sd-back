@@ -12,10 +12,10 @@ export async function getProfileAPI(
 ) {
   //search the personal information of given username from SQL database
   const personalInfo = await getPersonalInfoAPI(sqlDB, username);
-  if ('error' in personalInfo[0]) {
+  if ('error' in personalInfo) {
     return personalInfo;
   }
-  let playerName = personalInfo[0].name;
+  let playerName = personalInfo.name;
   //get the teams that given players has joined in
   const teams = await getTeamsAPI(sqlDB, queryClient, username);
   //get the information of all the training sessions of given players
@@ -39,17 +39,24 @@ export async function getProfileAPI(
   };
   homepageInfo.username = username;
   homepageInfo.name = playerName;
-  homepageInfo.email = personalInfo[0].email;
-  homepageInfo.dob = personalInfo[0].dob;
-  homepageInfo.nationality = personalInfo[0].nationality;
-  homepageInfo.height = personalInfo[0].height;
-  homepageInfo.weight = personalInfo[0].weight;
-  homepageInfo.role = personalInfo[0].role;
-  homepageInfo.team = teams;
+  homepageInfo.email = personalInfo.email;
+  homepageInfo.dob = personalInfo.dob;
+  homepageInfo.nationality = personalInfo.nationality;
+  homepageInfo.height = personalInfo.height;
+  homepageInfo.weight = personalInfo.weight;
+  homepageInfo.role = personalInfo.role;
 
-  await callBasedOnRole(sqlDB, username, () => {
-    homepageInfo.trainingSession = trainingSession;
-  });
+
+  await callBasedOnRole(sqlDB, username, 
+    () => {
+      homepageInfo.team = teams;
+      homepageInfo.trainingSession = trainingSession;
+    }, 
+    () => { 
+      homepageInfo.team = ['this is a coach'];
+      homepageInfo.trainingSession = ['this is a coach'];
+    },
+  );
   return homepageInfo;
 }
 
