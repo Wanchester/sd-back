@@ -9,8 +9,9 @@ import {
   SQLretrieve,
 } from './utils';
 import { resolve as pathResolve } from 'path';
-import { QueryApi } from '@influxdata/influxdb-client';
+import { consoleLogger, QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
+import { hasUncaughtExceptionCaptureCallback } from 'process';
 
 export async function getTeamsAPI(
   db: Database,
@@ -40,16 +41,34 @@ export async function getTeamsAPI(
     }
     return cleanedTeams;
   } else if (role == 'coach') {
-    const queryPlayerTeam = 'select teamName from TeamCoach where username = ?';
-    //const queryPlayerTeam = 'test exceptopn';
+    //const queryPlayerTeam = 'select teamName from TeamCoach where username = ?';
+    const queryPlayerTeam = 'test exceptopn';
+    // async function testFunction() {
+    //   db.get(queryPlayerTeam, [username], (err, row) => {
+    //     // process the row here 
+    //     if (err) {
+    //       //throw new Error('hehe');
+    //       console.log('haha');
+    //       return err;
+    //     } else {
+    //       console.log(row);
+    //     }
+    //   });
+    // }
     db.get(queryPlayerTeam, [username], (err, row) => {
       // process the row here 
       if (err) {
-        throw new Error('hehe');
+        //throw new Error('hehe');
+        console.log('haha');
+        return err;
       } else {
         console.log(row);
+        return row;
       }
     });
+    //const cleanedTeams = await testFunction();
+
+    
     // let teams; 
     //teams = await SQLretrieve(db, queryPlayerTeam, [username]);
     // console.log('haha');
@@ -59,6 +78,7 @@ export async function getTeamsAPI(
     //   cleanedTeams.push(teams[i].teamName);
     // }
     // return cleanedTeams;
+
   }
   
 
@@ -105,6 +125,7 @@ export default function bindGetTeams(
           return getTeamsAPI(db, queryClient, req.params.username);
         },
       )) as any[];
+      console.log(teamsAPI);
       res.send(teamsAPI);
     } catch (error) {
       res.send({

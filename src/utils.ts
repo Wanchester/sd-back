@@ -5,13 +5,43 @@ import { Database } from 'sqlite3';
 export const DEFAULT_USERNAME = 'warren';
 
 // function to retrieve information from SQL database
+// export const SQLretrieve = async (
+//   sqlDB: Database,
+//   query: string,
+//   params: any[] = [],
+// ) => {
+//   let data: any[] = [];
+//   await new Promise<void>((resolve) => {
+//     sqlDB.serialize(function () {
+//       let statement = sqlDB.prepare(query);
+//       statement.each(
+//         params,
+//         function (err: any, row: any) {
+//           if (err) {
+//             throw err;
+//           } else {
+//             data.push(row); //pushing rows into array
+//           }
+
+//         },
+//         function () {
+//           // calling function when all rows have been pulled
+//           resolve();
+//         },
+//       );
+//     });
+//   });
+//   return data;
+// };
+
+
 export const SQLretrieve = async (
   sqlDB: Database,
   query: string,
   params: any[] = [],
 ) => {
   let data: any[] = [];
-  await new Promise<void>((resolve) => {
+  await new Promise<void>((resolve, reject) => {
     sqlDB.serialize(function () {
       let statement = sqlDB.prepare(query);
       statement.each(
