@@ -41,22 +41,10 @@ export async function getTeamsAPI(
     }
     return cleanedTeams;
   } else if (role == 'coach') {
-    // const queryPlayerTeam = 'select teamName from TeamCoach where username = ?';
-    const queryPlayerTeam = 'test exceptopn';
-    // async function testFunction() {
-    //   db.get(queryPlayerTeam, [username], (err, row) => {
-    //     // process the row here 
-    //     if (err) {
-    //       //throw new Error('hehe');
-    //       console.log('haha');
-    //       return err;
-    //     } else {
-    //       console.log(row);
-    //     }
-    //   });
-    // }
-    const cleanedTeams = await new Promise<void>((resolve, reject) => {
-      db.get(queryPlayerTeam, [username], function (err, row) {
+    const queryPlayerTeam = 'select teamName from TeamCoach where username = ?';
+    // const queryPlayerTeam = 'test exception';
+    const teams = await new Promise<any>((resolve, reject) => {
+      db.all(queryPlayerTeam, [username], function (err, row) {
         // process the row here 
         if (err) {
           reject(err);
@@ -68,18 +56,12 @@ export async function getTeamsAPI(
       throw err;
     });
 
-    
-    // let teams; 
-    // teams = await SQLretrieve(db, queryPlayerTeam, [username]);
-    // const cleanedTeams: string[] = [];
-    // for (let i = 0; i < teams.length; i++) {
-    //   cleanedTeams.push(teams[i].teamName);
-    // }
+    const cleanedTeams: string[] = [];
+    for (let i = 0; i < teams.length; i++) {
+      cleanedTeams.push(teams[i].teamName);
+    }
     return cleanedTeams;
-
   }
-  
-
 }
 
 //API return points
