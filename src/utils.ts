@@ -4,37 +4,6 @@ import { Database } from 'sqlite3';
 
 export const DEFAULT_USERNAME = 'warren';
 
-// function to retrieve information from SQL database
-// export const SQLretrieve = async (
-//   sqlDB: Database,
-//   query: string,
-//   params: any[] = [],
-// ) => {
-//   let data: any[] = [];
-//   await new Promise<void>((resolve) => {
-//     sqlDB.serialize(function () {
-//       let statement = sqlDB.prepare(query);
-//       statement.each(
-//         params,
-//         function (err: any, row: any) {
-//           if (err) {
-//             throw err;
-//           } else {
-//             data.push(row); //pushing rows into array
-//           }
-
-//         },
-//         function () {
-//           // calling function when all rows have been pulled
-//           resolve();
-//         },
-//       );
-//     });
-//   });
-//   return data;
-// };
-
-
 export const SQLretrieve = async (
   sqlDB: Database,
   query: string,
@@ -56,7 +25,6 @@ export const SQLretrieve = async (
             reject(err);
           } else {
             data.push(row); //pushing rows into array
-            console.log('inside the row pushing: ' + row);
           }
         },
         function () {
@@ -69,23 +37,6 @@ export const SQLretrieve = async (
   return data;
 };
 
-
-// export const SQLretrieve = async (
-//   sqlDB: Database,
-//   query: string,
-//   params: any[] = [],
-// ) => {
-//   sqlDB.all( query, params, (err, results) => {
-//     if (err) {
-//       console.log(err);
-//     } else {
-//       // do something with results
-//       return result;
-//     }
-//   });
-// };
-
-
 export async function getPersonalInfoAPI(sqlDB: Database, username: string) {
   //search the player in the SQL
   const query = 'select * from user where username = ?';
@@ -97,31 +48,6 @@ export async function getPersonalInfoAPI(sqlDB: Database, username: string) {
   }
   return playerInfo[0];
 }
-
-
-// export async function getPersonalInfoAPI(sqlDB: Database, username: string) {
-//   //search the player in the SQL
-//   const query = 'select * from user where username = ?';
-//   let paramsLst = [username];
-//   let playerInfo = await SQLretrieve(sqlDB, query, paramsLst);
-
-//   if (playerInfo.length == 0) {
-//     throw new Error('e4041: Given username is not found');
-//   }
-//   //return playerInfo[0];
-
-//   sqlDB.get( query, paramsLst, (err, results) => {
-//     if (err) {
-//       console.log(err);
-//     } else {
-//       // do something with results
-//       if (results.length == 0) {
-//         throw new Error('e4041: Given username is not found');
-//       }
-//       return results;
-//     }
-//   });
-// }
 
 //function to run the InfluxDB query
 export const executeInflux = async (

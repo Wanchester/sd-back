@@ -13,7 +13,7 @@ import { consoleLogger, QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
 import { hasUncaughtExceptionCaptureCallback } from 'process';
 
-export async function getTeamsAPI(
+export async function getPlayerTeamsAPI(
   db: Database,
   queryClient: QueryApi,
   username: string,
@@ -40,7 +40,23 @@ export async function getTeamsAPI(
       cleanedTeams.push(teams[i]._measurement);
     }
     return cleanedTeams;
-  } else if (role == 'coach') {
+  } else {
+    throw new Error('cannot find a player with given username');
+  }
+}
+
+export async function getCoachTeamsAPI(
+  db: Database,
+  queryClient: QueryApi,
+  username: string,
+) {
+  //search the personal information of given username from SQL database
+  const personalInfo = await getPersonalInfoAPI(db, username);
+  if ('error' in personalInfo) {
+    return personalInfo;
+  }
+  const role = personalInfo.role; 
+  if (role == 'coach') {
     const queryPlayerTeam = 'select teamName from TeamCoach where username = ?';
     // const queryPlayerTeam = 'test exception';
     const teams = await new Promise<any>((resolve, reject) => {
@@ -60,6 +76,64 @@ export async function getTeamsAPI(
     for (let i = 0; i < teams.length; i++) {
       cleanedTeams.push(teams[i].teamName);
     }
+    return cleanedTeams;
+
+  } else {
+    throw new Error('cannot find a coach with given username');
+  }
+}
+
+export async function getTeamsAPI(
+  db: Database,
+  queryClient: QueryApi,
+  username: string,
+) {
+  //search the personal information of given username from SQL database
+  const personalInfo = await getPersonalInfoAPI(db, username);
+  if ('error' in personalInfo) {
+    return personalInfo;
+  }
+  const role = personalInfo.role; 
+  if (role == 'player') {
+    // const PLAYER = personalInfo.name;
+    // //get the teams that the given player joined in
+    // let queryPlayerTeam = readFileSync(
+    //   pathResolve(__dirname, '../../queries/players_teams.flux'),
+    //   { encoding: 'utf8' },
+    // );
+    // queryPlayerTeam = interpole(queryPlayerTeam, [PLAYER]);
+    // //queryPlayerTeam = 'test exception';
+    // const teams = await executeInflux(queryPlayerTeam, queryClient);
+    // const cleanedTeams: string[] = [];
+
+    // for (let i = 0; i < teams.length; i++) {
+    //   cleanedTeams.push(teams[i]._measurement);
+    // }
+    // return cleanedTeams;
+    const cleanedTeams = await getPlayerTeamsAPI(db, queryClient, username);
+    return cleanedTeams;
+  } else if (role == 'coach') {
+    // const queryPlayerTeam = 'select teamName from TeamCoach where username = ?';
+    // // const queryPlayerTeam = 'test exception';
+    // const teams = await new Promise<any>((resolve, reject) => {
+    //   db.all(queryPlayerTeam, [username], function (err, row) {
+    //     // process the row here 
+    //     if (err) {
+    //       reject(err);
+    //     } else {
+    //       resolve(row);
+    //     }
+    //   });
+    // }).catch(function (err) {
+    //   throw err;
+    // });
+
+    // const cleanedTeams: string[] = [];
+    // for (let i = 0; i < teams.length; i++) {
+    //   cleanedTeams.push(teams[i].teamName);
+    // }
+
+    const cleanedTeams = await getCoachTeamsAPI(db, queryClient, username);
     return cleanedTeams;
   }
 }
@@ -99,13 +173,15 @@ export default function bindGetTeams(
           throw new Error('You are not allowed to make the request');
         },
         async () => {
-          return getTeamsAPI(db, queryClient, req.params.username);
+          // the coach should only be able to see the teams of player
+          // return getPlayerTeamsAPI(db, queryClient, req.params.username);
+          // currently, the coach can see the teams of all players and coach for testing purpose 
+          return getPlayerTeamsAPI(db, queryClient, req.params.username);
         },
         async () => {
           return getTeamsAPI(db, queryClient, req.params.username);
         },
       )) as any[];
-      console.log(teamsAPI);
       res.send(teamsAPI);
     } catch (error) {
       res.send({
