@@ -41,7 +41,7 @@ export async function getTeamsAPI(
     }
     return cleanedTeams;
   } else if (role == 'coach') {
-    //const queryPlayerTeam = 'select teamName from TeamCoach where username = ?';
+    // const queryPlayerTeam = 'select teamName from TeamCoach where username = ?';
     const queryPlayerTeam = 'test exceptopn';
     // async function testFunction() {
     //   db.get(queryPlayerTeam, [username], (err, row) => {
@@ -55,29 +55,27 @@ export async function getTeamsAPI(
     //     }
     //   });
     // }
-    db.get(queryPlayerTeam, [username], (err, row) => {
-      // process the row here 
-      if (err) {
-        //throw new Error('hehe');
-        console.log('haha');
-        return err;
-      } else {
-        console.log(row);
-        return row;
-      }
+    const cleanedTeams = await new Promise<void>((resolve, reject) => {
+      db.get(queryPlayerTeam, [username], function (err, row) {
+        // process the row here 
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    }).catch(function (err) {
+      throw err;
     });
-    //const cleanedTeams = await testFunction();
 
     
     // let teams; 
-    //teams = await SQLretrieve(db, queryPlayerTeam, [username]);
-    // console.log('haha');
-    // console.log(teams);
+    // teams = await SQLretrieve(db, queryPlayerTeam, [username]);
     // const cleanedTeams: string[] = [];
     // for (let i = 0; i < teams.length; i++) {
     //   cleanedTeams.push(teams[i].teamName);
     // }
-    // return cleanedTeams;
+    return cleanedTeams;
 
   }
   

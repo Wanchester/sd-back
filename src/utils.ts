@@ -43,16 +43,21 @@ export const SQLretrieve = async (
   let data: any[] = [];
   await new Promise<void>((resolve, reject) => {
     sqlDB.serialize(function () {
-      let statement = sqlDB.prepare(query);
+      let statement = sqlDB.prepare(
+        query,
+        // this callback is used for error handling in SQL querry
+        function (err: any) {
+          if (err) { reject(err); }
+        });
       statement.each(
         params,
         function (err: any, row: any) {
           if (err) {
-            throw err;
+            reject(err);
           } else {
             data.push(row); //pushing rows into array
+            console.log('inside the row pushing: ' + row);
           }
-
         },
         function () {
           // calling function when all rows have been pulled
