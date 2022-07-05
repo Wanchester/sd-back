@@ -39,12 +39,10 @@ export async function getTrainingSessionsAPI(
     } as SessionResponseType;
     aSession.playerName = trainingSessions[i]['Player Name'];
     aSession.sessionName = trainingSessions[i].Session.split(' ')[0];
-    aSession.sessionDate = moment(trainingSessions[i]._time).format(
-      'DD-MM-YYYY',
-    );
-    aSession.sessionTime = moment(trainingSessions[i]._time).format('HH:MM');
+    aSession.sessionDate = moment(trainingSessions[i]._time).format('DD-MM-YYYY');     //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
+    aSession.sessionTime = moment(trainingSessions[i]._time).format('HH:mm');          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
     aSession.teamName = trainingSessions[i]._measurement;
-    aSession.duration = TimeFormat.fromS(trainingSessions[i].elapsed);
+    aSession.duration = TimeFormat.fromS(trainingSessions[i].elapsed, 'hh:mm:ss');     //hour:minutes:seconds.See https://github.com/Goldob/hh-mm-ss#supported-time-formats
     cleanedTrainingSessions.push(aSession);
   }
   return cleanedTrainingSessions;

@@ -52,7 +52,7 @@ export async function getProfileAPI(
     }, 
     async () => { 
       homepageInfo.team = await getCoachTeamsAPI(sqlDB, queryClient, username);
-      homepageInfo.trainingSession = ['this is a coach'];
+      homepageInfo.trainingSession = ['TODO: to be implemented'];
     },
   );
   return homepageInfo;
