@@ -1,6 +1,6 @@
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
-import { getTeamsAPI } from './team';
+import { getCoachTeamsAPI, getPlayerTeamsAPI, getTeamsAPI } from './team';
 import { getTrainingSessionsAPI } from './trainingSession';
 import { getPersonalInfoAPI, callBasedOnRole, DEFAULT_USERNAME } from './utils';
 import { Express } from 'express';
@@ -16,8 +16,6 @@ export async function getProfileAPI(
     return personalInfo;
   }
   let playerName = personalInfo.name;
-  //get the teams that given players has joined in
-  const teams = await getTeamsAPI(sqlDB, queryClient, username);
   //get the information of all the training sessions of given players
   const trainingSession = await getTrainingSessionsAPI(
     sqlDB,
@@ -48,12 +46,12 @@ export async function getProfileAPI(
 
 
   await callBasedOnRole(sqlDB, username, 
-    () => {
-      homepageInfo.team = teams;
+    async () => {
+      homepageInfo.team = await getPlayerTeamsAPI(sqlDB, queryClient, username);
       homepageInfo.trainingSession = trainingSession;
     }, 
-    () => { 
-      homepageInfo.team = ['this is a coach'];
+    async () => { 
+      homepageInfo.team = await getCoachTeamsAPI(sqlDB, queryClient, username);
       homepageInfo.trainingSession = ['this is a coach'];
     },
   );

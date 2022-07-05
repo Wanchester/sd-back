@@ -68,8 +68,6 @@ export async function getCoachTeamsAPI(
           resolve(row);
         }
       });
-    }).catch(function (err) {
-      throw err;
     });
 
     const cleanedTeams: string[] = [];
@@ -94,48 +92,13 @@ export async function getTeamsAPI(
     return personalInfo;
   }
   const role = personalInfo.role; 
+  let cleanedTeams: string[] = [];
   if (role == 'player') {
-    // const PLAYER = personalInfo.name;
-    // //get the teams that the given player joined in
-    // let queryPlayerTeam = readFileSync(
-    //   pathResolve(__dirname, '../../queries/players_teams.flux'),
-    //   { encoding: 'utf8' },
-    // );
-    // queryPlayerTeam = interpole(queryPlayerTeam, [PLAYER]);
-    // //queryPlayerTeam = 'test exception';
-    // const teams = await executeInflux(queryPlayerTeam, queryClient);
-    // const cleanedTeams: string[] = [];
-
-    // for (let i = 0; i < teams.length; i++) {
-    //   cleanedTeams.push(teams[i]._measurement);
-    // }
-    // return cleanedTeams;
-    const cleanedTeams = await getPlayerTeamsAPI(db, queryClient, username);
-    return cleanedTeams;
+    cleanedTeams = await getPlayerTeamsAPI(db, queryClient, username);
   } else if (role == 'coach') {
-    // const queryPlayerTeam = 'select teamName from TeamCoach where username = ?';
-    // // const queryPlayerTeam = 'test exception';
-    // const teams = await new Promise<any>((resolve, reject) => {
-    //   db.all(queryPlayerTeam, [username], function (err, row) {
-    //     // process the row here 
-    //     if (err) {
-    //       reject(err);
-    //     } else {
-    //       resolve(row);
-    //     }
-    //   });
-    // }).catch(function (err) {
-    //   throw err;
-    // });
-
-    // const cleanedTeams: string[] = [];
-    // for (let i = 0; i < teams.length; i++) {
-    //   cleanedTeams.push(teams[i].teamName);
-    // }
-
-    const cleanedTeams = await getCoachTeamsAPI(db, queryClient, username);
-    return cleanedTeams;
+    cleanedTeams = await getCoachTeamsAPI(db, queryClient, username);
   }
+  return cleanedTeams;
 }
 
 //API return points
@@ -164,12 +127,12 @@ export default function bindGetTeams(
   app.get('/teams/:username', async (req, res) => {
     try {
       // const sess = req.session;
-      let username = 'coach1'; // username will be set to the username from session variable when log in feature is implemented
+      let username = 'a_administrator'; // username will be set to the username from session variable when log in feature is implemented
       //right now, just let the username = 'coach1' so that it has the right to see the teams list of all players.
       let teamsAPI = (await callBasedOnRole(
         db,
         username!,
-        () => {
+        async () => {
           throw new Error('You are not allowed to make the request');
         },
         async () => {

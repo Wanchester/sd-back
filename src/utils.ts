@@ -2,7 +2,7 @@ import { QueryApi } from '@influxdata/influxdb-client';
 import { result } from 'lodash';
 import { Database } from 'sqlite3';
 
-export const DEFAULT_USERNAME = 'warren';
+export const DEFAULT_USERNAME = 'p_warren';
 
 export const SQLretrieve = async (
   sqlDB: Database,
