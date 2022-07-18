@@ -18,7 +18,7 @@ function assertHomepageResponse(homepage: any) {
   assert.isString(homepage.email);
   assert.isString(homepage.dob);
   assert.isString(homepage.nationality);
-  assert.isNumber(homepage.height);
+  assert.isString(homepage.height);
   assert.isNumber(homepage.weight);
   assert.oneOf(homepage.role, ['admin', 'coach', 'player']);
   assert.isArray(homepage.teams);
@@ -40,10 +40,11 @@ describe('Test Express server endpoints', () => {
   it('GET /profile endpoint', () => {
     request(app)
       .get('/profile')
-      .expect(200)
+      .expect(400)
       .expect('Content-Type', /json/)
       .expect((res) => {
         assertHomepageResponse(res.body);
+        throw new Error(JSON.stringify(res.body));
       });
   });
 

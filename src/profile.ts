@@ -1,9 +1,10 @@
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
-import { getCoachTeamsAPI, getPlayerTeamsAPI, getTeamsAPI } from './team';
+import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
 import { getTrainingSessionsAPI } from './trainingSession';
 import { getPersonalInfoAPI, callBasedOnRole, DEFAULT_USERNAME } from './utils';
 import { Express } from 'express';
+import { isPlainObject } from 'lodash';
 
 export async function getProfileAPI(
   sqlDB: Database,
@@ -40,7 +41,8 @@ export async function getProfileAPI(
   homepageInfo.email = personalInfo.email;
   homepageInfo.dob = personalInfo.dob;
   homepageInfo.nationality = personalInfo.nationality;
-  homepageInfo.height = personalInfo.height;
+  ///homepageInfo.height = personalInfo.height;
+  homepageInfo.height = 'astring' as any;
   homepageInfo.weight = personalInfo.weight;
   homepageInfo.role = personalInfo.role;
 
@@ -97,4 +99,25 @@ export default function bindGetProfile(
       console.error(error);
     }
   });
+
+  app.put('/profile', async (req, res) => {
+    try {
+      let newData = req.body;
+      if (isPlainObject(newData)) {
+        // update keys that exist in the object
+        console.log(newData);
+        res.send(newData);
+      } else {
+        throw new Error('PUT request expects a valid object.');
+      }
+    } catch (error) {
+      res.send({
+        error: (error as Error).message,
+        name: (error as Error).name,
+      });
+      console.error(error);
+    }
+  });
+
+
 }

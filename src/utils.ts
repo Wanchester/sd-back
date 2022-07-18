@@ -17,7 +17,8 @@ export const SQLretrieve = async (
         // this callback is used for error handling in SQL querry
         function (err: any) {
           if (err) { reject(err); }
-        });
+        },
+      );
       statement.each(
         params,
         function (err: any, row: any) {
