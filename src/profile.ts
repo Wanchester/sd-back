@@ -1,4 +1,4 @@
-import { QueryApi } from '@influxdata/influxdb-client';
+import { consoleLogger, QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
 import { getTrainingSessionsAPI } from './trainingSession';
@@ -105,7 +105,15 @@ export default function bindGetProfile(
       let newData = req.body;
       if (isPlainObject(newData)) {
         // update keys that exist in the object
-        console.log(newData);
+        let editable:string[] = [ 'email', 'dob', 'nationality', 'height', 'weight'];
+        for (let key in newData) {
+          if (editable.includes(key)) {
+            // TODO: update the new value
+            console.log(key, newData[key]);
+          } else {
+            throw new Error(`You are not allowed to edit the ${key} field`);
+          }
+        }
         res.send(newData);
       } else {
         throw new Error('PUT request expects a valid object.');
