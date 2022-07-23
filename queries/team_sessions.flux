@@ -1,0 +1,6 @@
+from(bucket: "test")
+    |>range(start: -3y)
+    |>filter(fn: (r) => r._measurement == ":0")
+	|>elapsed(columnName: "elapsed",timeColumn:"_time")
+    |>group(columns: ["Session"], mode: "by")
+    |>limit(n: 1)
