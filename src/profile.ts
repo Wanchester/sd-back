@@ -84,7 +84,8 @@ export async function getCoachProfileAPI(
     homepageInfo.weight = personalInfo.weight;
     homepageInfo.role = personalInfo.role;
     homepageInfo.teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
-    homepageInfo.trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username);
+    // homepageInfo.trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username);
+    homepageInfo.trainingSessions = ['TODO: to implement await getPlayerSessionsAPI(sqlDB, queryClient, username);'];
     return homepageInfo;
   } else {
     throw new Error('cannot find a coach with given username');
@@ -101,44 +102,63 @@ export async function getProfileAPI(
   if ('error' in personalInfo) {
     return personalInfo;
   }
-  let playerName = personalInfo.name;
-  //get the information of all the training sessions of given players
-  const trainingSession = await getTrainingSessionsAPI(sqlDB, queryClient, username);
-  //define the structure of the API that will be returned to frontend
-  const homepageInfo = {
-    username: '',
-    name: '',
-    email: '',
-    dob: '',
-    nationality: '',
-    height: 0,
-    weight: 0,
-    role: '',
-    teams: [''],
-    trainingSessions: [{}],
-  };
-  homepageInfo.username = username;
-  homepageInfo.name = playerName;
-  homepageInfo.email = personalInfo.email;
-  homepageInfo.dob = personalInfo.dob;
-  homepageInfo.nationality = personalInfo.nationality;
-  homepageInfo.height = personalInfo.height;
-  homepageInfo.weight = personalInfo.weight;
-  homepageInfo.role = personalInfo.role;
-
-
-  await callBasedOnRole(sqlDB, username, 
-    async () => {
-      homepageInfo.teams = await getPlayerTeamsAPI(sqlDB, queryClient, username);
-      homepageInfo.trainingSessions = trainingSession;
-    }, 
-    async () => { 
-      homepageInfo.teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
-      homepageInfo.trainingSessions = ['TODO: to be implemented'];
-    },
-  );
+  let homepageInfo: any[] = [];
+  if (personalInfo.role == 'player') {
+    homepageInfo = await getPlayerProfileAPI(sqlDB, queryClient, username);
+  } else if (personalInfo.role == 'coach') {
+    homepageInfo = await getCoachProfileAPI(sqlDB, queryClient, username);
+  }
   return homepageInfo;
 }
+
+// export async function getProfileAPI(
+//   sqlDB: Database,
+//   queryClient: QueryApi,
+//   username: string,
+// ) {
+//   //search the personal information of given username from SQL database
+//   const personalInfo = await getPersonalInfoAPI(sqlDB, username);
+//   if ('error' in personalInfo) {
+//     return personalInfo;
+//   }
+//   let playerName = personalInfo.name;
+//   //get the information of all the training sessions of given players
+//   const trainingSession = await getTrainingSessionsAPI(sqlDB, queryClient, username);
+//   //define the structure of the API that will be returned to frontend
+//   const homepageInfo = {
+//     username: '',
+//     name: '',
+//     email: '',
+//     dob: '',
+//     nationality: '',
+//     height: 0,
+//     weight: 0,
+//     role: '',
+//     teams: [''],
+//     trainingSessions: [{}],
+//   };
+//   homepageInfo.username = username;
+//   homepageInfo.name = playerName;
+//   homepageInfo.email = personalInfo.email;
+//   homepageInfo.dob = personalInfo.dob;
+//   homepageInfo.nationality = personalInfo.nationality;
+//   homepageInfo.height = personalInfo.height;
+//   homepageInfo.weight = personalInfo.weight;
+//   homepageInfo.role = personalInfo.role;
+
+
+//   await callBasedOnRole(sqlDB, username, 
+//     async () => {
+//       homepageInfo.teams = await getPlayerTeamsAPI(sqlDB, queryClient, username);
+//       homepageInfo.trainingSessions = trainingSession;
+//     }, 
+//     async () => { 
+//       homepageInfo.teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
+//       homepageInfo.trainingSessions = ['TODO: to be implemented'];
+//     },
+//   );
+//   return homepageInfo;
+// }
 
 export default function bindGetProfile(
   app: Express,
