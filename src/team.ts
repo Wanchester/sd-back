@@ -127,8 +127,11 @@ export default function bindGetTeams(
   app.get('/teams/:username', async (req, res) => {
     try {
       // const sess = req.session;
+      // let username = 'p_warren';
       let username = 'a_administrator'; // username will be set to the username from session variable when log in feature is implemented
-      //right now, just let the username = 'coach1' so that it has the right to see the teams list of all players.
+
+      //right now, just let the username = 'a_administrator' so that it has the right to see the teams list of all players.
+       
       let teamsAPI = (await callBasedOnRole(
         db,
         username!,

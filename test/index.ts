@@ -1,10 +1,10 @@
-import { assert } from 'chai';
+import { assert, expect } from 'chai';
 import startExpressServer from '../src';
 import request from 'supertest';
 
 function assertSessionResponse(session: any) {
   assert.isObject(session);
-  assert.isString(session.playerName);
+  assert.isString(session.sessionName);
   assert.isString(session.sessionDate);
   assert.isString(session.sessionTime);
   assert.isString(session.teamName);
@@ -18,7 +18,7 @@ function assertHomepageResponse(homepage: any) {
   assert.isString(homepage.email);
   assert.isString(homepage.dob);
   assert.isString(homepage.nationality);
-  assert.isString(homepage.height);
+  assert.isNumber(homepage.height);
   assert.isNumber(homepage.weight);
   assert.oneOf(homepage.role, ['admin', 'coach', 'player']);
   assert.isArray(homepage.teams);
@@ -37,35 +37,22 @@ function assertTeamResponse(team: any) {
 describe('Test Express server endpoints', () => {
   const app = startExpressServer();
 
-  it('GET /profile endpoint', () => {
-    request(app)
-      .get('/profile')
-      .expect(400)
-      .expect('Content-Type', /json/)
-      .expect((res) => {
-        assertHomepageResponse(res.body);
-        throw new Error(JSON.stringify(res.body));
-      });
+  it('GET /profile endpoint', async () => {
+    const res = await request(app).get('/profile');
+    expect(res.statusCode).to.equal(200);
+    assertHomepageResponse(res.body);
   });
 
-  it('GET /profile/:username endpoint', () => {
-    request(app)
-      .get('/profile/:username')
-      .expect(200)
-      .expect('Content-Type', /json/)
-      .expect((res) => {
-        assertHomepageResponse(res.body);
-      });
+  it('GET /profile/:username endpoint', async () => {
+    const res = await request(app).get('/profile/p_jbk');
+    expect(res.statusCode).to.equal(200);
+    assertHomepageResponse(res.body);
   });
 
-  it('GET /teams endpoint', () => {
-    request(app)
-      .get('/teams')
-      .expect(200)
-      .expect('Content-Type', /json/)
-      .expect((res) => {
-        assertTeamResponse(res.body);
-      });
+  it('GET /teams endpoint', async () => {
+    const res = await request(app).get('/teams');
+    expect(res.statusCode).to.equal(200);
+    assertTeamResponse(res.body);
   });
 
 });

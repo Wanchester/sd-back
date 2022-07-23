@@ -5,6 +5,91 @@ import { getTrainingSessionsAPI } from './trainingSession';
 import { getPersonalInfoAPI, callBasedOnRole, DEFAULT_USERNAME } from './utils';
 import { Express } from 'express';
 import { isPlainObject } from 'lodash';
+import { updateTable, userEditTable} from './editTable';
+
+//TODO: getPlayerProfileAPI
+//TODO: getCoachProfileAPI
+//TODO: fix getProfileAPI
+
+export async function getPlayerProfileAPI(
+  sqlDB: Database,
+  queryClient: QueryApi,
+  username: string,
+) {
+  //search the personal information of given username from SQL database
+  const personalInfo = await getPersonalInfoAPI(sqlDB, username);
+  if ('error' in personalInfo) {
+    return personalInfo;
+  }
+  if (personalInfo.role == 'player') {
+    //define the structure of the API that will be returned to frontend
+    const homepageInfo = {
+      username: '',
+      name: '',
+      email: '',
+      dob: '',
+      nationality: '',
+      height: 0,
+      weight: 0,
+      role: '',
+      teams: [''],
+      trainingSessions: [{}],
+    };
+    homepageInfo.username = username;
+    homepageInfo.name = personalInfo.name;
+    homepageInfo.email = personalInfo.email;
+    homepageInfo.dob = personalInfo.dob;
+    homepageInfo.nationality = personalInfo.nationality;
+    homepageInfo.height = personalInfo.height;
+    homepageInfo.weight = personalInfo.weight;
+    homepageInfo.role = personalInfo.role;
+    homepageInfo.teams = await getPlayerTeamsAPI(sqlDB, queryClient, username);
+    homepageInfo.trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username);
+    return homepageInfo;
+  } else {
+    throw new Error('cannot find a player with given username');
+  }
+}
+
+export async function getCoachProfileAPI(
+  sqlDB: Database,
+  queryClient: QueryApi,
+  username: string,
+) {
+  //search the personal information of given username from SQL database
+  const personalInfo = await getPersonalInfoAPI(sqlDB, username);
+  if ('error' in personalInfo) {
+    return personalInfo;
+  }
+  if (personalInfo.role == 'coach') {
+    //define the structure of the API that will be returned to frontend
+    const homepageInfo = {
+      username: '',
+      name: '',
+      email: '',
+      dob: '',
+      nationality: '',
+      height: 0,
+      weight: 0,
+      role: '',
+      teams: [''],
+      trainingSessions: [{}],
+    };
+    homepageInfo.username = username;
+    homepageInfo.name = personalInfo.name;
+    homepageInfo.email = personalInfo.email;
+    homepageInfo.dob = personalInfo.dob;
+    homepageInfo.nationality = personalInfo.nationality;
+    homepageInfo.height = personalInfo.height;
+    homepageInfo.weight = personalInfo.weight;
+    homepageInfo.role = personalInfo.role;
+    homepageInfo.teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
+    homepageInfo.trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username);
+    return homepageInfo;
+  } else {
+    throw new Error('cannot find a coach with given username');
+  }
+}
 
 export async function getProfileAPI(
   sqlDB: Database,
@@ -18,11 +103,7 @@ export async function getProfileAPI(
   }
   let playerName = personalInfo.name;
   //get the information of all the training sessions of given players
-  const trainingSession = await getTrainingSessionsAPI(
-    sqlDB,
-    queryClient,
-    username,
-  );
+  const trainingSession = await getTrainingSessionsAPI(sqlDB, queryClient, username);
   //define the structure of the API that will be returned to frontend
   const homepageInfo = {
     username: '',
@@ -33,28 +114,27 @@ export async function getProfileAPI(
     height: 0,
     weight: 0,
     role: '',
-    team: [''],
-    trainingSession: [{}],
+    teams: [''],
+    trainingSessions: [{}],
   };
   homepageInfo.username = username;
   homepageInfo.name = playerName;
   homepageInfo.email = personalInfo.email;
   homepageInfo.dob = personalInfo.dob;
   homepageInfo.nationality = personalInfo.nationality;
-  ///homepageInfo.height = personalInfo.height;
-  homepageInfo.height = 'astring' as any;
+  homepageInfo.height = personalInfo.height;
   homepageInfo.weight = personalInfo.weight;
   homepageInfo.role = personalInfo.role;
 
 
   await callBasedOnRole(sqlDB, username, 
     async () => {
-      homepageInfo.team = await getPlayerTeamsAPI(sqlDB, queryClient, username);
-      homepageInfo.trainingSession = trainingSession;
+      homepageInfo.teams = await getPlayerTeamsAPI(sqlDB, queryClient, username);
+      homepageInfo.trainingSessions = trainingSession;
     }, 
     async () => { 
-      homepageInfo.team = await getCoachTeamsAPI(sqlDB, queryClient, username);
-      homepageInfo.trainingSession = ['TODO: to be implemented'];
+      homepageInfo.teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
+      homepageInfo.trainingSessions = ['TODO: to be implemented'];
     },
   );
   return homepageInfo;
@@ -88,9 +168,29 @@ export default function bindGetProfile(
 
   app.get('/profile/:username', async (req, res) => {
     try {
-      let username = req.params.username;
-      let homepageAPI = await getProfileAPI(db, queryClient, username);
+      let loggedInUsername = 'a_administrator';
+      // let username = req.params.username;
+      // let homepageAPI = await getProfileAPI(db, queryClient, username);
+      let homepageAPI = (await callBasedOnRole(
+        db,
+        loggedInUsername!,
+        async () => {
+          throw new Error('You are not allowed to make the request');
+        },
+        async () => {
+          // the coach should only be able to see the profile of player
+          // TODO: validate if the queried players is a member of that coach. 
+          // return getPlayerProfileAPI(db, queryClient, req.params.username);
+          // currently, the coach can see the profile of all players for testing purpose 
+          return getPlayerProfileAPI(db, queryClient, req.params.username);
+        },
+        async () => {
+          // this function will return the profile given username, does matter if querried username is player or coach
+          return getProfileAPI(db, queryClient, req.params.username); 
+        },
+      )) as any[];
       res.send(homepageAPI);
+
     } catch (error) {
       res.send({
         error: (error as Error).message,
@@ -106,10 +206,11 @@ export default function bindGetProfile(
       if (isPlainObject(newData)) {
         // update keys that exist in the object
         let editable:string[] = [ 'email', 'dob', 'nationality', 'height', 'weight'];
-        for (let key in newData) {
-          if (editable.includes(key)) {
+        for (let key in newData) {  // loop through all the keys provided by the frontend
+          if (editable.includes(key)) { // if the provided key is editable
             // TODO: update the new value
             console.log(key, newData[key]);
+            userEditTable(key, newData[key], DEFAULT_USERNAME);
           } else {
             throw new Error(`You are not allowed to edit the ${key} field`);
           }
@@ -126,6 +227,4 @@ export default function bindGetProfile(
       console.error(error);
     }
   });
-
-
 }
