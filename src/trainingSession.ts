@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import moment from 'moment';
 import { Database } from 'sqlite3';
 import interpole from 'string-interpolation-js';
-import { getPersonalInfoAPI, executeInflux, DEFAULT_USERNAME, callBasedOnRole } from './utils';
+import { getPersonalInfoAPI, executeInflux, DEFAULT_USERNAME, callBasedOnRole, getCommonTeams } from './utils';
 import { resolve as pathResolve } from 'path';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
@@ -194,20 +194,26 @@ export default function bindGetTrainingSessions(
 
   app.get('/trainingSessions/:username', async (req, res) => {
     try {
-      let username = 'a_administrator'; // username will be set to the username from session variable when log in feature is implemented
+      // let loggedInUsername = 'a_administrator'; // username will be set to the username from session variable when log in feature is implemented
+      let loggedInUsername = 'c_coach1';
       // let username = req.params.us
       //right now, just let the username = 'a_administrator' so that it has the right to see the teams list of all players.
        
       let trainingSessionsAPI = (await callBasedOnRole(
         db,
-        username!,
+        loggedInUsername!,
         async () => {
           throw new Error('You are not allowed to make the request');
         },
         async () => {
           // the coach should only be able to see the training sessions of player
           // currently, the coach can see the training sessions of all players and coach for testing purpose 
-          return getPlayerTrainingSessionsAPI(db, queryClient, req.params.username);
+          let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername, req.params.username);
+          if (commonTeams.length !== 0) {
+            return getPlayerTrainingSessionsAPI(db, queryClient, req.params.username);
+          } else {
+            throw new Error('Cannot find the input username in your teams');
+          }
         },
         async () => {
           return getTrainingSessionsAPI(db, queryClient, req.params.username);

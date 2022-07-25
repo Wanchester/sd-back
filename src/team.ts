@@ -7,6 +7,7 @@ import {
   DEFAULT_USERNAME,
   callBasedOnRole,
   SQLretrieve,
+  getCommonTeams,
 } from './utils';
 import { resolve as pathResolve } from 'path';
 import { consoleLogger, QueryApi } from '@influxdata/influxdb-client';
@@ -128,13 +129,12 @@ export default function bindGetTeams(
     try {
       // const sess = req.session;
       // let username = 'p_warren';
-      let username = 'a_administrator'; // username will be set to the username from session variable when log in feature is implemented
-
+      let loggedInUsername = 'a_administrator'; // username will be set to the username from session variable when log in feature is implemented
       //right now, just let the username = 'a_administrator' so that it has the right to see the teams list of all players.
        
       let teamsAPI = (await callBasedOnRole(
         db,
-        username!,
+        loggedInUsername!,
         async () => {
           throw new Error('You are not allowed to make the request');
         },
@@ -142,7 +142,12 @@ export default function bindGetTeams(
           // the coach should only be able to see the teams of player
           // return getPlayerTeamsAPI(db, queryClient, req.params.username);
           // currently, the coach can see the teams of all players and coach for testing purpose 
-          return getPlayerTeamsAPI(db, queryClient, req.params.username);
+          let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername, req.params.username);
+          if (commonTeams.length !== 0) {
+            return getPlayerTeamsAPI(db, queryClient, req.params.username);
+          } else {
+            throw new Error('Cannot find the input username in your team');
+          }
         },
         async () => {
           return getTeamsAPI(db, queryClient, req.params.username);

@@ -2,7 +2,7 @@ import { consoleLogger, QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
 import { getCoachTrainingSessionsAPI, getTrainingSessionsAPI } from './trainingSession';
-import { getPersonalInfoAPI, callBasedOnRole, DEFAULT_USERNAME, hasCommonTeams } from './utils';
+import { getPersonalInfoAPI, callBasedOnRole, DEFAULT_USERNAME, hasCommonTeams, getCommonTeams } from './utils';
 import { Express } from 'express';
 import { isPlainObject } from 'lodash';
 import { updateTable, userEditTable} from './editTable';
@@ -151,8 +151,12 @@ export default function bindGetProfile(
           // TODO: validate if the queried players is a member of that coach. 
           // return getPlayerProfileAPI(db, queryClient, req.params.username);
           // currently, the coach can see the profile of all players for testing purpose
-          await hasCommonTeams( db, queryClient, loggedInUsername, req.params.username);
-          // return getPlayerProfileAPI(db, queryClient, req.params.username);
+          let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername, req.params.username);
+          if (commonTeams.length !== 0) {
+            return getPlayerProfileAPI(db, queryClient, req.params.username);
+          } else {
+            throw new Error('Cannot find the input username in your teams');
+          }
         },
         async () => {
           // this function will return the profile given username, does matter if querried username is player or coach
