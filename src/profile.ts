@@ -2,7 +2,7 @@ import { consoleLogger, QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
 import { getCoachTrainingSessionsAPI, getTrainingSessionsAPI } from './trainingSession';
-import { getPersonalInfoAPI, callBasedOnRole, DEFAULT_USERNAME } from './utils';
+import { getPersonalInfoAPI, callBasedOnRole, DEFAULT_USERNAME, hasCommonTeams } from './utils';
 import { Express } from 'express';
 import { isPlainObject } from 'lodash';
 import { updateTable, userEditTable} from './editTable';
@@ -135,7 +135,9 @@ export default function bindGetProfile(
 
   app.get('/profile/:username', async (req, res) => {
     try {
-      let loggedInUsername = 'a_administrator';
+      // let loggedInUsername = 'p_jbk';
+      let loggedInUsername = 'c_coach1';
+      // let loggedInUsername = 'a_administrator';
       // let username = req.params.username;
       // let homepageAPI = await getProfileAPI(db, queryClient, username);
       let homepageAPI = (await callBasedOnRole(
@@ -148,8 +150,9 @@ export default function bindGetProfile(
           // the coach should only be able to see the profile of player
           // TODO: validate if the queried players is a member of that coach. 
           // return getPlayerProfileAPI(db, queryClient, req.params.username);
-          // currently, the coach can see the profile of all players for testing purpose 
-          return getPlayerProfileAPI(db, queryClient, req.params.username);
+          // currently, the coach can see the profile of all players for testing purpose
+          await hasCommonTeams( db, queryClient, loggedInUsername, req.params.username);
+          // return getPlayerProfileAPI(db, queryClient, req.params.username);
         },
         async () => {
           // this function will return the profile given username, does matter if querried username is player or coach

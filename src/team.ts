@@ -24,7 +24,7 @@ export async function getPlayerTeamsAPI(
     return personalInfo;
   }
   const role = personalInfo.role; 
-  if (role == 'player') {
+  if (role === 'player') {
     const PLAYER = personalInfo.name;
     //get the teams that the given player joined in
     let queryPlayerTeam = readFileSync(
@@ -41,7 +41,7 @@ export async function getPlayerTeamsAPI(
     }
     return cleanedTeams;
   } else {
-    throw new Error('cannot find a player with given username');
+    throw new Error('cannot find a player with given username: ' + username);
   }
 }
 

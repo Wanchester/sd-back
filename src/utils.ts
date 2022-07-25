@@ -1,6 +1,7 @@
 import { QueryApi } from '@influxdata/influxdb-client';
 import { result } from 'lodash';
 import { Database } from 'sqlite3';
+import { getCoachTeamsAPI, getPlayerTeamsAPI, getTeamsAPI } from './team';
 
 export const DEFAULT_USERNAME = 'p_warren';
 
@@ -103,5 +104,40 @@ export async function callBasedOnRole<
       return ifCoach?.apply(null, paramList!);
     case 'admin':
       return ifAdmin?.apply(null, paramList!);
+  }
+}
+
+export async function hasCommonTeams( sqlDB:Database, queryClient: QueryApi, username1: string, username2: string): Promise<boolean> {
+  let personalInfo1 = await getPersonalInfoAPI(sqlDB, username1);
+  let personalInfo2 = await getPersonalInfoAPI(sqlDB, username2);
+  
+  let teams1: string[] = [];
+  if (personalInfo1.role == 'player') {
+    console.log('1st username is player');
+    teams1 = await getPlayerTeamsAPI(sqlDB, queryClient, username1 );
+  } else if (personalInfo1.role == 'coach') {
+    console.log('1st username is coach');
+    teams1 = await getCoachTeamsAPI(sqlDB, queryClient, username1 );
+  } else {
+    throw new Error('the 1st input username is not a player or a coach');
+  }
+  
+  let teams2: string[] = [];
+  if (personalInfo2.role == 'player') {
+    console.log('2nd username is player');
+    teams2 = await getPlayerTeamsAPI(sqlDB, queryClient, username2 );
+  } else if (personalInfo2.role == 'coach') {
+    console.log('2nd username is coach');
+    teams2 = await getCoachTeamsAPI(sqlDB, queryClient, username2 );
+  } else {
+    throw new Error('the 2nd input username is not a player or a coach');
+  }
+  
+  let commonTeams = teams1.filter(value => teams2.includes(value));
+  console.log(commonTeams);
+  if (commonTeams.length !== 0) {
+    return true;
+  } else {
+    return false;
   }
 }
