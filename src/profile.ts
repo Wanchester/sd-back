@@ -107,9 +107,28 @@ export async function getProfileAPI(
   return homepageInfo;
 }
 
+export async function putPlayerProfileAPI(sqlDB: Database, queryClient: QueryApi, username: string, newData: any[]) {
+  if (isPlainObject(newData)) {
+    // update keys that exist in the object
+    let editable:string[] = [ 'email', 'dob', 'nationality', 'height', 'weight'];
+    for (let key in newData) { // loop through all the keys provided by the frontend
+      if (editable.includes(key)) { // if the provided key is editable
+        // TODO: update the new value
+        console.log(key, newData[key]);
+        userEditTable(key, newData[key], DEFAULT_USERNAME);
+      } else {
+        throw new Error(`You are not allowed to edit the ${key} field`);
+      }
+    }
+    return newData;
+  } else {
+    throw new Error('PUT request expects a valid object.');
+  }
+}
+
 export default function bindGetProfile(
   app: Express,
-  db: Database,
+  sqlDB: Database,
   queryClient: QueryApi,
 ) {
   app.get('/profile', async (req, res) => {
@@ -122,7 +141,7 @@ export default function bindGetProfile(
       // let username = sess.username;
       let username = DEFAULT_USERNAME;
 
-      let homepageAPI = await getProfileAPI(db, queryClient, username);
+      let homepageAPI = await getProfileAPI(sqlDB, queryClient, username);
       res.send(homepageAPI);
     } catch (error) {
       res.send({
@@ -141,7 +160,7 @@ export default function bindGetProfile(
       // let username = req.params.username;
       // let homepageAPI = await getProfileAPI(db, queryClient, username);
       let homepageAPI = (await callBasedOnRole(
-        db,
+        sqlDB,
         loggedInUsername!,
         async () => {
           throw new Error('You are not allowed to make the request');
@@ -151,16 +170,16 @@ export default function bindGetProfile(
           // TODO: validate if the queried players is a member of that coach. 
           // return getPlayerProfileAPI(db, queryClient, req.params.username);
           // currently, the coach can see the profile of all players for testing purpose
-          let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername, req.params.username);
+          let commonTeams = await getCommonTeams( sqlDB, queryClient, loggedInUsername, req.params.username);
           if (commonTeams.length !== 0) {
-            return getPlayerProfileAPI(db, queryClient, req.params.username);
+            return getPlayerProfileAPI(sqlDB, queryClient, req.params.username);
           } else {
             throw new Error('Cannot find the input username in your teams');
           }
         },
         async () => {
           // this function will return the profile given username, does matter if querried username is player or coach
-          return getProfileAPI(db, queryClient, req.params.username); 
+          return getProfileAPI(sqlDB, queryClient, req.params.username); 
         },
       )) as any[];
       res.send(homepageAPI);
@@ -174,25 +193,40 @@ export default function bindGetProfile(
     }
   });
 
+  // app.put('/profile', async (req, res) => {
+  //   try {
+  //     let newData = req.body;
+  //     if (isPlainObject(newData)) {
+  //       // update keys that exist in the object
+  //       let editable:string[] = [ 'email', 'dob', 'nationality', 'height', 'weight'];
+  //       for (let key in newData) { // loop through all the keys provided by the frontend
+  //         if (editable.includes(key)) { // if the provided key is editable
+  //           // TODO: update the new value
+  //           console.log(key, newData[key]);
+  //           userEditTable(key, newData[key], DEFAULT_USERNAME);
+  //         } else {
+  //           throw new Error(`You are not allowed to edit the ${key} field`);
+  //         }
+  //       }
+  //       res.send(newData);
+  //     } else {
+  //       throw new Error('PUT request expects a valid object.');
+  //     }
+  //   } catch (error) {
+  //     res.send({
+  //       error: (error as Error).message,
+  //       name: (error as Error).name,
+  //     });
+  //     console.error(error);
+  //   }
+  // });
+
   app.put('/profile', async (req, res) => {
     try {
+      let logginUsername = DEFAULT_USERNAME;
       let newData = req.body;
-      if (isPlainObject(newData)) {
-        // update keys that exist in the object
-        let editable:string[] = [ 'email', 'dob', 'nationality', 'height', 'weight'];
-        for (let key in newData) {  // loop through all the keys provided by the frontend
-          if (editable.includes(key)) { // if the provided key is editable
-            // TODO: update the new value
-            console.log(key, newData[key]);
-            userEditTable(key, newData[key], DEFAULT_USERNAME);
-          } else {
-            throw new Error(`You are not allowed to edit the ${key} field`);
-          }
-        }
-        res.send(newData);
-      } else {
-        throw new Error('PUT request expects a valid object.');
-      }
+      let putData = await putPlayerProfileAPI(sqlDB, queryClient, logginUsername, newData);
+      res.send(putData);
     } catch (error) {
       res.send({
         error: (error as Error).message,
@@ -201,4 +235,51 @@ export default function bindGetProfile(
       console.error(error);
     }
   });
+
+  app.put('/profile/:username', async (req, res) => {
+    try {
+      let logginUsername = DEFAULT_USERNAME;
+      let newData = req.body;
+      let putData = await putPlayerProfileAPI(sqlDB, queryClient, logginUsername, newData);
+      res.send(putData);
+      // let loggedInUsername = 'p_jbk';
+      let loggedInUsername = 'c_coach1';
+      // let loggedInUsername = 'a_administrator';
+      // let username = req.params.username;
+      // let homepageAPI = await getProfileAPI(db, queryClient, username);
+      let homepageAPI = (await callBasedOnRole(
+        sqlDB,
+        loggedInUsername!,
+        async () => {
+          throw new Error('You are not allowed to make the request');
+        },
+        async () => {
+          // the coach should only be able to see the profile of player
+          // TODO: validate if the queried players is a member of that coach. 
+          // return getPlayerProfileAPI(db, queryClient, req.params.username);
+          // currently, the coach can see the profile of all players for testing purpose
+          let commonTeams = await getCommonTeams( sqlDB, queryClient, loggedInUsername, req.params.username);
+          if (commonTeams.length !== 0) {
+            return putPlayerProfileAPI(sqlDB, queryClient, req.params.username);
+          } else {
+            throw new Error('Cannot find the input username in your teams');
+          }
+        },
+        async () => {
+          // this function will return the profile given username, does matter if querried username is player or coach
+          return putProfileAPI(sqlDB, queryClient, req.params.username); 
+        },
+      )) as any[];
+      res.send(homepageAPI);
+
+
+    } catch (error) {
+      res.send({
+        error: (error as Error).message,
+        name: (error as Error).name,
+      });
+      console.error(error);
+    }
+  });
+
 }
