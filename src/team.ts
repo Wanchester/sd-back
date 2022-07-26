@@ -5,14 +5,12 @@ import {
   getPersonalInfoAPI,
   executeInflux,
   callBasedOnRole,
-  SQLretrieve,
   getCommonTeams,
   CURRENTLY_LOGGED_IN,
 } from './utils';
 import { resolve as pathResolve } from 'path';
-import { consoleLogger, QueryApi } from '@influxdata/influxdb-client';
+import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
-import { hasUncaughtExceptionCaptureCallback } from 'process';
 
 export async function getPlayerTeamsAPI(
   db: Database,
