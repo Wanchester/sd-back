@@ -32,7 +32,7 @@ let coachList = [
 
 let teamList = [ 
   'TeamBit',
-  'TeamWanchester',
+  'Team Wanchester',
   'Team3',
 ];
 
@@ -87,7 +87,8 @@ db.serialize(() => {
             teamID    INT NOT NULL, 
             username  TEXT NOT NULL
     )`);
-            //FOREIGN KEY (username) REFERENCES User(username)
+  //following makes coach unique
+  //FOREIGN KEY (username) REFERENCES User(username)
   
   //prepare users
   for (let n of nameList) {

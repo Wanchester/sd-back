@@ -63,8 +63,5 @@ function quicktest() {
   updateTable('user', 'nationality', 'EDITED', 'c_coach1');
   userEditTable('email', 'TESTTESTESTETSETSETSETSE', 'p_warren');
   coachEditTable('nationality', 'EDIT 2!', 'c_coach1', 'c_coach1');
-
-  //must fail
-  //coachEditTable("teamID", "astring", "c_coach1");
 }
-quicktest();
+//quicktest();
