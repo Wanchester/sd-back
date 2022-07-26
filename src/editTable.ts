@@ -4,6 +4,7 @@ const sqlite3 = require('sqlite3').verbose();
 const db: sqlite.Database = new sqlite3.Database('test.db');
 
 function sanitize(input: string) :string {
+  if (typeof input === 'number') {return input;}
   let hasComment = input.includes('--');
   return ([...input].filter( (c) => {
     return (
