@@ -6,7 +6,7 @@ import console from 'console';
 import sqlite3 from 'sqlite3';
 import bindGetTeams from './team';
 import bindGetTrainingSessions from './trainingSession';
-import bindGetProfile from './profile';
+import bindGetProfile, { bindPutProfile } from './profile';
 import 'dotenv/config';
 
 declare module 'express-session' {
@@ -42,6 +42,8 @@ function startExpressServer() {
   bindGetTrainingSessions(app, db, queryClient);
   bindGetProfile(app, db, queryClient);
 
+  // PUT requests
+  bindPutProfile(app, db, queryClient);
   app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
   });

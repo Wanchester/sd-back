@@ -65,7 +65,7 @@ var coachList = [
     'Coach2',
 ];
 var teamList = [
-    'Teambit',
+    'TeamBit',
     'TeamWanchester',
     'Team3',
 ];

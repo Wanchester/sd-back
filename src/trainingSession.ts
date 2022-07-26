@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import moment from 'moment';
 import { Database } from 'sqlite3';
 import interpole from 'string-interpolation-js';
-import { getPersonalInfoAPI, executeInflux, DEFAULT_USERNAME, callBasedOnRole, getCommonTeams } from './utils';
+import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams, CURRENTLY_LOGGED_IN } from './utils';
 import { resolve as pathResolve } from 'path';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
@@ -175,7 +175,7 @@ export default function bindGetTrainingSessions(
     try {
       // const sess = req.session;
       // let username = sess.username;
-      let username = DEFAULT_USERNAME;
+      let username = CURRENTLY_LOGGED_IN;
 
       let trainingSessionsAPI = await getTrainingSessionsAPI(
         db,
@@ -195,7 +195,7 @@ export default function bindGetTrainingSessions(
   app.get('/trainingSessions/:username', async (req, res) => {
     try {
       // let loggedInUsername = 'a_administrator'; // username will be set to the username from session variable when log in feature is implemented
-      let loggedInUsername = 'c_coach1';
+      let loggedInUsername = CURRENTLY_LOGGED_IN;
       // let username = req.params.us
       //right now, just let the username = 'a_administrator' so that it has the right to see the teams list of all players.
        

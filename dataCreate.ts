@@ -31,7 +31,7 @@ let coachList = [
 ];
 
 let teamList = [ 
-  'Teambit',
+  'TeamBit',
   'TeamWanchester',
   'Team3',
 ];

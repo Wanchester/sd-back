@@ -2,7 +2,7 @@ import { consoleLogger, QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
 import { getCoachTrainingSessionsAPI, getTrainingSessionsAPI } from './trainingSession';
-import { getPersonalInfoAPI, callBasedOnRole, DEFAULT_USERNAME, hasCommonTeams, getCommonTeams } from './utils';
+import { getPersonalInfoAPI, callBasedOnRole, hasCommonTeams, getCommonTeams, DEFAULT_COACH, CURRENTLY_LOGGED_IN } from './utils';
 import { Express } from 'express';
 import { isPlainObject } from 'lodash';
 import { updateTable, userEditTable} from './editTable';
@@ -103,6 +103,8 @@ export async function getProfileAPI(
     homepageInfo = await getPlayerProfileAPI(sqlDB, queryClient, username);
   } else if (personalInfo.role == 'coach') {
     homepageInfo = await getCoachProfileAPI(sqlDB, queryClient, username);
+  } else if (personalInfo.role == 'admin') {
+    homepageInfo = ['TODO: admin profile, to be implemented'];
   }
   return homepageInfo;
 }
@@ -118,9 +120,8 @@ export async function putPlayerProfileAPI(sqlDB: Database, queryClient: QueryApi
     let editable:string[] = [ 'email', 'dob', 'nationality', 'height', 'weight'];
     for (let key in newData) { // loop through all the keys provided by the frontend
       if (editable.includes(key)) { // if the provided key is editable
-        // TODO: update the new value
-        console.log(key, newData[key]);
-        userEditTable(key, newData[key], DEFAULT_USERNAME);
+        // update the new value
+        userEditTable(key, newData[key], CURRENTLY_LOGGED_IN);
       } else {
         throw new Error(`You are not allowed to edit the ${key} field`);
       }
@@ -142,9 +143,8 @@ export async function putCoachProfileAPI(sqlDB: Database, queryClient: QueryApi,
     let editable:string[] = [ 'email', 'dob', 'nationality', 'height', 'weight'];
     for (let key in newData) { // loop through all the keys provided by the frontend
       if (editable.includes(key)) { // if the provided key is editable
-        // TODO: update the new value
-        console.log(key, newData[key]);
-        userEditTable(key, newData[key], DEFAULT_USERNAME);
+        // update the new value
+        userEditTable(key, newData[key], CURRENTLY_LOGGED_IN);
       } else {
         throw new Error(`You are not allowed to edit the ${key} field`);
       }
@@ -158,9 +158,9 @@ export async function putCoachProfileAPI(sqlDB: Database, queryClient: QueryApi,
 export async function putProfileAPI(sqlDB: Database, queryClient: QueryApi, username: string, newData: any[]) {
   let personalInfo = await getPersonalInfoAPI(sqlDB, username);
   let returnedData: any[] = [];
-  if (personalInfo.role !== 'player') {
+  if (personalInfo.role === 'player') {
     returnedData = await putPlayerProfileAPI(sqlDB, queryClient, username, newData);
-  } else if (personalInfo.role !== 'coach') {
+  } else if (personalInfo.role === 'coach') {
     returnedData = await putCoachProfileAPI(sqlDB, queryClient, username, newData);
   } else {
     throw new Error('Cannot edit personal information because given username it not player or coach');
@@ -181,7 +181,7 @@ export default function bindGetProfile(
     try {
       // const sess = req.session;
       // let username = sess.username;
-      let username = DEFAULT_USERNAME;
+      let username = CURRENTLY_LOGGED_IN;
 
       let homepageAPI = await getProfileAPI(sqlDB, queryClient, username);
       res.send(homepageAPI);
@@ -198,7 +198,8 @@ export default function bindGetProfile(
     try {
       // let loggedInUsername = 'p_jbk';
       // let loggedInUsername = 'c_coach1';
-      let loggedInUsername = 'a_administrator';
+      // let loggedInUsername = 'a_administrator';
+      let loggedInUsername = CURRENTLY_LOGGED_IN;
       // let username = req.params.username;
       // let homepageAPI = await getProfileAPI(db, queryClient, username);
       let homepageAPI = (await callBasedOnRole(
@@ -263,20 +264,20 @@ export default function bindGetProfile(
   //   }
   // });
 
-  app.put('/profile', async (req, res) => {
-    try {
-      let logginUsername = DEFAULT_USERNAME;
-      let newData = req.body;
-      let putData = await putPlayerProfileAPI(sqlDB, queryClient, logginUsername, newData);
-      res.send(putData);
-    } catch (error) {
-      res.send({
-        error: (error as Error).message,
-        name: (error as Error).name,
-      });
-      console.error(error);
-    }
-  });
+  // app.put('/profile', async (req, res) => {
+  //   try {
+  //     let logginUsername = CURRENTLY_LOGGED_IN;
+  //     let newData = req.body;
+  //     let putData = await putProfileAPI(sqlDB, queryClient, logginUsername, newData);
+  //     res.send(putData);
+  //   } catch (error) {
+  //     res.send({
+  //       error: (error as Error).message,
+  //       name: (error as Error).name,
+  //     });
+  //     console.error(error);
+  //   }
+  // });
 
   // app.put('/profile/:username', async (req, res) => {
   //   try {
@@ -323,5 +324,36 @@ export default function bindGetProfile(
   //     console.error(error);
   //   }
   // });
-
 }
+
+export function bindPutProfile(
+  app: Express,
+  sqlDB: Database,
+  queryClient: QueryApi,
+) {
+  app.put('/profile', async (req, res) => {
+    try {
+      let logginUsername = CURRENTLY_LOGGED_IN;
+      let newData = req.body;
+      let putData = await putProfileAPI(sqlDB, queryClient, logginUsername, newData);
+      res.send(putData);
+    } catch (error) {
+      res.send({
+        error: (error as Error).message,
+        name: (error as Error).name,
+      });
+      console.error(error);
+    }
+  });
+}
+
+
+
+
+
+
+
+
+
+
+

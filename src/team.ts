@@ -4,10 +4,10 @@ import interpole from 'string-interpolation-js';
 import {
   getPersonalInfoAPI,
   executeInflux,
-  DEFAULT_USERNAME,
   callBasedOnRole,
   SQLretrieve,
   getCommonTeams,
+  CURRENTLY_LOGGED_IN,
 } from './utils';
 import { resolve as pathResolve } from 'path';
 import { consoleLogger, QueryApi } from '@influxdata/influxdb-client';
@@ -112,7 +112,7 @@ export default function bindGetTeams(
     try {
       // const sess = req.session;
       // let username = sess.username;
-      let username = DEFAULT_USERNAME;
+      let username = CURRENTLY_LOGGED_IN;
 
       let teamsAPI = await getTeamsAPI(db, queryClient, username);
       res.send(teamsAPI);
@@ -129,7 +129,7 @@ export default function bindGetTeams(
     try {
       // const sess = req.session;
       // let username = 'p_warren';
-      let loggedInUsername = 'a_administrator'; // username will be set to the username from session variable when log in feature is implemented
+      let loggedInUsername = CURRENTLY_LOGGED_IN; // username will be set to the username from session variable when log in feature is implemented
       //right now, just let the username = 'a_administrator' so that it has the right to see the teams list of all players.
        
       let teamsAPI = (await callBasedOnRole(
@@ -146,7 +146,7 @@ export default function bindGetTeams(
           if (commonTeams.length !== 0) {
             return getPlayerTeamsAPI(db, queryClient, req.params.username);
           } else {
-            throw new Error('Cannot find the input username in your team');
+            throw new Error('Cannot find the input username in your teams');
           }
         },
         async () => {
