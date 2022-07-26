@@ -69,11 +69,12 @@ export async function getPlayerTrainingSessionsAPI(
         teamName: '',
         duration: '',
       } as SessionResponseType;
+      // console.log(trainingSessions);
       aSession.sessionName = trainingSessions[i].Session.split(' ')[0];
       aSession.sessionDate = moment(trainingSessions[i]._time).format('DD-MM-YYYY');     //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
       aSession.sessionTime = moment(trainingSessions[i]._time).format('HH:mm');          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
       aSession.teamName = trainingSessions[i]._measurement;
-      aSession.duration = TimeFormat.fromS(trainingSessions[i].elapsed, 'hh:mm:ss');     //hour:minutes:seconds.See https://github.com/Goldob/hh-mm-ss#supported-time-formats
+      // aSession.duration = TimeFormat.fromS(trainingSessions[i].elapsed, 'hh:mm:ss');     //hour:minutes:seconds.See https://github.com/Goldob/hh-mm-ss#supported-time-formats
       cleanedTrainingSessions.push(aSession);
     }
     return cleanedTrainingSessions;
@@ -124,46 +125,6 @@ export async function getTrainingSessionsAPI(
     return trainingSessions;
   }
 }
-
-//actually this one is getPlayerTrainingSessionsAPI
-// export async function getTrainingSessionsAPI(
-//   db: Database,
-//   queryClient: QueryApi,
-//   username: string,
-// ) {
-//   //search the personal information of given username from SQL database
-//   const personalInfo = await getPersonalInfoAPI(db, username);
-//   if ('error' in personalInfo) {
-//     return personalInfo;
-//   }
-//   let PLAYER = personalInfo.name;
-//   //get the information of all the training sessions of given players
-//   let queryPlayerSession = readFileSync(
-//     pathResolve(__dirname, '../../queries/players_sessions.flux'),
-//     { encoding: 'utf8' },
-//   );
-//   queryPlayerSession = interpole(queryPlayerSession, [PLAYER]);
-//   const trainingSessions = await executeInflux(queryPlayerSession, queryClient);
-//   const cleanedTrainingSessions: any[] = [];
-//   for (let i = 0; i < trainingSessions.length; i++) {
-//     const aSession = {
-//       playerName: '',
-//       sessionName: '',
-//       sessionDate: '',
-//       sessionTime: '',
-//       teamName: '',
-//       duration: '',
-//     } as SessionResponseType;
-//     aSession.playerName = trainingSessions[i]['Player Name'];
-//     aSession.sessionName = trainingSessions[i].Session.split(' ')[0];
-//     aSession.sessionDate = moment(trainingSessions[i]._time).format('DD-MM-YYYY');     //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
-//     aSession.sessionTime = moment(trainingSessions[i]._time).format('HH:mm');          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
-//     aSession.teamName = trainingSessions[i]._measurement;
-//     aSession.duration = TimeFormat.fromS(trainingSessions[i].elapsed, 'hh:mm:ss');     //hour:minutes:seconds.See https://github.com/Goldob/hh-mm-ss#supported-time-formats
-//     cleanedTrainingSessions.push(aSession);
-//   }
-//   return cleanedTrainingSessions;
-// }
 
 export default function bindGetTrainingSessions(
   app: Express,

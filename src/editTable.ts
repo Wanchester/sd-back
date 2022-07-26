@@ -1,12 +1,14 @@
 import * as sqlite from 'sqlite3';
+import * as DBI from './dbInterfaces';
 const sqlite3 = require('sqlite3').verbose();
 const db: sqlite.Database = new sqlite3.Database('test.db');
 
+
 function sanitize(input: string) :string {
-  return ([...input].filter( 
-    (c) => {
-      return (
-      c !== '-' &&
+  let hasComment = input.includes('--');
+  return ([...input].filter( (c) => {
+    return (
+      (hasComment ? c !== '-' : true) && //remove dashes only if hasComment
       c !== ';' &&
       c !== '/' &&
       c !== '\\' &&
@@ -15,52 +17,57 @@ function sanitize(input: string) :string {
       c !== '"' &&
       c !== '=' &&
       c !== '&'
-  )}
-  ).join(''));
+    )}
+  ).join(''))
 }
 
-export function getPrimaryKey(table: string) :string {
-  let t = table.toLowerCase();
-  if (t === 'user') {
-    return 'username';
-  }
-  else if (t === 'teamcoach') {
-    return 'teamName';
-  }
-  return '';
-}
 
-export function updateTable(
-  table: string, //known when clicked edit/user role permissions
-  keyToEdit: string, //known when clicked edit
+function updateTable(
+  table: DBI.SQLTableName, //known when clicked edit/user role permissions
+  keyToEdit: DBI.TableKey, //known when clicked edit
   newValue: string,
-  primaryKey: string, //known from table^
-  id: string, //known from login/clicked edit
+  id: string //known from login/clicked edit
 ): void {
-  db.run(`UPDATE ${table} SET ${keyToEdit} = ? WHERE ${primaryKey} = ?`, [
-    sanitize(newValue),
-    id,
-  ]);
+  let pk = DBI.getPrimaryKey(table.toLowerCase() as DBI.SQLTableName);
+  let t = table.toLowerCase();
+  let k = keyToEdit.toLowerCase();
+
+  //typecheck
+  if (DBI.isCorrectType(t as DBI.SQLTableName, k as DBI.TableKey, newValue)) {
+    //update table
+    db.run(`UPDATE ${t} SET ${k} = ? WHERE ${pk} = ?`, [
+      sanitize(newValue),
+      id,
+    ]);
+  } else {
+    //TODO: maybe notify that types were wrong
+  }
 }
 
-export function userEditTable(key: string, value: string, id: string) {
-  updateTable('User', key, value, 'username', id);
+
+export function userEditTable(key: DBI.UserTableKey, value: string, id: string) {
+  updateTable('user', key, value, id);
 }
 
-export function coachEditTable(key: string, value: string, id: string) {
-  if (id[0] === 'c') {return;}
-  updateTable('User', key, value, 'username', id);
+export function coachEditTable(key: DBI.TableKey, value: string, id: string, coachUsername: string) {
+  if (id !== coachUsername && id[0] === 'c' || id[0] === 'a') 
+  {return;}; 
+  updateTable('user', key, value, id);
 }
 
-export function adminEditTable(key: string, value: string, id: string, table: string) {
-  let pk = getPrimaryKey(table);
-  updateTable(table, key, value, pk, id);
+export function adminEditTable(key: DBI.TableKey, 
+  value: string, id: string, table: DBI.SQLTableName) 
+{
+  updateTable(table, key, value, id);
 }
 
 function quicktest() {
-  updateTable('User', 'Nationality', 'EDITED', 'username', 'c_coach1');
+  updateTable('user', 'nationality', 'EDITED', 'c_coach1');
+  userEditTable("email","TESTTESTESTETSETSETSETSE", "p_warren");
+  coachEditTable("nationality", "EDIT 2!", "c_coach1", 'c_coach1');
 
-  //prepare more specified function
-  //updateUserTable('Weight', 100);
+  //must fail
+  //coachEditTable("teamID", "astring", "c_coach1");
+
 }
 quicktest();
