@@ -1,12 +1,12 @@
-import { consoleLogger, QueryApi } from '@influxdata/influxdb-client';
+import { QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
 import { getCoachTrainingSessionsAPI, getTrainingSessionsAPI } from './trainingSession';
-import { getPersonalInfoAPI, callBasedOnRole, hasCommonTeams, getCommonTeams, DEFAULT_COACH, CURRENTLY_LOGGED_IN } from './utils';
+import { getPersonalInfoAPI, callBasedOnRole, getCommonTeams, CURRENTLY_LOGGED_IN } from './utils';
 import { Express } from 'express';
 import { isPlainObject } from 'lodash';
-import { userEditTable, coachEditTable} from './editTable';
-import  *  as DBI from './dbInterfaces';
+import { userEditTable } from './editTable';
+import  *  as DBI from './interfaceSQL';
 
 export async function getPlayerProfileAPI(
   sqlDB: Database,

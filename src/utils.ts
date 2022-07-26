@@ -1,7 +1,7 @@
 import { QueryApi } from '@influxdata/influxdb-client';
-import { result } from 'lodash';
+
 import { Database } from 'sqlite3';
-import { getCoachTeamsAPI, getPlayerTeamsAPI, getTeamsAPI } from './team';
+import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
 
 export const DEFAULT_PLAYER = 'p_warren';
 export const DEFAULT_COACH = 'c_coach1';
