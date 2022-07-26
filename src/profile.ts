@@ -121,7 +121,7 @@ export async function putPlayerProfileAPI(sqlDB: Database, queryClient: QueryApi
     for (let key in newData) { // loop through all the keys provided by the frontend
       if (editable.includes(key)) { // if the provided key is editable
         // update the new value
-        userEditTable(key, newData[key], CURRENTLY_LOGGED_IN);
+        userEditTable(key, newData[key], username);
       } else {
         throw new Error(`You are not allowed to edit the ${key} field`);
       }
@@ -144,7 +144,7 @@ export async function putCoachProfileAPI(sqlDB: Database, queryClient: QueryApi,
     for (let key in newData) { // loop through all the keys provided by the frontend
       if (editable.includes(key)) { // if the provided key is editable
         // update the new value
-        userEditTable(key, newData[key], CURRENTLY_LOGGED_IN);
+        userEditTable(key, newData[key], username);
       } else {
         throw new Error(`You are not allowed to edit the ${key} field`);
       }
@@ -345,6 +345,44 @@ export function bindPutProfile(
       console.error(error);
     }
   });
+
+  app.put('/profile/:username', async (req, res) => {
+    try {
+      let loggedInUsername = CURRENTLY_LOGGED_IN;
+      let newData = req.body;
+
+      let editedHomepageAPI = (await callBasedOnRole(
+        sqlDB,
+        loggedInUsername!,
+        async () => {
+          throw new Error('You are not allowed to make the request');
+        },
+        async () => {
+          // the coach should only be able to eidt the profile of players in his teams
+          let commonTeams = await getCommonTeams( sqlDB, queryClient, loggedInUsername, req.params.username);
+          if (commonTeams.length !== 0) {
+            let editedData = await putPlayerProfileAPI(sqlDB, queryClient, req.params.username, newData);
+            return editedData;
+          } else {
+            throw new Error('Cannot find the input username in your teams');
+          }
+        },
+        async () => {
+          // this function will return the profile given username, doesnt matter if querried username is player or coach
+          let editedData = await putProfileAPI(sqlDB, queryClient, req.params.username, newData); 
+          return editedData;
+        },
+      )) as any[];
+      res.send(editedHomepageAPI);
+    } catch (error) {
+      res.send({
+        error: (error as Error).message,
+        name: (error as Error).name,
+      });
+      console.error(error);
+    }
+  });
+
 }
 
 

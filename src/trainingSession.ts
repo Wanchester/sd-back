@@ -20,7 +20,6 @@ export async function getTeamTrainingSessionsAPI(
   );
   teamTrainingSessionsQuery = interpole(teamTrainingSessionsQuery, [teamName]);
   const trainingSessions = await executeInflux(teamTrainingSessionsQuery, queryClient);
-  console.log(trainingSessions);
   const cleanedTrainingSessions: any[] = [];
   for (let i = 0; i < trainingSessions.length; i++) {
     const aSession = {

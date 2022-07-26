@@ -7,10 +7,7 @@ export const DEFAULT_PLAYER = 'p_warren';
 export const DEFAULT_COACH = 'c_coach1';
 export const DEFAULT_ADMIN = 'a_administrator';
 
-export const CURRENTLY_LOGGED_IN = DEFAULT_COACH;
-// export const DEFAULT_USERNAME = 'c_coach1';
-// export const DEFAULT_USERNAME = 'a_administrator';
-
+export const CURRENTLY_LOGGED_IN = 'a_administrator';
 
 //function to run the SQL query
 export const SQLretrieve = async (
