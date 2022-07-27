@@ -67,5 +67,16 @@ describe('Test Express server endpoints', () => {
     assertTeamResponse(res.body);
   });
 
+  it('GET /trainingSessions coach', async () => {
+    const res = await request(app).get('/trainingSessions/c_coach1');
+    expect(res.statusCode).to.equal(200);
+    res.body.forEach((session: any)=>assertSessionResponse(session) );
+  });
+
+  it('GET /trainingSessions user', async () => {
+    const res = await request(app).get('/trainingSessions/p_jbk');
+    expect(res.statusCode).to.equal(200);
+    res.body.forEach((session: any)=>assertSessionResponse(session) );
+  });
 
 });
