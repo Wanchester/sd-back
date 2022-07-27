@@ -55,4 +55,12 @@ describe('Test Express server endpoints', () => {
     assertTeamResponse(res.body);
   });
 
+  it('GET /teams/username endpoint', async () => {
+    const res = await request(app).get('/teams/p_jbk');
+    expect(res.statusCode).to.equal(200);
+    assertTeamResponse(res.body);
+  });
+
+
+
 });
