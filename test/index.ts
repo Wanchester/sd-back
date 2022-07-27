@@ -55,12 +55,17 @@ describe('Test Express server endpoints', () => {
     assertTeamResponse(res.body);
   });
 
-  it('GET /teams/username endpoint', async () => {
+  it('GET /teams/username player endpoint', async () => {
     const res = await request(app).get('/teams/p_jbk');
     expect(res.statusCode).to.equal(200);
     assertTeamResponse(res.body);
   });
 
+  it('GET /teams/username coach endpoint', async () => {
+    const res = await request(app).get('/teams/c_coach1');
+    expect(res.statusCode).to.equal(200);
+    assertTeamResponse(res.body);
+  });
 
 
 });
