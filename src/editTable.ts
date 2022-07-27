@@ -60,9 +60,9 @@ export function adminEditTable(key: DBI.TableKey,
   updateTable(table, key, value, id);
 }
 
-function quicktest() {
-  updateTable('user', 'nationality', 'EDITED', 'c_coach1');
-  userEditTable('email', 'TESTTESTESTETSETSETSETSE', 'p_warren');
-  coachEditTable('nationality', 'EDIT 2!', 'c_coach1', 'c_coach1');
-}
+//function quicktest() {
+//  updateTable('user', 'nationality', 'EDITED', 'c_coach1');
+//  userEditTable('email', 'TESTTESTESTETSETSETSETSE', 'p_warren');
+//  coachEditTable('nationality', 'EDIT 2!', 'c_coach1', 'c_coach1');
+//}
 //quicktest();
