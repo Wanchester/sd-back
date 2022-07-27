@@ -1,5 +1,4 @@
 export interface SessionResponseType {
-  'playerName': string,
   'sessionName': string,
   'sessionDate': string,
   'sessionTime': string,
