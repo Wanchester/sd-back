@@ -1,5 +1,9 @@
 name: Node.js CI
 
+env:
+  SD_SERVER_INFLUX_API_KEY: ${{ secrets.SD_SERVER_INFLUX_API_KEY }}
+  SD_SERVER_INFLUX_EMAIL: ${{ secrets.SD_SERVER_INFLUX_EMAIL }}
+
 on:
   push:
     branches: [ main ]
