@@ -12,7 +12,7 @@
     "start:watch": "nodemon -q dist/src/index.js",
     "dev": "npm-run-all -p build:watch start:watch",
     "lint": "eslint src/**/*.ts test/**/*.ts",
-    "test:run": "nyc --reporter=text --reporter=lcovonly mocha --recursive \"./dist/test/*.js\"",
+    "test:run": "nyc --reporter=text --reporter=lcovonly mocha --recursive \"./dist/test/*.js\" --exit",
     "test": "npm-run-all -s build test:run"
   },
   "repository": {
@@ -31,13 +31,32 @@
   },
   "homepage": "https://github.com/Wanchester/sd-back#readme",
   "dependencies": {
-    "express": "^4.18.1"
+    "@influxdata/influxdb-client": "^1.25.0",
+    "@types/body-parser": "^1.19.2",
+    "body-parser": "^1.20.0",
+    "dotenv": "^16.0.1",
+    "email-validator": "^2.0.4",
+    "express": "^4.18.1",
+    "express-session": "^1.17.3",
+    "hh-mm-ss": "^1.2.0",
+    "js": "^0.1.0",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.3",
+    "mongodb": "^4.6.0",
+    "sqlite3": "^5.0.8",
+    "string-env-interpolation": "^1.0.1",
+    "string-interpolation-js": "^1.0.5"
   },
   "devDependencies": {
     "@types/chai": "^4.3.1",
     "@types/express": "^4.17.13",
+    "@types/express-session": "^1.17.4",
+    "@types/hh-mm-ss": "^1.2.1",
+    "@types/lodash": "^4.14.182",
     "@types/mocha": "^9.1.1",
     "@types/node": "^17.0.31",
+    "@types/sqlite3": "^3.1.8",
+    "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^5.21.0",
     "chai": "^4.3.6",
     "eslint": "^8.14.0",
@@ -49,6 +68,7 @@
     "npm-run-all": "^4.1.5",
     "nyc": "^15.1.0",
     "rimraf": "^3.0.2",
+    "supertest": "^6.2.3",
     "typescript": "^4.6.4"
   },
   "engines": {

@@ -1,5 +1,9 @@
 name: Node.js CI
 
+env:
+  SD_SERVER_INFLUX_API_KEY: ${{ secrets.SD_SERVER_INFLUX_API_KEY }}
+  SD_SERVER_INFLUX_EMAIL: ${{ secrets.SD_SERVER_INFLUX_EMAIL }}
+
 on:
   push:
     branches: [ main ]
@@ -8,7 +12,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -27,6 +30,7 @@ jobs:
     - run: npm run build
     - run: npm test
     - name: Coveralls
+      if: always()
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
