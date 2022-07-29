@@ -30,6 +30,7 @@ jobs:
     - run: npm run lint
     - run: npm run build
     - run: npm test
+      if: always()
     - name: Coveralls
       uses: coverallsapp/github-action@master
       with:
