@@ -158,15 +158,13 @@ export async function putCoachProfileAPI(sqlDB: Database, queryClient: QueryApi,
 
 export async function putProfileAPI(sqlDB: Database, queryClient: QueryApi, username: string, newData: any[]) {
   let personalInfo = await getPersonalInfoAPI(sqlDB, username);
-  let returnedData: any[] = [];
   if (personalInfo.role === 'player') {
-    returnedData = await putPlayerProfileAPI(sqlDB, queryClient, username, newData);
+    return putPlayerProfileAPI(sqlDB, queryClient, username, newData);
   } else if (personalInfo.role === 'coach') {
-    returnedData = await putCoachProfileAPI(sqlDB, queryClient, username, newData);
+    return putCoachProfileAPI(sqlDB, queryClient, username, newData);
   } else {
     throw new Error('Cannot edit personal information because given username it not player or coach');
   }
-  return returnedData;
 }
 
 export default function bindGetProfile(
@@ -201,7 +199,7 @@ export default function bindGetProfile(
       // let loggedInUsername = 'c_coach1';
       // let loggedInUsername = 'a_administrator';
       let loggedInUsername = CURRENTLY_LOGGED_IN;
-      // let username = req.params.username;
+      // let loggedInUsername = req.params.username;
       // let homepageAPI = await getProfileAPI(db, queryClient, username);
       let homepageAPI = (await callBasedOnRole(
         sqlDB,
