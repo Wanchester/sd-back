@@ -11,6 +11,7 @@ import {
 import { resolve as pathResolve } from 'path';
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
+import { generateErrorBasedOnCode } from './throws';
 
 export async function getPlayerTeamsAPI(
   db: Database,
@@ -31,7 +32,7 @@ export async function getPlayerTeamsAPI(
       { encoding: 'utf8' },
     );
     queryPlayerTeam = interpole(queryPlayerTeam, [PLAYER]);
-    //queryPlayerTeam = 'test exception';
+    // queryPlayerTeam = 'test exception';
     const teams = await executeInflux(queryPlayerTeam, queryClient);
     const cleanedTeams: string[] = [];
 
@@ -62,7 +63,7 @@ export async function getCoachTeamsAPI(
       db.all(queryPlayerTeam, [username], function (err, row) {
         // process the row here 
         if (err) {
-          reject(err);
+          reject(generateErrorBasedOnCode('e500.1', err));
         } else {
           resolve(row);
         }
