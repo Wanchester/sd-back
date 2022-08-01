@@ -1,25 +1,27 @@
 import interpole from 'string-interpolation-js';
 
 const ExitCodeMap = {
-  // Bad Request
-  '400.0': 'PUT request expects a valid object.',
+  //400 Bad Request
+  'e400.0': 'PUT request expects a valid object.',
+  'e400.1': 'Given username is not a player or a coach',
 
-  // Unauthenticated, Unauthorised
+  //401 Unauthenticated, Unauthorised
   'e401.0': 'You must login in order to make a request.',
   'e401.1': 'You have to be a coach/admin to make this request.',
   'e401.2': 'You have to be an admin to make this request.',
 
-  // Forbiden
+  //403 Forbiden
   'e403.0': 'You are not allowed to edit the :0 attribute',
 
-  // Not Found
-  'e404.0': 'Cannot find a player with given username',
-  'e404.1': 'Cannot find a coach with given username',
-  'e404.2': 'Cannot find an admin with given username',
-  'e404.3': 'Cannot find an user with given username',
+  //404 Not Found
+  'e404.0': 'Cannot find a player with given username :0',
+  'e404.1': 'Cannot find a coach with given username :0',
+  'e404.2': 'Cannot find an admin with given username :0',
+  'e404.3': 'Cannot find an user with given username :0',
+  'e404.4': 'Cannot find the input username :0 in your teams',
 
-
-
+  //500 Server error
+  'e500.0': 'An error occurred while executing InfluxDB queries. Reason: :0',
   'e500.1': 'An error occurred while executing SQL queries. Reason: :0',
 } as const;
 
