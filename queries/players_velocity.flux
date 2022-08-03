@@ -1,6 +1,0 @@
-from(bucket: "test")
-    |>range(start:-3y)
-    |>filter(fn: (r)=>(r["Player Name"] == "Warren" and r["_field"] == "Velocity"))
-    |>group(columns: ["_measurement"], mode:"by")
-//    |>timedMovingAverage(every: 3y, period: 3y)
-    |>limit(n: 500)

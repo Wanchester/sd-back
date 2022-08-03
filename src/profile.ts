@@ -7,8 +7,6 @@ import { Express } from 'express';
 import { isPlainObject } from 'lodash';
 import { userEditTable } from './editTable';
 import  *  as DBI from './interfaceSQL';
-import throwBasedOnCode from './throws';
-import { HomepageResponseType } from './interface';
 
 export async function getPlayerProfileAPI(
   sqlDB: Database,
@@ -46,8 +44,7 @@ export async function getPlayerProfileAPI(
     homepageInfo.trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username);
     return homepageInfo;
   } else {
-    // throw 'e404.0': 'cannot find a player with given username',
-    throwBasedOnCode('e404.0', username);
+    throw new Error('cannot find a player with given username');
   }
 }
 
@@ -88,8 +85,7 @@ export async function getCoachProfileAPI(
     // homepageInfo.trainingSessions = ['TODO: to implement await getPlayerSessionsAPI(sqlDB, queryClient, username);'];
     return homepageInfo;
   } else {
-    // 'e404.1': 'cannot find a coach with given username',
-    throwBasedOnCode('e404.1', username);
+    throw new Error('cannot find a coach with given username');
   }
 }
 
@@ -103,25 +99,13 @@ export async function getProfileAPI(
   if ('error' in personalInfo) {
     return personalInfo;
   }
-  let homepageInfo: any = [];
+  let homepageInfo: any[] = [];
   if (personalInfo.role == 'player') {
     homepageInfo = await getPlayerProfileAPI(sqlDB, queryClient, username);
   } else if (personalInfo.role == 'coach') {
     homepageInfo = await getCoachProfileAPI(sqlDB, queryClient, username);
   } else if (personalInfo.role == 'admin') {
-    // this structure of the admin response is just to bypass the test case
-    return homepageInfo = {
-      username: '',
-      name: '',
-      email: '',
-      dob: '',
-      nationality: '',
-      height: 0,
-      weight: 0,
-      role: 'admin',
-      teams: [''],
-      trainingSessions: [{}],
-    };
+    homepageInfo = ['TODO: admin profile, to be implemented'];
   }
   return homepageInfo;
 }
@@ -129,8 +113,7 @@ export async function getProfileAPI(
 export async function putPlayerProfileAPI(sqlDB: Database, queryClient: QueryApi, username: string, newData: any[]) {
   let personalInfo = await getPersonalInfoAPI(sqlDB, username);
   if (personalInfo.role !== 'player') {
-    // 'e404.0': 'cannot find a player with given username',
-    throwBasedOnCode('e404.0', username);
+    throw new Error('cannot find aplayer with given username');
   }
 
   if (isPlainObject(newData)) {
@@ -141,22 +124,19 @@ export async function putPlayerProfileAPI(sqlDB: Database, queryClient: QueryApi
         // update the new value
         userEditTable(key as DBI.UserTableKey, newData[key], username);
       } else {
-        // throw Error(`You are not allowed to edit the ${key} field`);
-        throwBasedOnCode('e403.0', key);
+        throw new Error(`You are not allowed to edit the ${key} field`);
       }
     }
     return newData;
   } else {
-    // throw Error('PUT request expects a valid object.');
-    throwBasedOnCode('e403.0');
+    throw new Error('PUT request expects a valid object.');
   }
 }
 
 export async function putCoachProfileAPI(sqlDB: Database, queryClient: QueryApi, username: string, newData: any[]) {
   let personalInfo = await getPersonalInfoAPI(sqlDB, username);
   if (personalInfo.role !== 'coach') {
-    // 'e404.1': 'Cannot find a coach with given username',
-    throwBasedOnCode('e404.1', username);
+    throw new Error('cannot find a coach with given username');
   }
 
   if (isPlainObject(newData)) {
@@ -167,27 +147,26 @@ export async function putCoachProfileAPI(sqlDB: Database, queryClient: QueryApi,
         // update the new value
         userEditTable(key as DBI.UserTableKey, newData[key], username);
       } else {
-        // 'e403.0': 'You are not allowed to edit the :0 attribute',
-        throwBasedOnCode('e403.0', key);
+        throw new Error(`You are not allowed to edit the ${key} field`);
       }
     }
     return newData;
   } else {
-    // throw Error('PUT request expects a valid object.');
-    throwBasedOnCode('e403.0');
+    throw new Error('PUT request expects a valid object.');
   }
 }
 
 export async function putProfileAPI(sqlDB: Database, queryClient: QueryApi, username: string, newData: any[]) {
   let personalInfo = await getPersonalInfoAPI(sqlDB, username);
+  let returnedData: any[] = [];
   if (personalInfo.role === 'player') {
-    return putPlayerProfileAPI(sqlDB, queryClient, username, newData);
+    returnedData = await putPlayerProfileAPI(sqlDB, queryClient, username, newData);
   } else if (personalInfo.role === 'coach') {
-    return putCoachProfileAPI(sqlDB, queryClient, username, newData);
+    returnedData = await putCoachProfileAPI(sqlDB, queryClient, username, newData);
   } else {
-    // 'e400.1': 'Given username it not a player or a coach',
-    throwBasedOnCode('e400.1', username);
+    throw new Error('Cannot edit personal information because given username it not player or coach');
   }
+  return returnedData;
 }
 
 export default function bindGetProfile(
@@ -222,24 +201,24 @@ export default function bindGetProfile(
       // let loggedInUsername = 'c_coach1';
       // let loggedInUsername = 'a_administrator';
       let loggedInUsername = CURRENTLY_LOGGED_IN;
-      // let loggedInUsername = req.params.username;
+      // let username = req.params.username;
       // let homepageAPI = await getProfileAPI(db, queryClient, username);
       let homepageAPI = (await callBasedOnRole(
         sqlDB,
         loggedInUsername!,
         async () => {
-          // 'e401.1': 'You have to be a coach/admin to make this request.',
-          throwBasedOnCode('e401.1', loggedInUsername);
+          throw new Error('You are not allowed to make the request');
         },
         async () => {
-          // the coach should only be able to see the profile of players in his teams
-          // validate if the queried players is a member of that coach. 
+          // the coach should only be able to see the profile of player
+          // TODO: validate if the queried players is a member of that coach. 
+          // return getPlayerProfileAPI(db, queryClient, req.params.username);
+          // currently, the coach can see the profile of all players for testing purpose
           let commonTeams = await getCommonTeams( sqlDB, queryClient, loggedInUsername, req.params.username);
           if (commonTeams.length !== 0) {
             return getPlayerProfileAPI(sqlDB, queryClient, req.params.username);
           } else {
-            // 'e404.4': 'Cannot find the input username :0 in your teams'
-            throwBasedOnCode('e404.4', req.params.username);
+            throw new Error('Cannot find the input username in your teams');
           }
         },
         async () => {
@@ -288,8 +267,7 @@ export function bindPutProfile(
         sqlDB,
         loggedInUsername!,
         async () => {
-          // 'e401.1': 'You have to be a coach/admin to make this request.',
-          throwBasedOnCode('e401.1');
+          throw new Error('You are not allowed to make the request');
         },
         async () => {
           // the coach should only be able to eidt the profile of players in his teams
@@ -298,8 +276,7 @@ export function bindPutProfile(
             let editedData = await putPlayerProfileAPI(sqlDB, queryClient, req.params.username, newData);
             return editedData;
           } else {
-            // 'e404.4': 'Cannot find the input username :0 in your teams',
-            throwBasedOnCode('e404.4', req.params.username);
+            throw new Error('Cannot find the input username in your teams');
           }
         },
         async () => {
@@ -317,6 +294,7 @@ export function bindPutProfile(
       console.error(error);
     }
   });
+
 }
 
 

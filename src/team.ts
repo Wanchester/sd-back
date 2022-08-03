@@ -11,7 +11,6 @@ import {
 import { resolve as pathResolve } from 'path';
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
-import throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
 
 export async function getPlayerTeamsAPI(
   db: Database,
@@ -32,7 +31,7 @@ export async function getPlayerTeamsAPI(
       { encoding: 'utf8' },
     );
     queryPlayerTeam = interpole(queryPlayerTeam, [PLAYER]);
-    // queryPlayerTeam = 'test exception';
+    //queryPlayerTeam = 'test exception';
     const teams = await executeInflux(queryPlayerTeam, queryClient);
     const cleanedTeams: string[] = [];
 
@@ -41,8 +40,7 @@ export async function getPlayerTeamsAPI(
     }
     return cleanedTeams;
   } else {
-    // 'e404.0': 'Cannot find a player with given username :0',
-    throwBasedOnCode('e404.0', username);
+    throw new Error('cannot find a player with given username: ' + username);
   }
 }
 
@@ -64,7 +62,7 @@ export async function getCoachTeamsAPI(
       db.all(queryPlayerTeam, [username], function (err, row) {
         // process the row here 
         if (err) {
-          reject(generateErrorBasedOnCode('e500.1', err));
+          reject(err);
         } else {
           resolve(row);
         }
@@ -78,8 +76,7 @@ export async function getCoachTeamsAPI(
     return cleanedTeams;
 
   } else {
-    // 'e404.1': 'Cannot find a coach with given username',
-    throwBasedOnCode('e404.1', username);
+    throw new Error('cannot find a coach with given username');
   }
 }
 
@@ -137,18 +134,17 @@ export default function bindGetTeams(
         db,
         loggedInUsername!,
         async () => {
-          // 'e401.1': 'You have to be a coach/admin to make this request.',
-          throwBasedOnCode('e401.1');
+          throw new Error('You are not allowed to make the request');
         },
         async () => {
           // the coach should only be able to see the teams of player
           // return getPlayerTeamsAPI(db, queryClient, req.params.username);
+          // currently, the coach can see the teams of all players and coach for testing purpose 
           let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername, req.params.username);
           if (commonTeams.length !== 0) {
             return getPlayerTeamsAPI(db, queryClient, req.params.username);
           } else {
-            // 'Cannot find the input username :0 in your teams'
-            throwBasedOnCode('e404.4', req.params.username);
+            throw new Error('Cannot find the input username in your teams');
           }
         },
         async () => {
