@@ -1,4 +1,19 @@
 
+export type InfluxField = '2dAccuracy' |
+'3dAccuracy' |
+'Distance' |
+'Height' |
+'RunDistance' |
+'SprintDistance' |
+'TotalDistance' |
+'TotalRunDistance' |
+'TotalSprintDistance' |
+'TotalWorkRate' |
+'Velocity' |
+'WorkRate' |
+'lat' | 'lon';
+
+
 // input format: RFC3339
 export function getDuration(first: string, second: string) :string {
   let f = new Date(first);
@@ -23,7 +38,6 @@ export function getDuration(first: string, second: string) :string {
   let withPadding = outputTemp.map((n) => n.padStart(2, '0'));
   return withPadding.join(':');
 }
-
 
 //function mytest() {
 //  let a = '2022-02-10T10:45:36.103Z';
