@@ -13,6 +13,24 @@ export type InfluxField = '2dAccuracy' |
 'WorkRate' |
 'lat' | 'lon';
 
+export type InfluxField = '2dAccuracy' |
+'3dAccuracy' |
+'Distance' |
+'Height' |
+'RunDistance' |
+'SprintDistance' |
+'TotalDistance' |
+'TotalRunDistance' |
+'TotalSprintDistance' |
+'TotalWorkRate' |
+'Velocity' |
+'WorkRate' |
+'lat' | 'lon';
+
+<<<<<<< HEAD
+=======
+
+>>>>>>> 487e9b0 (type for influx _field column values)
 // input format: RFC3339
 export function getDuration(first: string, second: string) :string {
   let f = new Date(first);
