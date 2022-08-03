@@ -8,6 +8,7 @@ import bindGetTeams from './team';
 import bindGetTrainingSessions from './trainingSession';
 import bindGetProfile, { bindPutProfile } from './profile';
 import 'dotenv/config';
+import bindGetStatistic from './playerStatistic';
 
 declare module 'express-session' {
   interface SessionData {
@@ -41,6 +42,7 @@ function startExpressServer() {
   bindGetTeams(app, db, queryClient);
   bindGetTrainingSessions(app, db, queryClient);
   bindGetProfile(app, db, queryClient);
+  bindGetStatistic(app, db, queryClient);
 
   // PUT requests
   bindPutProfile(app, db, queryClient);
