@@ -1,9 +1,8 @@
 from(bucket: "test")
-    |>range(start: :4, stop: :5)
+    |>range(start: :3, stop: :4)
     |>filter(fn: (r)=>r["Player Name"] == ":0")
     |>filter(fn: (r)=>r["_measurement"] == ":1")//teamName
-    |>filter(fn: (r)=>r["Session"] == ":2")
-    |>filter(fn: (r)=>r["_field"] == ":3")
+    |>filter(fn: (r)=>r["_field"] == ":2")
     |>window(every: :6s)
     |>mean()
     |>duplicate(column: "_stop", as: "_time")
