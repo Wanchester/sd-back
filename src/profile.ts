@@ -7,7 +7,7 @@ import { Express } from 'express';
 import { isPlainObject } from 'lodash';
 import { userEditTable } from './editTable';
 import  *  as DBI from './interfaceSQL';
-import throwBasedOnCode from './throws';
+import throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
 
 export async function getPlayerProfileAPI(
   sqlDB: Database,
@@ -202,10 +202,17 @@ export default function bindGetProfile(
     try {
       // const sess = req.session;
       // let username = sess.username;
-      let username = CURRENTLY_LOGGED_IN;
-
-      let homepageAPI = await getProfileAPI(sqlDB, queryClient, username);
-      res.send(homepageAPI);
+      let username = req.session.username;
+      console.log('logged in: ' + username);
+      if (username) {
+        let homepageAPI = await getProfileAPI(sqlDB, queryClient, username);
+        res.status(200).send(homepageAPI);
+      } else {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+      }
     } catch (error) {
       res.send({
         error: (error as Error).message,
@@ -265,10 +272,20 @@ export function bindPutProfile(
 ) {
   app.put('/profile', async (req, res) => {
     try {
-      let logginUsername = CURRENTLY_LOGGED_IN;
-      let newData = req.body;
-      let putData = await putProfileAPI(sqlDB, queryClient, logginUsername, newData);
-      res.send(putData);
+      let logginUsername = req.session.username;
+      console.log('test: ' + logginUsername);
+
+      if (logginUsername) {
+        let newData = req.body;
+        let putData = await putProfileAPI(sqlDB, queryClient, logginUsername, newData);
+        res.status(200).send(putData);
+      } else {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+      }
+
     } catch (error) {
       res.send({
         error: (error as Error).message,
