@@ -1,3 +1,12 @@
+export type InfluxQuery = {
+  range: { start: Date, stop?: Date },
+  names?: string[],
+  teams?: string[],
+  sessions?: string[],
+  fields?: InfluxField[],
+  time_window?: { every: number, period?: number }, //seconds
+  func?: string, //must be a valid type //def "mean"
+};
 
 export type InfluxField = '2dAccuracy' |
 '3dAccuracy' |
@@ -37,6 +46,72 @@ export function getDuration(first: string, second: string) :string {
   let withPadding = outputTemp.map((n) => n.padStart(2, '0'));
   return withPadding.join(':');
 }
+
+
+function filterWithList(column: string, list: string[] | undefined) :string {
+  let output: string[] = [];
+  if (list !== undefined && list.length !== 0) {
+    output.push(`|>filter(fn: (r)=> r["${column}"] == "${list[0]}"`);
+    for (let name in list.slice(1)) {
+      output.push(` or r["${column}"] == ${name}`);
+    }
+    output.push(')');
+  }
+  return output.join('');
+}
+
+export function buildQuery(query: InfluxQuery) :string {
+  //TODO: validate all input fields
+  let output = ['from(bucket: "test")'];
+  //fill range
+  //TODO!currently requre start range
+  output.push(`|>range(start: ${Math.floor(query.range.start.getTime() / 1000)}`);
+  if (query.range.stop !== undefined) {
+    output.push(`, stop: ${Math.floor(query.range.stop.getTime() / 1000)}`);
+  }
+  output.push(')');
+
+  //filter for all names,teams,sessions,fields,
+  output.push(filterWithList('Player Name', query.names));
+  output.push(filterWithList('_measurement', query.teams));
+  output.push(filterWithList('Session', query.sessions));
+  output.push(filterWithList('_field', query.fields));
+
+  //window and aggregate with fn
+  //TODO!currently assume ok window
+  if (query.time_window !== undefined) {
+    output.push(`|>window(every: ${query.time_window.every}s`);
+    if (query.time_window.period !== undefined) {
+      output.push(`, period: ${query.time_window.period}s`);
+    }
+    output.push(')');
+    if (query.func !== undefined) {
+      output.push(`|>${query.func}()`);
+    } else {
+      output.push('|>mean()');
+    }
+  }
+  //collect as one window
+  output.push('|>duplicate(column: "_stop", as: "_time")');
+  output.push('|>window(every: inf)');
+  return output.join('');
+}
+
+
+function buildTest() {
+  console.log(buildQuery(
+    {
+      range: { start: new Date(0) },
+      names: ['Warren'],
+      teams: ['TeamBit'],
+      fields: ['Velocity'],
+      time_window: { every: 60 },
+      func: 'mean',
+    },
+  ));
+}
+buildTest();
+
 
 //function mytest() {
 //  let a = '2022-02-10T10:45:36.103Z';
