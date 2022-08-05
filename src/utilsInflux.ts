@@ -1,5 +1,5 @@
 export type InfluxQuery = {
-  range: { start: Date, stop?: Date },
+  range: { start: Date, stop?: Date }, //TODO:use JSON stringify RFC3339 instead
   names?: string[],
   teams?: string[],
   sessions?: string[],
