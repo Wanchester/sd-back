@@ -1,6 +1,5 @@
 import { InfluxDB } from '@influxdata/influxdb-client';
 import express from 'express';
-import session from 'express-session';
 import bodyParser from 'body-parser';
 import console from 'console';
 import sqlite3 from 'sqlite3';
@@ -9,12 +8,7 @@ import bindGetTrainingSessions from './trainingSession';
 import bindGetProfile, { bindPutProfile } from './profile';
 import 'dotenv/config';
 import bindGetStatistic from './playerStatistic';
-
-declare module 'express-session' {
-  interface SessionData {
-    username: string;
-  }
-}
+import bindLoginAPI from './login';
 
 function startExpressServer() {
   const app = express();
@@ -29,13 +23,6 @@ function startExpressServer() {
   const queryClient = client.getQueryApi(org);
 
   app.use(bodyParser.json()); //to read the body of the request from backend
-  app.use(
-    session({
-      secret: 'this is a key',
-      resave: false,
-      saveUninitialized: false,
-    }),
-  );  
 
   // bind the API endpoints
   // GET requests
@@ -43,6 +30,9 @@ function startExpressServer() {
   bindGetTrainingSessions(app, db, queryClient);
   bindGetProfile(app, db, queryClient);
   bindGetStatistic(app, db, queryClient);
+
+  // login endpoints
+  bindLoginAPI(app, db);
 
   // PUT requests
   bindPutProfile(app, db, queryClient);
