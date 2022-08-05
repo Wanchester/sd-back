@@ -29,13 +29,13 @@ export default function bindLoginAPI(app: Express, sqlDB: Database) {
 
       sqlDB.serialize(() => {
         const stmt = sqlDB.prepare('SELECT password FROM User WHERE username = ? LIMIT 1');
-        stmt.get([username], (err, row) => {
+        stmt.get(username, (err, row) => {
           if (err) {
             res.status(500).send({
               name: 'Error',
               error: generateErrorBasedOnCode('e500.1', err.message).message,
             });
-          } else {
+          } else if (row) {
             const passwordHash = row.password;
             bcrypt.compare(password, passwordHash, (err, same) => { // eslint-disable-line
               if (err) {
@@ -55,6 +55,11 @@ export default function bindLoginAPI(app: Express, sqlDB: Database) {
                 }
               }
             });
+          } else {
+            res.status(400).send({
+              name: 'Error',
+              error: generateErrorBasedOnCode('e400.3').message,
+            });
           }
         });
       });
@@ -65,7 +70,7 @@ export default function bindLoginAPI(app: Express, sqlDB: Database) {
     const username = req.session.username;
 
     if (username) {
-      res.status(200).send({ username });
+      res.status(200).send({ loggedIn: username });
     } else {
       res.status(401).send({
         name: 'Error',
