@@ -108,9 +108,10 @@ export function buildQuery(query: InfluxQuery) :string {
     } else {
       output.push('|>mean()');
     }
+    //repair _time column after window
+    output.push('|>duplicate(column: "_stop", as: "_time")');
   }
   //collect as one window
-  output.push('|>duplicate(column: "_stop", as: "_time")');
   output.push('|>window(every: inf)');
   return output.join('');
 }
@@ -125,6 +126,16 @@ function buildTest() {
       fields: ['Velocity'],
       time_window: { every: 60 },
       func: 'mean',
+    },
+  ));
+  console.log('\n');
+  console.log(buildQuery(
+    {
+      range: { start: new Date(0) },
+      fields: ['Velocity'],
+      sessions: ['NULL 21/4/22'],
+      time_window:{ every: 86400 },
+      func: 'max',
     },
   ));
 }
