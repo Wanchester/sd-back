@@ -45,6 +45,7 @@ function nameToID(s: string, role: string) {
     [...(s.toLowerCase())]              //lowercase
       .filter((c) => c !== ' ' && c !== '\t') //filter all whitespace
       .join('')
+
   );
 }
 
