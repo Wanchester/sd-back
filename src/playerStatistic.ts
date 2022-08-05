@@ -25,11 +25,11 @@ export async function getStatistic(
   
   
   let statistic = await executeInflux(queryStatistic, queryClient);
-  // console.log(statistic);
+  console.log(statistic);
   
   let cleanedStatistics: any[] = [];
   for (let i = 0; i < statistic.length; i++) {
-    cleanedStatistics.push([statistic[i]._start,  statistic[i]._value]);
+    cleanedStatistics.push([statistic[i]._time,  statistic[i]._value]);
   }
   return cleanedStatistics;
 }
@@ -49,6 +49,7 @@ export default function bindGetStatistic(
       // let username = sess.username;
       // let username = CURRENTLY_LOGGED_IN;
 
+      let dataFromFront = req.body;
       let statistic = await getStatistic(
         queryClient, 
         'Warren',
@@ -56,8 +57,11 @@ export default function bindGetStatistic(
         'Velocity',
         new Date(0),
         new Date(),
-        30,
+        60,
       );
+
+      // let statistic = await getStatistic(dataFromFront);
+      
       res.send(statistic);
     } catch (error) {
       console.log(error);
