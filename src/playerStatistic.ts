@@ -6,39 +6,11 @@ import { readFileSync } from 'fs';
 import interpole from 'string-interpolation-js';
 import { resolve as pathResolve } from 'path';
 
-export async function getStatistic(
-  queryClient: QueryApi, 
-  dataFromFront: any[],
-) {
-  let queryStatistic = buildQuery(dataFromFront);
-  
-  let statistic = await executeInflux(queryStatistic, queryClient);
-  
-  let cleanedStatistics: any[] = [];
-  for (let i = 0; i < statistic.length; i++) {
-    cleanedStatistics.push([statistic[i]._time,  statistic[i]._value]);
-  }
-  return cleanedStatistics;
-}
-
-// old one
 // export async function getStatistic(
 //   queryClient: QueryApi, 
-//   playerUsername: string, 
-//   teamName: string,
-//   field: string,
-//   startTime: Date,
-//   stopTime: Date,
-//   window?: number,
+//   dataFromFront: any[],
 // ) {
-//   let queryStatistic = readFileSync(
-//     pathResolve(__dirname, '../../queries/playerTeamSessionFieldStartStopWindowMean.flux'),
-//     { encoding: 'utf8' },
-//   );
-  
-//   queryStatistic = interpole(queryStatistic, [playerUsername, teamName, field, Math.floor(startTime.getTime() / 1000), Math.floor(stopTime.getTime() / 1000), window]);
-//   console.log(queryStatistic);
-  
+//   let queryStatistic = buildQuery(dataFromFront);
   
 //   let statistic = await executeInflux(queryStatistic, queryClient);
   
@@ -48,6 +20,34 @@ export async function getStatistic(
 //   }
 //   return cleanedStatistics;
 // }
+
+// old one
+export async function getStatistic(
+  queryClient: QueryApi, 
+  playerUsername: string, 
+  teamName: string,
+  field: string,
+  startTime: Date,
+  stopTime: Date,
+  window?: number,
+) {
+  let queryStatistic = readFileSync(
+    pathResolve(__dirname, '../../queries/playerTeamSessionFieldStartStopWindowMean.flux'),
+    { encoding: 'utf8' },
+  );
+  
+  queryStatistic = interpole(queryStatistic, [playerUsername, teamName, field, Math.floor(startTime.getTime() / 1000), Math.floor(stopTime.getTime() / 1000), window]);
+  console.log(queryStatistic);
+  
+  
+  let statistic = await executeInflux(queryStatistic, queryClient);
+  
+  let cleanedStatistics: any[] = [];
+  for (let i = 0; i < statistic.length; i++) {
+    cleanedStatistics.push([statistic[i]._time,  statistic[i]._value]);
+  }
+  return cleanedStatistics;
+}
 
 export default function bindGetStatistic(
   app: Express,
@@ -64,8 +64,16 @@ export default function bindGetStatistic(
       // let username = sess.username;
       // let username = CURRENTLY_LOGGED_IN;
 
-      let dataFromFront = req.body;
-      let statistic = await getStatistic(queryClient, dataFromFront);
+      // let dataFromFront = req.body;
+      let statistic = await getStatistic(
+        queryClient,
+        'Warren', 
+        'TeamBit',
+        'Velocity',
+        new Date(0),
+        new Date(),
+        60,
+      );
       
       res.send(statistic);
     } catch (error) {

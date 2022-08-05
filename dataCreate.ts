@@ -1,7 +1,7 @@
 import * as sqlite from 'sqlite3';
 const sqlite3 = require('sqlite3').verbose();
 const db: sqlite.Database = new sqlite3.Database('test.db');
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 
 let nameList = [
   '5C3EBE',
