@@ -8,7 +8,6 @@ import { isPlainObject } from 'lodash';
 import { userEditTable } from './editTable';
 import  *  as DBI from './interfaceSQL';
 import throwBasedOnCode from './throws';
-import { HomepageResponseType } from './interface';
 
 export async function getPlayerProfileAPI(
   sqlDB: Database,
