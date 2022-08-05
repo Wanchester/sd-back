@@ -121,7 +121,7 @@ function buildTest() {
     },
   ));
 }
-buildTest();
+// buildTest();
 
 
 //function mytest() {
