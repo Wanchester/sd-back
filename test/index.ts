@@ -83,5 +83,4 @@ describe('Test Express server endpoints', () => {
     expect(res.statusCode).to.equal(200);
     res.body.forEach((session: any)=>assertSessionResponse(session) );
   });
-
 });

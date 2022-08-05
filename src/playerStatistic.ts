@@ -1,6 +1,6 @@
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
-import { CURRENTLY_LOGGED_IN, executeInflux } from './utils';
+import { executeInflux } from './utils';
 import { Express } from 'express';
 import { readFileSync } from 'fs';
 import interpole from 'string-interpolation-js';
