@@ -6,7 +6,7 @@ export type InfluxQuery = {
   fields?: InfluxField[],
   time_window?: { every: number, period?: number }, //seconds
   func?: string, //must be a valid type //def "mean"
-  get_unique?: string[]
+  get_unique?: string
 };
 
 export type InfluxField = '2dAccuracy' |
@@ -49,17 +49,6 @@ export function getDuration(first: string, second: string) :string {
 }
 
 
-function filterWithList(column: string, list: string[] | undefined) :string {
-  let output: string[] = [];
-  if (list !== undefined && list.length !== 0) {
-    output.push(`|>filter(fn: (r)=> r["${column}"] == "${list[0]}"`);
-    for (let name in list.slice(1)) {
-      output.push(` or r["${column}"] == ${name}`);
-    }
-    output.push(')');
-  }
-  return output.join('');
-}
 
 export function buildQuery(query: InfluxQuery) :string {
   //TODO: validate all input fields
@@ -72,6 +61,19 @@ export function buildQuery(query: InfluxQuery) :string {
   }
   output.push(')');
 
+
+  const filterWithList = (column: string, list: string[] | undefined) => {
+    let outputBuffer: string[] = [];
+    if (list !== undefined && list.length !== 0) {
+      outputBuffer.push(`|>filter(fn: (r)=> r["${column}"] == "${list[0]}"`);
+      for (let name in list.slice(1)) {
+        outputBuffer.push(` or r["${column}"] == ${name}`);
+      }
+      outputBuffer.push(')');
+    }
+    return outputBuffer.join('');
+  };
+
   //filter for all names,teams,sessions,fields,
   output.push(filterWithList('Player Name', query.names));
   output.push(filterWithList('_measurement', query.teams));
@@ -81,7 +83,7 @@ export function buildQuery(query: InfluxQuery) :string {
 
   //group and limit for get_unique
   if (query.get_unique !== undefined) {
-    output.push(`|>group(columns: ["${query.get_unique[0]}"])`);
+    output.push(`|>group(columns: ["${query.get_unique}"])`);
     output.push('|>limit(n: 1)');
   }
 
@@ -134,7 +136,7 @@ function buildTest() {
     {
       range: { start: new Date(0) },
       names: ['Warren'],
-      get_unique: ['_measurement'],
+      get_unique: '_measurement',
       //TODO!abstract columns to better names ie 'team'
     },
   ));
