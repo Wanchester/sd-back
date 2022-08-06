@@ -1,4 +1,4 @@
-export type InfluxQuery = {
+export type InfluxQuery = { //TODO:need more specific name
   range: { start: string, stop?: string },
   names?: string[],
   teams?: string[],
@@ -138,6 +138,14 @@ function buildTest() {
       names: ['Warren'],
       get_unique: '_measurement',
       //TODO!abstract columns to better names ie 'team'
+    },
+  ));
+  console.log('\n');
+  console.log(buildQuery(
+    {
+      range: { start: new Date(0).toISOString() },
+      teams: ['TeamBit'],
+      get_unique: 'Player Name',
     },
   ));
 }
