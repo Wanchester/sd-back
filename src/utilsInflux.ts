@@ -6,6 +6,7 @@ export type InfluxQuery = {
   fields?: InfluxField[],
   time_window?: { every: number, period?: number }, //seconds
   func?: string, //must be a valid type //def "mean"
+  get_unique?: string[]
 };
 
 export type InfluxField = '2dAccuracy' |
@@ -76,6 +77,14 @@ export function buildQuery(query: InfluxQuery) :string {
   output.push(filterWithList('_measurement', query.teams));
   output.push(filterWithList('Session', query.sessions));
   output.push(filterWithList('_field', query.fields));
+  
+
+  //group and limit for get_unique
+  if (query.get_unique !== undefined) {
+    output.push(`|>group(columns: ["${query.get_unique[0]}"])`);
+    output.push('|>limit(n: 1)');
+  }
+
 
   //window and aggregate with fn
   //TODO!currently assume ok window
@@ -118,6 +127,15 @@ function buildTest() {
       sessions: ['NULL 21/4/22'],
       time_window:{ every: 86400 },
       func: 'max',
+    },
+  ));
+  console.log('\n');
+  console.log(buildQuery(
+    {
+      range: { start: new Date(0) },
+      names: ['Warren'],
+      get_unique: ['_measurement'],
+      //TODO!abstract columns to better names ie 'team'
     },
   ));
 }
