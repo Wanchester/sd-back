@@ -1,5 +1,5 @@
 export type InfluxQuery = {
-  range: { start: Date, stop?: Date }, //TODO:use JSON stringify RFC3339 instead
+  range: { start: string, stop?: string },
   names?: string[],
   teams?: string[],
   sessions?: string[],
@@ -55,9 +55,9 @@ export function buildQuery(query: InfluxQuery) :string {
   let output = ['from(bucket: "test")'];
   //fill range
   //TODO!currently requre start range
-  output.push(`|>range(start: ${Math.floor(query.range.start.getTime() / 1000)}`);
+  output.push(`|>range(start: ${query.range.start}`);
   if (query.range.stop !== undefined) {
-    output.push(`, stop: ${Math.floor(query.range.stop.getTime() / 1000)}`);
+    output.push(`, stop: ${query.range.stop}`);
   }
   output.push(')');
 
@@ -113,7 +113,7 @@ export function buildQuery(query: InfluxQuery) :string {
 function buildTest() {
   console.log(buildQuery(
     {
-      range: { start: new Date(0) },
+      range: { start: new Date(0).toISOString() },
       names: ['Warren'],
       teams: ['TeamBit'],
       fields: ['Velocity'],
@@ -124,7 +124,7 @@ function buildTest() {
   console.log('\n');
   console.log(buildQuery(
     {
-      range: { start: new Date(0) },
+      range: { start: new Date(0).toISOString() },
       fields: ['Velocity'],
       sessions: ['NULL 21/4/22'],
       time_window:{ every: 86400 },
@@ -134,7 +134,7 @@ function buildTest() {
   console.log('\n');
   console.log(buildQuery(
     {
-      range: { start: new Date(0) },
+      range: { start: new Date(0).toISOString() },
       names: ['Warren'],
       get_unique: '_measurement',
       //TODO!abstract columns to better names ie 'team'
