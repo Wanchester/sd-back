@@ -4,10 +4,11 @@ export type InfluxQuery = { //TODO:need more specific name
   teams?: string[],
   sessions?: string[],
   fields?: InfluxField[],
-  time_window?: { every: number, period?: number }, //seconds
-  func?: string, //must be a valid type //def "mean"
+  time_window?: { every: number, period?: number, func?: AggregateFunc }, //seconds
   get_unique?: string
 };
+
+export type AggregateFunc = 'mean' | 'median' | 'mode' | 'max';
 
 export type InfluxField = '2dAccuracy' |
 '3dAccuracy' |
@@ -98,8 +99,8 @@ export function buildQuery(query: InfluxQuery) :string {
       output.push(`, period: ${query.time_window.period}s`);
     }
     output.push(')');
-    if (query.func !== undefined) {
-      output.push(`|>${query.func}()`);
+    if (query.time_window.func !== undefined) {
+      output.push(`|>${query.time_window.func}()`);
     } else {
       output.push('|>mean()');
     }
@@ -119,8 +120,7 @@ function buildTest() {
       names: ['Warren'],
       teams: ['TeamBit'],
       fields: ['Velocity'],
-      time_window: { every: 60 },
-      func: 'mean',
+      time_window: { every: 60, func: 'mean' },
     },
   ));
   console.log('\n');
@@ -129,8 +129,7 @@ function buildTest() {
       range: { start: new Date(0).toISOString() },
       fields: ['Velocity'],
       sessions: ['NULL 21/4/22'],
-      time_window:{ every: 86400 },
-      func: 'max',
+      time_window:{ every: 86400, func: 'max' },
     },
   ));
   console.log('\n');
