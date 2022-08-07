@@ -1,5 +1,5 @@
 export type InfluxQuery = { //TODO:need more specific name
-  range: { start: string, stop?: string },
+  range?: { start: string, stop?: string },
   names?: string[],
   teams?: string[],
   sessions?: string[],
@@ -54,13 +54,15 @@ export function buildQuery(query: InfluxQuery) :string {
   //TODO: validate all input fields
   let output = ['from(bucket: "test")'];
   //fill range
-  //TODO!currently requre start range
-  output.push(`|>range(start: ${query.range.start}`);
-  if (query.range.stop !== undefined) {
-    output.push(`, stop: ${query.range.stop}`);
+  if (query.range !== undefined) {
+    output.push(`|>range(start: ${query.range.start}`);
+    if (query.range.stop !== undefined) {
+      output.push(`, stop: ${query.range.stop}`);
+    }
+    output.push(')');
+  } else {
+    output.push('|>range(start: 0)');
   }
-  output.push(')');
-
 
   const filterWithList = (column: string, list: string[] | undefined) => {
     let outputBuffer: string[] = [];
