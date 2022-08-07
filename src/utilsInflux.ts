@@ -68,6 +68,7 @@ export function buildQuery(query: InfluxQuery) :string {
   const filterWithList = (column: string, list: string[] | undefined) => {
     let outputBuffer: string[] = [];
     if (list !== undefined && list.length !== 0) {
+      outputBuffer.push(`|>group(columns: ["${column}"])`);
       outputBuffer.push(`|>filter(fn: (r)=> r["${column}"] == "${list[0]}"`);
       for (let name in list.slice(1)) {
         outputBuffer.push(` or r["${column}"] == ${name}`);
