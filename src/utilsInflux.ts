@@ -94,9 +94,9 @@ export function buildQuery(query: InfluxQuery) :string {
   //window and aggregate with fn
   //TODO!currently assume ok window
   if (query.time_window !== undefined) {
-    output.push(`|>window(every: ${query.time_window.every}s`);
+    output.push(`|>window(every: ${Math.floor(query.time_window.every)}s`);
     if (query.time_window.period !== undefined) {
-      output.push(`, period: ${query.time_window.period}s`);
+      output.push(`, period: ${Math.floor(query.time_window.period)}s`);
     }
     output.push(')');
     if (query.time_window.func !== undefined) {
