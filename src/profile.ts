@@ -202,8 +202,9 @@ export default function bindGetProfile(
     try {
       // const sess = req.session;
       // let username = sess.username;
-      let username = req.session.username;
-      console.log('logged in: ' + username);
+      // let username = req.session.username;
+      let username = CURRENTLY_LOGGED_IN;
+      // console.log('test: ' + req.session);
       if (username) {
         let homepageAPI = await getProfileAPI(sqlDB, queryClient, username);
         res.status(200).send(homepageAPI);
@@ -272,8 +273,8 @@ export function bindPutProfile(
 ) {
   app.put('/profile', async (req, res) => {
     try {
-      let logginUsername = req.session.username;
-      console.log('test: ' + logginUsername);
+      let logginUsername = CURRENTLY_LOGGED_IN;
+      // console.log('test: ' + logginUsername);
 
       if (logginUsername) {
         let newData = req.body;
