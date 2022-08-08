@@ -117,7 +117,6 @@ export function buildQuery(query: InfluxQuery) :string {
 function buildTest() {
   console.log(buildQuery(
     {
-      range: { start: new Date(0).toISOString() },
       names: ['Warren'],
       teams: ['TeamBit'],
       fields: ['Velocity'],
@@ -127,7 +126,6 @@ function buildTest() {
   console.log('\n');
   console.log(buildQuery(
     {
-      range: { start: new Date(0).toISOString() },
       fields: ['Velocity'],
       sessions: ['NULL 21/4/22'],
       time_window:{ every: 86400, func: 'max' },
@@ -136,7 +134,6 @@ function buildTest() {
   console.log('\n');
   console.log(buildQuery(
     {
-      range: { start: new Date(0).toISOString() },
       names: ['Warren'],
       get_unique: '_measurement',
       //TODO!abstract columns to better names ie 'team'
@@ -145,7 +142,6 @@ function buildTest() {
   console.log('\n');
   console.log(buildQuery(
     {
-      range: { start: new Date(0).toISOString() },
       teams: ['TeamBit'],
       get_unique: 'Player Name',
     },
