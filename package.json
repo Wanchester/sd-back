@@ -8,12 +8,11 @@
     "build:clean": "rimraf dist",
     "build:start": "tsc",
     "build:watch": "tsc --watch",
-    "data:create": "node dist/dataCreate.js",
     "start": "node dist/src/index.js",
     "start:watch": "nodemon -q dist/src/index.js",
     "dev": "npm-run-all -p build:watch start:watch",
-    "lint": "eslint **/*.ts",
-    "test:run": "nyc --reporter=text --reporter=lcovonly mocha --exit --recursive \"./dist/test/*.js\" --require mocha-suppress-logs",
+    "lint": "eslint src/**/*.ts test/**/*.ts",
+    "test:run": "nyc --reporter=text --reporter=lcovonly mocha --recursive \"./dist/test/*.js\"",
     "test": "npm-run-all -s build test:run"
   },
   "repository": {

@@ -28,8 +28,8 @@ export function getDuration(first: string, second: string) :string {
   let s = new Date(second);
   let differenceInMs = new Date(s.getTime() - f.getTime());
 
-  let months = differenceInMs.getMonth();//already 0 indexed
-  let days = differenceInMs.getDate() - 1;//duration should be 0 indexed
+  let months = differenceInMs.getMonth();
+  let days = differenceInMs.getDate()-1;//duration should be 0 indexed
   let hours = differenceInMs.getUTCHours();//ignore timezone
   let minutes = differenceInMs.getUTCMinutes();//australia actually has timezones with different minutes
   let seconds = differenceInMs.getSeconds();
@@ -37,8 +37,8 @@ export function getDuration(first: string, second: string) :string {
   //only include longer measurements if non-zero
   let outputWithLong = [];
   if (months !== 0) {
-    outputWithLong.push(months);
-    outputWithLong.push(days);
+    outputWithLong.push(months)
+    outputWithLong.push(days)
   } else if (days !== 0) {
     outputWithLong.push(days);
   }
@@ -46,6 +46,7 @@ export function getDuration(first: string, second: string) :string {
   let withPadding = outputTemp.map((n) => n.padStart(2, '0'));
   return withPadding.join(':');
 }
+// buildTest();
 
 
 function filterWithList(column: string, list: string[] | undefined) :string {

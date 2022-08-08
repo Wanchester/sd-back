@@ -9,7 +9,6 @@ import { SessionResponseType } from './interface';
 import { Express } from 'express';
 import { getCoachTeamsAPI } from './team';
 import { getDuration } from './utilsInflux';
-import throwBasedOnCode from './throws';
 
 export async function getTeamTrainingSessionsAPI(
   queryClient: QueryApi,
@@ -24,6 +23,7 @@ export async function getTeamTrainingSessionsAPI(
   const cleanedTrainingSessions: any[] = [];
   for (let i = 0; i < trainingSessions.length; i++) {
     const aSession = {
+      playerName: '',
       sessionName: '',
       sessionDate: '',
       sessionTime: '',
@@ -59,7 +59,6 @@ export async function getPlayerTrainingSessionsAPI(
     );
 
     queryPlayerSession = interpole(queryPlayerSession, [personalInfo.name]);
-    // queryPlayerSession = 'test exception';
     const trainingSessions = await executeInflux(queryPlayerSession, queryClient);
     const cleanedTrainingSessions: any[] = [];
     for (let i = 0; i < trainingSessions.length; i++) {
@@ -80,8 +79,7 @@ export async function getPlayerTrainingSessionsAPI(
     }
     return cleanedTrainingSessions;
   } else {
-    // 'e404.0': 'Cannot find a player with given username :0',
-    throwBasedOnCode('e404.0', username);
+    throw new Error('cannot find player with given username');
   }
 }
 
@@ -106,8 +104,7 @@ export async function getCoachTrainingSessionsAPI(
     }
     return teamsTrainingSessions;
   } else {
-    // 'e404.1': 'Cannot find a coach with given username',
-    throwBasedOnCode('e404.1', username);
+    throw new Error('cannot find coach with given username');
   }
 }
 
@@ -166,17 +163,16 @@ export default function bindGetTrainingSessions(
         db,
         loggedInUsername!,
         async () => {
-          // 'e401.1': 'You have to be a coach/admin to make this request.',
-          throwBasedOnCode('e401.1');
+          throw new Error('You are not allowed to make the request');
         },
         async () => {
-          // the coach should only be able to see the training sessions of players in his teams
+          // the coach should only be able to see the training sessions of player
+          // currently, the coach can see the training sessions of all players and coach for testing purpose 
           let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername, req.params.username);
           if (commonTeams.length !== 0) {
             return getPlayerTrainingSessionsAPI(db, queryClient, req.params.username);
           } else {
-            // 'e404.4': 'Cannot find the input username :0 in your teams,
-            throwBasedOnCode('e404.4', req.params.username);
+            throw new Error('Cannot find the input username in your teams');
           }
         },
         async () => {

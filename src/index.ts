@@ -36,7 +36,6 @@ function startExpressServer() {
 
   // PUT requests
   bindPutProfile(app, db, queryClient);
-
   app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
   });
