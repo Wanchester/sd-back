@@ -101,7 +101,7 @@ export async function getProfileAPI(
   if ('error' in personalInfo) {
     return personalInfo;
   }
-  let homepageInfo: any[] = [];
+  let homepageInfo: any = [];
   if (personalInfo.role == 'player') {
     homepageInfo = await getPlayerProfileAPI(sqlDB, queryClient, username);
   } else if (personalInfo.role == 'coach') {
@@ -197,6 +197,7 @@ export default function bindGetProfile(
       // const sess = req.session;
       // let username = sess.username;
       // let username = req.session.username;
+      console.log(req.session);
       let username = CURRENTLY_LOGGED_IN;
       // console.log('test: ' + req.session);
       if (username) {
