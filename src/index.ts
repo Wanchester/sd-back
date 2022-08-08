@@ -22,7 +22,11 @@ function startExpressServer() {
   const org = process.env.SD_SERVER_INFLUX_EMAIL as string;
   const queryClient = client.getQueryApi(org);
 
-  app.use(bodyParser.json()); //to read the body of the request from backend
+  app.use(bodyParser.json());
+
+  // Login endpoints must be bound first to make session variables available
+  // for the rest of the requests
+  bindLoginAPI(app, db);
 
   // bind the API endpoints
   // GET requests
@@ -30,9 +34,6 @@ function startExpressServer() {
   bindGetTrainingSessions(app, db, queryClient);
   bindGetProfile(app, db, queryClient);
   bindGetStatistic(app, db, queryClient);
-
-  // login endpoints
-  bindLoginAPI(app, db);
 
   // PUT requests
   bindPutProfile(app, db, queryClient);
