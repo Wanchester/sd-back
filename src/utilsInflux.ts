@@ -22,31 +22,13 @@ export type InfluxField = '2dAccuracy' |
 'WorkRate' |
 'lat' | 'lon';
 
-export type InfluxField = '2dAccuracy' |
-'3dAccuracy' |
-'Distance' |
-'Height' |
-'RunDistance' |
-'SprintDistance' |
-'TotalDistance' |
-'TotalRunDistance' |
-'TotalSprintDistance' |
-'TotalWorkRate' |
-'Velocity' |
-'WorkRate' |
-'lat' | 'lon';
-
-<<<<<<< HEAD
-=======
-
->>>>>>> 487e9b0 (type for influx _field column values)
 // input format: RFC3339
 export function getDuration(first: string, second: string) :string {
   let f = new Date(first);
   let s = new Date(second);
   let differenceInMs = new Date(s.getTime() - f.getTime());
 
-  let months = differenceInMs.getMonth();//already 0 indexed
+  let months = differenceInMs.getMonth();
   let days = differenceInMs.getDate() - 1;//duration should be 0 indexed
   let hours = differenceInMs.getUTCHours();//ignore timezone
   let minutes = differenceInMs.getUTCMinutes();//australia actually has timezones with different minutes
@@ -64,6 +46,7 @@ export function getDuration(first: string, second: string) :string {
   let withPadding = outputTemp.map((n) => n.padStart(2, '0'));
   return withPadding.join(':');
 }
+// buildTest();
 
 
 function filterWithList(column: string, list: string[] | undefined) :string {
