@@ -34,10 +34,12 @@ function updateTable(
   //typecheck
   if (DBI.isCorrectType(t as DBI.SQLTableName, k as DBI.TableKey, newValue)) {
     //update table
-    db.run(`UPDATE ${t} SET ${k} = ? WHERE ${pk} = ?`, [
-      sanitize(newValue),
-      id,
-    ]);
+    db.serialize( function () {
+      db.run(`UPDATE ${t} SET ${k} = ? WHERE ${pk} = ?`, [
+        sanitize(newValue),
+        id,
+      ]);
+    });
   } else {
     //TODO: maybe notify that types were wrong
   }

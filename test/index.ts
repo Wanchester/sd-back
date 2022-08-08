@@ -39,50 +39,8 @@ function assertTeamResponse(team: any) {
   team.forEach((value: any) => assert.isString(value));
 }
 
-describe('Test Express server endpoints', () => {
+describe('Test Express server endpoints', async () => {
   const app = startExpressServer();
-
-  it('GET /profile endpoint', async () => {
-    const res = await request(app).get('/profile');
-    expect(res.statusCode).to.equal(200);
-    assertHomepageResponse(res.body);
-  });
-
-  it('GET /profile/:username endpoint', async () => {
-    const res = await request(app).get('/profile/p_jbk');
-    expect(res.statusCode).to.equal(200);
-    assertHomepageResponse(res.body);
-  });
-
-  it('GET /teams endpoint', async () => {
-    const res = await request(app).get('/teams');
-    expect(res.statusCode).to.equal(200);
-    assertTeamResponse(res.body);
-  });
-
-  it('GET /teams/username player endpoint', async () => {
-    const res = await request(app).get('/teams/p_jbk');
-    expect(res.statusCode).to.equal(200);
-    assertTeamResponse(res.body);
-  });
-
-  it('GET /teams/username coach endpoint', async () => {
-    const res = await request(app).get('/teams/c_coach1');
-    expect(res.statusCode).to.equal(200);
-    assertTeamResponse(res.body);
-  });
-
-  it('GET /trainingSessions coach', async () => {
-    const res = await request(app).get('/trainingSessions/c_coach1');
-    expect(res.statusCode).to.equal(200);
-    res.body.forEach((session: any)=>assertSessionResponse(session) );
-  });
-
-  it('GET /trainingSessions user', async () => {
-    const res = await request(app).get('/trainingSessions/p_jbk');
-    expect(res.statusCode).to.equal(200);
-    res.body.forEach((session: any)=>assertSessionResponse(session) );
-  });
 
   describe('Log in/out tests', () => {
     const agent = request.agent(app);
@@ -138,4 +96,54 @@ describe('Test Express server endpoints', () => {
       expect(res.statusCode).to.equal(401);
     });
   });
+
+  const agent = request.agent(app);
+  const testUser = {
+    'username':'p_jbk',
+    'password':'12345678',
+  };
+  await agent.post('/login').send(testUser);
+
+  it('GET /profile endpoint with login', async () => {
+    const res = await agent.get('/profile');
+    expect(res.statusCode).to.equal(200);
+    assertHomepageResponse(res.body);
+  });
+
+  it('GET /profile/:username endpoint', async () => {
+    const res = await request(app).get('/profile/p_jbk');
+    expect(res.statusCode).to.equal(200);
+    assertHomepageResponse(res.body);
+  });
+
+  it('GET /teams endpoint', async () => {
+    const res = await request(app).get('/teams');
+    expect(res.statusCode).to.equal(200);
+    assertTeamResponse(res.body);
+  });
+
+  it('GET /teams/username player endpoint', async () => {
+    const res = await request(app).get('/teams/p_jbk');
+    expect(res.statusCode).to.equal(200);
+    assertTeamResponse(res.body);
+  });
+
+  it('GET /teams/username coach endpoint', async () => {
+    const res = await request(app).get('/teams/c_coach1');
+    expect(res.statusCode).to.equal(200);
+    assertTeamResponse(res.body);
+  });
+
+  it('GET /trainingSessions coach', async () => {
+    const res = await request(app).get('/trainingSessions/c_coach1');
+    expect(res.statusCode).to.equal(200);
+    res.body.forEach((session: any)=>assertSessionResponse(session) );
+  });
+
+  it('GET /trainingSessions user', async () => {
+    const res = await request(app).get('/trainingSessions/p_jbk');
+    expect(res.statusCode).to.equal(200);
+    res.body.forEach((session: any)=>assertSessionResponse(session) );
+  });
+
 });
