@@ -7,7 +7,14 @@ export type InfluxQuery = { //TODO:need more specific name
   time_window?: { every: number, period?: number, func?: AggregateFunc }, //seconds
   get_unique?: string
 };
-
+function influxColumn(name: string) :string {
+  switch (name) {
+    case 'team': return '_measurement';
+    case 'player': return 'Player Name';
+    //case 'field': return '_field';
+    default: return 'oops';
+  }
+}
 export type AggregateFunc = 'mean' | 'median' | 'mode' | 'max';
 
 export type InfluxField = '2dAccuracy' |
@@ -87,7 +94,7 @@ export function buildQuery(query: InfluxQuery) :string {
 
   //group and limit for get_unique
   if (query.get_unique !== undefined) {
-    output.push(`|>group(columns: ["${query.get_unique}"])`);
+    output.push(`|>group(columns: ["${influxColumn(query.get_unique)}"])`);
     output.push('|>limit(n: 1)');
   }
 
@@ -135,7 +142,7 @@ function buildTest() {
   console.log(buildQuery(
     {
       names: ['Warren'],
-      get_unique: '_measurement',
+      get_unique: 'team',
       //TODO!abstract columns to better names ie 'team'
     },
   ));
@@ -143,7 +150,7 @@ function buildTest() {
   console.log(buildQuery(
     {
       teams: ['TeamBit'],
-      get_unique: 'Player Name',
+      get_unique: 'player',
     },
   ));
 }
