@@ -34,6 +34,7 @@ function updateTable(
 
   //typecheck
   if (DBI.isCorrectType(t as DBI.SQLTableName, k as DBI.TableKey, newValue)) {
+    //TODO!serialize this properly. Database busy error
     //update table
     db.run(`UPDATE ${t} SET ${k} = ? WHERE ${pk} = ?`, [
       sanitize(newValue),
