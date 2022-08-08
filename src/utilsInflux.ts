@@ -143,7 +143,6 @@ function buildTest() {
     {
       names: ['Warren'],
       get_unique: 'team',
-      //TODO!abstract columns to better names ie 'team'
     },
   ));
   console.log('\n');
