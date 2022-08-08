@@ -6,11 +6,11 @@ import {
   executeInflux,
   callBasedOnRole,
   getCommonTeams,
-  CURRENTLY_LOGGED_IN,
 } from './utils';
 import { resolve as pathResolve } from 'path';
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
+import { generateErrorBasedOnCode } from './throws';
 
 export async function getPlayerTeamsAPI(
   db: Database,
@@ -110,9 +110,18 @@ export default function bindGetTeams(
     try {
       // const sess = req.session;
       // let username = sess.username;
-      let username = CURRENTLY_LOGGED_IN;
+      let loggedInUsername =  req.session.username;
+      if (loggedInUsername === undefined) {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+        return;
+      }
+      
+      // let username = CURRENTLY_LOGGED_IN;
 
-      let teamsAPI = await getTeamsAPI(db, queryClient, username);
+      let teamsAPI = await getTeamsAPI(db, queryClient, loggedInUsername);
       res.send(teamsAPI);
     } catch (error) {
       res.send({
@@ -127,9 +136,17 @@ export default function bindGetTeams(
     try {
       // const sess = req.session;
       // let username = 'p_warren';
-      let loggedInUsername = CURRENTLY_LOGGED_IN; // username will be set to the username from session variable when log in feature is implemented
+      // let loggedInUsername = CURRENTLY_LOGGED_IN; // username will be set to the username from session variable when log in feature is implemented
       //right now, just let the username = 'a_administrator' so that it has the right to see the teams list of all players.
-       
+      let loggedInUsername =  req.session.username;
+      if (loggedInUsername === undefined) {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+        return;
+      }
+      
       let teamsAPI = (await callBasedOnRole(
         db,
         loggedInUsername!,
@@ -140,7 +157,7 @@ export default function bindGetTeams(
           // the coach should only be able to see the teams of player
           // return getPlayerTeamsAPI(db, queryClient, req.params.username);
           // currently, the coach can see the teams of all players and coach for testing purpose 
-          let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername, req.params.username);
+          let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername!, req.params.username);
           if (commonTeams.length !== 0) {
             return getPlayerTeamsAPI(db, queryClient, req.params.username);
           } else {

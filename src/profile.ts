@@ -2,7 +2,7 @@ import { QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
 import { getCoachTrainingSessionsAPI, getTrainingSessionsAPI } from './trainingSession';
-import { getPersonalInfoAPI, callBasedOnRole, getCommonTeams, CURRENTLY_LOGGED_IN } from './utils';
+import { getPersonalInfoAPI, callBasedOnRole, getCommonTeams } from './utils';
 import { Express } from 'express';
 import { isPlainObject } from 'lodash';
 import { userEditTable } from './editTable';
@@ -194,12 +194,7 @@ export default function bindGetProfile(
     Currently, the default users that will be returned is Warren
     */
     try {
-      // const sess = req.session;
-      // let username = sess.username;
-      // let username = req.session.username;
-      console.log(req.session);
-      let username = CURRENTLY_LOGGED_IN;
-      // console.log('test: ' + req.session);
+      let username = req.session.username;
       if (username) {
         let homepageAPI = await getProfileAPI(sqlDB, queryClient, username);
         res.status(200).send(homepageAPI);
@@ -210,7 +205,7 @@ export default function bindGetProfile(
         });
       }
     } catch (error) {
-      res.send({
+      res.status(500).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
@@ -223,7 +218,14 @@ export default function bindGetProfile(
       // let loggedInUsername = 'p_jbk';
       // let loggedInUsername = 'c_coach1';
       // let loggedInUsername = 'a_administrator';
-      let loggedInUsername = CURRENTLY_LOGGED_IN;
+      let loggedInUsername =  req.session.username;
+      if (loggedInUsername === undefined) {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+        return;
+      }
       // let username = req.params.username;
       // let homepageAPI = await getProfileAPI(db, queryClient, username);
       let homepageAPI = (await callBasedOnRole(
@@ -237,7 +239,7 @@ export default function bindGetProfile(
           // TODO: validate if the queried players is a member of that coach. 
           // return getPlayerProfileAPI(db, queryClient, req.params.username);
           // currently, the coach can see the profile of all players for testing purpose
-          let commonTeams = await getCommonTeams( sqlDB, queryClient, loggedInUsername, req.params.username);
+          let commonTeams = await getCommonTeams( sqlDB, queryClient, loggedInUsername!, req.params.username);
           if (commonTeams.length !== 0) {
             return getPlayerProfileAPI(sqlDB, queryClient, req.params.username);
           } else {
@@ -252,7 +254,7 @@ export default function bindGetProfile(
       res.send(homepageAPI);
 
     } catch (error) {
-      res.send({
+      res.status(500).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
@@ -268,22 +270,22 @@ export function bindPutProfile(
 ) {
   app.put('/profile', async (req, res) => {
     try {
-      let logginUsername = CURRENTLY_LOGGED_IN;
+      // let logginUsername = CURRENTLY_LOGGED_IN;
       // console.log('test: ' + logginUsername);
-
-      if (logginUsername) {
-        let newData = req.body;
-        let putData = await putProfileAPI(sqlDB, queryClient, logginUsername, newData);
-        res.status(200).send(putData);
-      } else {
+      let loggedInUsername =  req.session.username;
+      if (loggedInUsername === undefined) {
         res.status(401).send({
           name: 'Error',
           error: generateErrorBasedOnCode('e401.0').message,
         });
+        return;
       }
 
+      let newData = req.body;
+      let putData = await putProfileAPI(sqlDB, queryClient, loggedInUsername!, newData);
+      res.status(200).send(putData);
     } catch (error) {
-      res.send({
+      res.status(500).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
@@ -293,7 +295,15 @@ export function bindPutProfile(
 
   app.put('/profile/:username', async (req, res) => {
     try {
-      let loggedInUsername = CURRENTLY_LOGGED_IN;
+      // let loggedInUsername = CURRENTLY_LOGGED_IN;
+      let loggedInUsername =  req.session.username;
+      if (loggedInUsername === undefined) {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+        return;
+      }
       let newData = req.body;
 
       let editedHomepageAPI = (await callBasedOnRole(
@@ -304,7 +314,7 @@ export function bindPutProfile(
         },
         async () => {
           // the coach should only be able to eidt the profile of players in his teams
-          let commonTeams = await getCommonTeams( sqlDB, queryClient, loggedInUsername, req.params.username);
+          let commonTeams = await getCommonTeams( sqlDB, queryClient, loggedInUsername!, req.params.username);
           if (commonTeams.length !== 0) {
             let editedData = await putPlayerProfileAPI(sqlDB, queryClient, req.params.username, newData);
             return editedData;

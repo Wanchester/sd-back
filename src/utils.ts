@@ -2,6 +2,7 @@ import { QueryApi } from '@influxdata/influxdb-client';
 
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
+import throwBasedOnCode from './throws';
 
 export const DEFAULT_PLAYER = 'p_warren';
 export const DEFAULT_COACH = 'c_coach1';
@@ -51,7 +52,8 @@ export async function getPersonalInfoAPI(sqlDB: Database, username: string) {
   let playerInfo = await SQLretrieve(sqlDB, query, paramsLst);
 
   if (playerInfo.length == 0) {
-    throw new Error('e4041: Given username is not found');
+    // throw new Error('e4041: Given username is not found');
+    throwBasedOnCode('e404.0', username);
   }
   return playerInfo[0];
 }
