@@ -90,6 +90,7 @@ export default function bindGetTrainingSessionStatistic(
               'name': generateErrorBasedOnCode('e404.6', loggedInUsername, teamName, sessionName).name,
               'error': generateErrorBasedOnCode('e404.6', loggedInUsername, teamName, sessionName).message,
             });
+            return;
           }
           return getTrainingSessionStatisticAPI(queryClient, teamName, sessionName);
         },
