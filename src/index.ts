@@ -10,6 +10,7 @@ import 'dotenv/config';
 import bindGetStatistic from './playerStatistic';
 import bindLoginAPI from './login';
 import bindGetTrainingSessionStatistic from './trainingSessionStatistics';
+import bindGetTrainingSessionStatistics from './trainingSessionStatistics';
 
 function startExpressServer() {
   const app = express();
@@ -37,7 +38,7 @@ function startExpressServer() {
 
   bindGetStatistic(app, db, queryClient);
 
-  bindGetTrainingSessionStatistic(app, db, queryClient);
+  bindGetTrainingSessionStatistics(app, db, queryClient);
 
   // PUT requests
   bindPutProfile(app, db, queryClient);

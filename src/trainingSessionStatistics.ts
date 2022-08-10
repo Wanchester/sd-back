@@ -2,14 +2,15 @@ import { QueryApi } from '@influxdata/influxdb-client';
 import { readFileSync } from 'fs';
 import interpole from 'string-interpolation-js';
 import { resolve as pathResolve } from 'path';
-import { callBasedOnRole, CURRENTLY_LOGGED_IN, executeInflux, getPersonalInfoAPI } from './utils';
-import { Express, query } from 'express';
+import { callBasedOnRole, executeInflux, getPersonalInfoAPI } from './utils';
+import { Express } from 'express';
 import { SessionResponseType } from './interface';
 import { getDuration } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
 import { Database } from 'sqlite3';
+import { getCoachTeamsAPI } from './team';
 
-export async function getTrainingSessionStatisticAPI(
+export async function getTrainingSessionStatisticsAPI(
   queryClient: QueryApi,
   teamName: string, 
   sessionName: string,
@@ -58,12 +59,11 @@ export async function getTrainingSessionPlayerNamesAPI(queryClient:QueryApi, tea
   return playerList;
 }
 
-
-export default function bindGetTrainingSessionStatistic(
+export default function bindGetTrainingSessionStatistics(
   app: Express, 
   sqlDB: Database,
   queryClient: QueryApi) {
-  app.get('/trainingSessionStatistic', async (req, res) => {
+  app.get('/trainingSessionStatistics', async (req, res) => {
     try {
       const loggedInUsername = req.session.username;
       if (loggedInUsername === undefined) {
@@ -73,13 +73,12 @@ export default function bindGetTrainingSessionStatistic(
         });
         return;
       }
-
       const loggedInPersonalInfo = await getPersonalInfoAPI(sqlDB, loggedInUsername);
 
       const teamName = req.body.teamName;
       const sessionName = req.body.sessionName;
 
-      let trainingSessionsAPI = (await callBasedOnRole(
+      let trainingSessionsAPI = await callBasedOnRole(
         sqlDB,
         loggedInUsername!,
         async () => {
@@ -92,27 +91,23 @@ export default function bindGetTrainingSessionStatistic(
             });
             return;
           }
-          return getTrainingSessionStatisticAPI(queryClient, teamName, sessionName);
+          return getTrainingSessionStatisticsAPI(queryClient, teamName, sessionName);
         },
-        // async () => {
-        //   // the coach should only be able to see the training sessions of player
-        //   // currently, the coach can see the training sessions of all players and coach for testing purpose 
-        //   let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername!, req.params.username);
-        //   if (commonTeams.length !== 0) {
-        //     return getPlayerTrainingSessionsAPI(db, queryClient, req.params.username);
-        //   } else {
-        //     throw new Error('Cannot find the input username in your teams');
-        //   }
-        // },
-        // async () => {
-        //   return getTrainingSessionsAPI(db, queryClient, req.params.username);
-        // },
-      )) as any[];
-      
-      
-
-
-
+        async () => {
+          let coachTeams = await getCoachTeamsAPI(sqlDB, queryClient, loggedInUsername);
+          if (!coachTeams.includes(teamName)) {
+            res.status(404).send({
+              'name': generateErrorBasedOnCode('e404.6', loggedInUsername, teamName, sessionName).name,
+              'error': generateErrorBasedOnCode('e404.6', loggedInUsername, teamName, sessionName).message,
+            });
+            return;
+          }
+          return getTrainingSessionStatisticsAPI(queryClient, teamName, sessionName);
+        },
+        async () => {
+          return getTrainingSessionStatisticsAPI(queryClient, teamName, sessionName);
+        },
+      );
       res.send(trainingSessionsAPI);
     } catch (error) {
       res.status(500).send({

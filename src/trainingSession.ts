@@ -9,7 +9,7 @@ import { SessionResponseType } from './interface';
 import { Express } from 'express';
 import { getCoachTeamsAPI } from './team';
 import { getDuration } from './utilsInflux';
-import { generateErrorBasedOnCode } from './throws';
+import throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
 
 export async function getTeamTrainingSessionsAPI(
   queryClient: QueryApi,
@@ -168,7 +168,7 @@ export default function bindGetTrainingSessions(
       // let loggedInUsername = CURRENTLY_LOGGED_IN;
       // let username = req.params.us
       //right now, just let the username = 'a_administrator' so that it has the right to see the teams list of all players.
-      
+      const queriedUsername = req.params.username;
       let loggedInUsername =  req.session.username;
       if (loggedInUsername === undefined) {
         res.status(401).send({
@@ -178,11 +178,11 @@ export default function bindGetTrainingSessions(
         return;
       }
 
-      let trainingSessionsAPI = (await callBasedOnRole(
+      let trainingSessionsAPI = await callBasedOnRole(
         db,
         loggedInUsername!,
         async () => {
-          throw new Error('You are not allowed to make the request');
+          throwBasedOnCode('e401.1');
         },
         async () => {
           // the coach should only be able to see the training sessions of player
@@ -191,13 +191,14 @@ export default function bindGetTrainingSessions(
           if (commonTeams.length !== 0) {
             return getPlayerTrainingSessionsAPI(db, queryClient, req.params.username);
           } else {
-            throw new Error('Cannot find the input username in your teams');
+            // throw new Error('Cannot find the input username in your teams');
+            throwBasedOnCode('e404.4', queriedUsername);
           }
         },
         async () => {
           return getTrainingSessionsAPI(db, queryClient, req.params.username);
         },
-      )) as any[];
+      ) as any[];
       res.send(trainingSessionsAPI);
     } catch (error) {
       res.send({
