@@ -26,14 +26,14 @@ export async function getTeamTrainingSessionsAPI(
     const aSession = {
       playerName: '',
       sessionName: '',
-      sessionDate: '',
-      sessionTime: '',
+      sessionStart: '',
+      sessionStop: '',
       teamName: '',
       duration: '',
     } as SessionResponseType;
-    aSession.sessionName = trainingSessions[i].Session.split(' ')[0];
-    aSession.sessionDate = moment(trainingSessions[i]._time).format('DD-MM-YYYY');     //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
-    aSession.sessionTime = moment(trainingSessions[i]._time).format('HH:mm');          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
+    aSession.sessionName = trainingSessions[i].Session;
+    aSession.sessionStart = trainingSessions[i]._start;    //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
+    aSession.sessionStop = trainingSessions[i]._stop;          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
     aSession.teamName = trainingSessions[i]._measurement;
     // aSession.duration = TimeFormat.fromS(trainingSessions[i].elapsed, 'hh:mm:ss');     //hour:minutes:seconds.See https://github.com/Goldob/hh-mm-ss#supported-time-formats
     aSession.duration = getDuration(trainingSessions[i]._start, trainingSessions[i]._stop);
@@ -65,14 +65,14 @@ export async function getPlayerTrainingSessionsAPI(
     for (let i = 0; i < trainingSessions.length; i++) {
       const aSession = {
         sessionName: '',
-        sessionDate: '',
-        sessionTime: '',
+        sessionStart: '',
+        sessionStop: '',
         teamName: '',
         duration: '',
       } as SessionResponseType;
       aSession.sessionName = trainingSessions[i].Session.split(' ')[0];
-      aSession.sessionDate = moment(trainingSessions[i]._time).format('DD-MM-YYYY');     //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
-      aSession.sessionTime = moment(trainingSessions[i]._time).format('HH:mm');          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
+      aSession.sessionStart = moment(trainingSessions[i]._time).format('DD-MM-YYYY');     //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
+      aSession.sessionStop = moment(trainingSessions[i]._time).format('HH:mm');          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
       aSession.teamName = trainingSessions[i]._measurement;
       // aSession.duration = TimeFormat.fromS(trainingSessions[i].elapsed, 'hh:mm:ss');     //hour:minutes:seconds.See https://github.com/Goldob/hh-mm-ss#supported-time-formats
       aSession.duration = getDuration(trainingSessions[i]._start, trainingSessions[i]._stop);
