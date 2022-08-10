@@ -9,6 +9,7 @@ import bindGetProfile, { bindPutProfile } from './profile';
 import 'dotenv/config';
 import bindGetStatistic from './playerStatistic';
 import bindLoginAPI from './login';
+import bindGetTrainingSessionStatistic from './trainingSessionStatistics';
 
 function startExpressServer() {
   const app = express();
@@ -33,7 +34,10 @@ function startExpressServer() {
   bindGetTeams(app, db, queryClient);
   bindGetTrainingSessions(app, db, queryClient);
   bindGetProfile(app, db, queryClient);
+
   bindGetStatistic(app, db, queryClient);
+
+  bindGetTrainingSessionStatistic(app, db, queryClient);
 
   // PUT requests
   bindPutProfile(app, db, queryClient);

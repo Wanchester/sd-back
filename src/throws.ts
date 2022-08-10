@@ -21,6 +21,8 @@ const ExitCodeMap = {
   'e404.2': 'Cannot find an admin with given username :0',
   'e404.3': 'Cannot find an user with given username :0',
   'e404.4': 'Cannot find the input username :0 in your teams.',
+  'e404.5': 'Cannot find any training session with given :0 teamName and :1 sessionName',
+  'e404.6': 'Cannot find any player with given :0 username of given :1 team in given :2 training session ',
 
   //500 Server error
   'e500.0': 'An error occurred while executing InfluxDB queries. Reason: :0',

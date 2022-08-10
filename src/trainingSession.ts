@@ -70,7 +70,7 @@ export async function getPlayerTrainingSessionsAPI(
         teamName: '',
         duration: '',
       } as SessionResponseType;
-      aSession.sessionName = trainingSessions[i].Session.split(' ')[0];
+      aSession.sessionName = trainingSessions[i].Session;
       aSession.sessionStart = moment(trainingSessions[i]._time).format('DD-MM-YYYY');     //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
       aSession.sessionStop = moment(trainingSessions[i]._time).format('HH:mm');          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
       aSession.teamName = trainingSessions[i]._measurement;
