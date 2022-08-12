@@ -1,6 +1,7 @@
 import * as sqlite from 'sqlite3';
 const sqlite3 = require('sqlite3').verbose();
 const db: sqlite.Database = new sqlite3.Database('test.db');
+import bcrypt from 'bcrypt';
 
 let nameList = [
   '5C3EBE',
@@ -56,7 +57,7 @@ function insertUser(n: string, role: string) {
   let id = nameToID(n, role);
   insertUserStmt.run(
     id,                                     //username
-    '12345678',                             //password    
+    bcrypt.hashSync('12345678', 10),        //password    
     n,                                      //name        
     id + '@gmail.com',                      //email       
     '01-01-1970',                           //dob         
@@ -105,9 +106,9 @@ db.serialize(() => {
 
   //prepare coach TEAMS
   const insertCoachTeamStmt = db.prepare('INSERT INTO TeamCoach VALUES (?,?,?)');
-  insertCoachTeamStmt.run( teamList[0], nameToID(teamList[0], 'Team'), nameToID(coachList[0], 'coach'));
-  insertCoachTeamStmt.run( teamList[1], nameToID(teamList[1], 'Team'), nameToID(coachList[1], 'coach'));
-  insertCoachTeamStmt.run( teamList[2], nameToID(teamList[2], 'Team'), nameToID(coachList[0], 'coach'));
+  insertCoachTeamStmt.run(teamList[0], nameToID(teamList[0], 'Team'), nameToID(coachList[0], 'coach'));
+  insertCoachTeamStmt.run(teamList[1], nameToID(teamList[1], 'Team'), nameToID(coachList[1], 'coach'));
+  insertCoachTeamStmt.run(teamList[2], nameToID(teamList[2], 'Team'), nameToID(coachList[0], 'coach'));
   insertCoachTeamStmt.finalize();
 
 

@@ -2,6 +2,7 @@ import { QueryApi } from '@influxdata/influxdb-client';
 
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
+import throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
 
 export const DEFAULT_PLAYER = 'p_warren';
 export const DEFAULT_COACH = 'c_coach1';
@@ -22,7 +23,10 @@ export const SQLretrieve = async (
         query,
         // this callback is used for error handling in SQL querry
         function (err: any) {
-          if (err) { reject(err); }
+          if (err) { 
+            // 'e500.1': 'An error occurred while executing SQL queries. Reason: :0'
+            reject(generateErrorBasedOnCode('e500.1', err));
+          }
         },
       );
       statement.each(
@@ -47,11 +51,13 @@ export const SQLretrieve = async (
 export async function getPersonalInfoAPI(sqlDB: Database, username: string) {
   //search the player in the SQL
   const query = 'select * from user where username = ?';
+  // const query = 'test exception';
   let paramsLst = [username];
   let playerInfo = await SQLretrieve(sqlDB, query, paramsLst);
 
   if (playerInfo.length == 0) {
-    throw new Error('e4041: Given username is not found');
+    // 'e404.3': 'Cannot find an user with given username :0',
+    throwBasedOnCode('e404.3', username);
   }
   return playerInfo[0];
 }
@@ -71,8 +77,8 @@ export const executeInflux = async (
       },
       error: (error) => {
         rejected = true;
-        error.message = 'e5001: Error when querying InfluxDB';
-        reject(error);
+        // 'e500.1': 'An error occurred while executing SQL queries. Reason: :0'
+        reject(generateErrorBasedOnCode('e500.0', error));
       },
       complete: () => {
         console.log('\nQuery Successfully');
@@ -124,7 +130,8 @@ export async function hasCommonTeams( sqlDB:Database, queryClient: QueryApi, use
     console.log('1st username is coach');
     teams1 = await getCoachTeamsAPI(sqlDB, queryClient, username1 );
   } else {
-    throw new Error('the 1st input username is not a player or a coach');
+    // 'e400.1': 'Given username :0 it not a player or a coach'
+    throwBasedOnCode('e401.1', username1);
   }
   
   let teams2: string[] = [];
@@ -135,7 +142,8 @@ export async function hasCommonTeams( sqlDB:Database, queryClient: QueryApi, use
     console.log('2nd username is coach');
     teams2 = await getCoachTeamsAPI(sqlDB, queryClient, username2 );
   } else {
-    throw new Error('the 2nd input username is not a player or a coach');
+    // 'e400.1': 'Given username :0 it not a player or a coach'
+    throwBasedOnCode('e401.1', username2);
   }
   
   let commonTeams = teams1.filter(value => teams2.includes(value));
@@ -157,7 +165,8 @@ export async function getCommonTeams(sqlDB:Database, queryClient: QueryApi, user
   } else if (personalInfo1.role == 'coach') {
     teams1 = await getCoachTeamsAPI(sqlDB, queryClient, username1 );
   } else {
-    throw new Error('the input username is not a player or a coach');
+    // 'e400.1': 'Given username :0 it not a player or a coach'
+    throwBasedOnCode('e401.1', username1);
   }
   
   let teams2: string[] = [];
@@ -166,7 +175,8 @@ export async function getCommonTeams(sqlDB:Database, queryClient: QueryApi, user
   } else if (personalInfo2.role == 'coach') {
     teams2 = await getCoachTeamsAPI(sqlDB, queryClient, username2 );
   } else {
-    throw new Error('the input username is not a player or a coach');
+    // 'e400.1': 'Given username :0 it not a player or a coach'
+    throwBasedOnCode('e401.1', username2);
   }
   
   let commonTeams = teams1.filter(value => teams2.includes(value));
