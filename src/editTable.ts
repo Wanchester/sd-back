@@ -1,8 +1,8 @@
 import * as sqlite from 'sqlite3';
 import * as DBI from './interfaceSQL';
-const sqlite3 = require('sqlite3').verbose();
-const db: sqlite.Database = new sqlite3.Database('test.db');
-db.configure('busyTimeout', 5000);
+//const sqlite3 = require('sqlite3').verbose();
+//const db: sqlite.Database = new sqlite3.Database('test.db');
+//db.configure('busyTimeout', 5000);
 
 function sanitize(input: string) :string {
   if (typeof input === 'number') {return input;}
@@ -24,6 +24,7 @@ function sanitize(input: string) :string {
 }
 
 function updateTable(
+  db: sqlite.Database,
   table: DBI.SQLTableName, //known when clicked edit/user role permissions
   keyToEdit: DBI.TableKey, //known when clicked edit
   newValue: string,
@@ -46,20 +47,8 @@ function updateTable(
   }
 }
 
-export function userEditTable(key: DBI.UserTableKey, value: string, id: string) {
-  updateTable('user', key, value, id);
-}
-
-export function coachEditTable(key: DBI.TableKey, value: string, id: string, coachUsername: string) {
-  if (id !== coachUsername && id[0] === 'c' || id[0] === 'a') {
-    return;
-  }
-  updateTable('user', key, value, id);
-}
-
-export function adminEditTable(key: DBI.TableKey, 
-  value: string, id: string, table: DBI.SQLTableName) {
-  updateTable(table, key, value, id);
+export function userEditTable(db:sqlite.Database, key: DBI.UserTableKey, value: string, id: string) {
+  updateTable(db, 'user', key, value, id);
 }
 
 //function quicktest() {

@@ -122,7 +122,7 @@ export async function putPlayerProfileAPI(sqlDB: Database, queryClient: QueryApi
     for (let key in newData) { // loop through all the keys provided by the frontend
       if (editable.includes(key)) { // if the provided key is editable
         // update the new value
-        userEditTable(key as DBI.UserTableKey, newData[key], username);
+        userEditTable(sqlDB, key as DBI.UserTableKey, newData[key], username);
       } else {
         throw new Error(`You are not allowed to edit the ${key} field`);
       }
@@ -145,7 +145,7 @@ export async function putCoachProfileAPI(sqlDB: Database, queryClient: QueryApi,
     for (let key in newData) { // loop through all the keys provided by the frontend
       if (editable.includes(key)) { // if the provided key is editable
         // update the new value
-        userEditTable(key as DBI.UserTableKey, newData[key], username);
+        userEditTable(sqlDB, key as DBI.UserTableKey, newData[key], username);
       } else {
         throw new Error(`You are not allowed to edit the ${key} field`);
       }

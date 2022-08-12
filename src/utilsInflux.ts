@@ -152,8 +152,16 @@ export function buildQuery(query: InfluxQuery) :string {
 //      get_unique: 'player',
 //    },
 //  ));
+//  console.log('\n');
+//  console.log(buildQuery(
+//    {
+//      names: ['Warren'],
+//      fields: ['Height'],
+//      time_window: { every: 5, func: 'median' },
+//    },
+//  ));
 //}
-////buildTest();
+//buildTest();
 
 
 //function mytest() {
