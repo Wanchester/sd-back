@@ -1,3 +1,4 @@
+import * as DBI from './utilsInflux';
 import { readFileSync } from 'fs';
 import { Database } from 'sqlite3';
 import interpole from 'string-interpolation-js';
@@ -164,4 +165,35 @@ export default function bindGetTeams(
       console.log((error as Error).stack);
     }
   });
+}
+
+export function bindGetTeamPlayers(
+  app: Express,
+  sqlDB: Database,
+  queryClient: QueryApi,
+) {
+	app.get('/team/players', async (req, res) => {
+		const players = getTeamPlayersAPI(sqlDB, queryClient, req.params.teamName);
+		res.send(players);
+	});
+}
+
+async function getTeamPlayersAPI(
+	sqlDB: Database,
+	queryClient: QueryApi,
+	teamName: string,
+) {
+	const query = DBI.buildQuery({ teams: [teamName], get_unique: 'player' });
+	const response = executeInflux(query, queryClient);
+
+	//push names into array
+	let namesFromInflux: string[] = [];
+	await response.then(list => 
+		list.forEach(row => 
+			namesFromInflux.push(row['Player Name'])
+		));
+	
+	
+	
+	console.log(namesFromInflux);
 }
