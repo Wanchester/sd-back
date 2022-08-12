@@ -9,7 +9,7 @@ export function bindGetTeamPlayers(
   sqlDB: Database,
   queryClient: QueryApi,
 ) {
-	app.get('/teamPlayers', async (req, res) => {
+	app.get('/team?teamName=:teamName', async (req, res) => {
 		const players = getTeamPlayersAPI(sqlDB, queryClient, req.params.teamName);
 		res.send(players);
 	});
