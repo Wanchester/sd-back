@@ -77,7 +77,7 @@ export const executeInflux = async (
         reject(error);
       },
       complete: () => {
-        console.log('\nQuery Successfully');
+        // console.log('\nQuery Successfully InfluxDB');
         if (!rejected) {
           resolve();
         }

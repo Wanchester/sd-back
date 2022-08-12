@@ -136,9 +136,9 @@ export async function putPlayerProfileAPI(sqlDB: Database, queryClient: QueryApi
     for (let key in newData) { // loop through all the keys provided by the frontend
       if (editable.includes(key)) { // if the provided key is editable
         // update the new value
-        userEditTable(key as DBI.UserTableKey, newData[key], username);
+        userEditTable(db, key as DBI.UserTableKey, newData[key], username);
       } else {
-        throw new Error(`You are not allowed to edit the ${key} field`);
+        throwBasedOnCode('e403.0', key);
       }
     }
     return newData;
@@ -159,9 +159,9 @@ export async function putCoachProfileAPI(sqlDB: Database, queryClient: QueryApi,
     for (let key in newData) { // loop through all the keys provided by the frontend
       if (editable.includes(key)) { // if the provided key is editable
         // update the new value
-        userEditTable(key as DBI.UserTableKey, newData[key], username);
+        userEditTable(db, key as DBI.UserTableKey, newData[key], username);
       } else {
-        throw new Error(`You are not allowed to edit the ${key} field`);
+        throwBasedOnCode('e403.0', key);
       }
     }
     return newData;
@@ -232,7 +232,7 @@ export default function bindGetProfile(
         sqlDB,
         loggedInUsername!,
         async () => {
-          throw new Error('You are not allowed to make the request');
+          throwBasedOnCode('e401.1');
         },
         async () => {
           // the coach should only be able to see the profile of player
@@ -310,7 +310,7 @@ export function bindPutProfile(
         sqlDB,
         loggedInUsername!,
         async () => {
-          throw new Error('You are not allowed to make the request');
+          throwBasedOnCode('e401.1');
         },
         async () => {
           // the coach should only be able to eidt the profile of players in his teams
@@ -320,6 +320,7 @@ export function bindPutProfile(
             return editedData;
           } else {
             throw new Error('Cannot find the input username in your teams');
+            throwBasedOnCode('e404.4', req.params.username);
           }
         },
         async () => {

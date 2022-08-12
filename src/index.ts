@@ -17,6 +17,7 @@ function startExpressServer() {
   const port = process.env.SD_SERVER_PORT || 3000;
   //SQL
   const db = new sqlite3.Database('test.db');
+  db.configure('busyTimeout', 5000);
   //Influx
   const DBtoken = process.env.SD_SERVER_INFLUX_API_KEY;
   const url = 'https://ap-southeast-2-1.aws.cloud2.influxdata.com';

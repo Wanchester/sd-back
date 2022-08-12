@@ -5,8 +5,8 @@ import request from 'supertest';
 function assertSessionResponse(session: any) {
   assert.isObject(session);
   assert.isString(session.sessionName);
-  assert.isString(session.sessionDate);
-  assert.isString(session.sessionTime);
+  assert.isString(session.sessionStart);
+  assert.isString(session.sessionStop);
   assert.isString(session.teamName);
   assert.isString(session.duration);
 }
@@ -41,19 +41,18 @@ function assertTeamResponse(team: any) {
 
 describe('Test Express server endpoints', async () => {
   const app = startExpressServer();
-  const agent = request.agent(app);
 
-  describe('No log in test', () => {
-    // const agent = request.agent(app);
-    it('GET /profile endpoint without login', async () => {
-      const res = await agent.get('/profile');
-      expect(res.statusCode).to.equal(401);
-      // assertHomepageResponse(res.body);
-    });
-  });
+  // describe('No log in test', () => {
+  //   const agent = request.agent(app);
+  //   it('GET /profile endpoint without login', async () => {
+  //     const res = await agent.get('/profile');
+  //     expect(res.statusCode).to.equal(401);
+  //     // assertHomepageResponse(res.body);
+  //   });
+  // });
 
   describe('Log in/out tests', () => {
-    // const agent = request.agent(app);
+    const agent = request.agent(app);
 
     it('GET /login returns 401 when the user has NOT logged in', async () => {
       const res = await agent.get('/login');
@@ -107,61 +106,97 @@ describe('Test Express server endpoints', async () => {
     });
   });
 
-  describe('Profile test', async () => {
-    // const agent = request.agent(app);
-    it('dummy user', async () => {
+  describe('Profile test for jbk player', async () => {
+    const agent = request.agent(app);
+
+    it('POST /login succeeds with p_jbk as logged in user', async () => {
       const testUser = {
         'username':'p_jbk',
         'password':'12345678',
       };
-      await agent.post('/login').send(testUser);
+      const res = await agent.post('/login').send(testUser);
+      expect(res.statusCode).to.equal(200);
     });
 
-    it('GET /profile endpoint with login', async () => {
+    it('GET /profile succeeds with p_jbk as logged in user', async () => {
       const res = await agent.get('/profile');
       expect(res.statusCode).to.equal(200);
       assertHomepageResponse(res.body);
     });
 
-    // it('GET /profile/:username endpoint', async () => {
-    //   const res = await request(app).get('/profile/p_jbk');
-    //   // const res = await agent.get('/profile/p_jbk');
-    //   expect(res.statusCode).to.equal(500);
-    //   assertHomepageResponse(res.body);
-    // });
+    it('GET /profile/:username fails with p_jbk as logged in user', async () => {
+      const res = await agent.get('/profile/p_jbk');
+      expect(res.statusCode).to.equal(401);
+    });
 
-    // it('GET /teams endpoint', async () => {
-    //   const res = await request(app).get('/teams');
-    //   expect(res.statusCode).to.equal(200);
-    //   assertTeamResponse(res.body);
-    // });
+    it('GET /teams succeeds with p_jbk as logged in user', async () => {
+      const res = await agent.get('/teams');
+      expect(res.statusCode).to.equal(200);
+      assertTeamResponse(res.body);
+    });
 
-    // it('GET /teams/username player endpoint', async () => {
-    //   const res = await request(app).get('/teams/p_jbk');
-    //   expect(res.statusCode).to.equal(200);
-    //   assertTeamResponse(res.body);
-    // });
+    it('GET /teams/:username fails with p_jbk as logged in user', async () => {
+      const res = await agent.get('/teams/p_jbk');
+      expect(res.statusCode).to.equal(401);
+    });
 
-    // it('GET /teams/username coach endpoint', async () => {
-    //   const res = await request(app).get('/teams/c_coach1');
-    //   expect(res.statusCode).to.equal(200);
-    //   assertTeamResponse(res.body);
-    // });
+    it('GET /trainingSessions succeeds with p_jbk as logged in user', async () => {
+      const res = await agent.get('/trainingSessions');
+      expect(res.statusCode).to.equal(200);
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+    });
 
-    // it('GET /trainingSessions coach', async () => {
-    //   const res = await request(app).get('/trainingSessions/c_coach1');
-    //   expect(res.statusCode).to.equal(200);
-    //   res.body.forEach((session: any)=>assertSessionResponse(session) );
-    // });
-
-    // it('GET /trainingSessions user', async () => {
-    //   const res = await request(app).get('/trainingSessions/p_jbk');
-    //   expect(res.statusCode).to.equal(200);
-    //   res.body.forEach((session: any)=>assertSessionResponse(session) );
-    // });
+    it('GET /trainingSessions/:username fails with p_jbk as logged in user', async () => {
+      const res = await request(app).get('/trainingSessions/p_warren');
+      expect(res.statusCode).to.equal(401);
+      // res.body.forEach((session: any)=>assertSessionResponse(session) );
+    });
   });
 
+  describe('Profile test for c_coach1 coach', async () => {
+    const agent = request.agent(app);
 
+    it('POST /login succeeds with c_coach1 as logged in user', async () => {
+      const testUser = {
+        'username':'p_jbk',
+        'password':'12345678',
+      };
+      const res = await agent.post('/login').send(testUser);
+      expect(res.statusCode).to.equal(200);
+    });
 
+    it('GET /profile succeeds with p_jbk as logged in user', async () => {
+      const res = await agent.get('/profile');
+      expect(res.statusCode).to.equal(200);
+      assertHomepageResponse(res.body);
+    });
 
+    it('GET /profile/:username fails with p_jbk as logged in user', async () => {
+      const res = await agent.get('/profile/p_jbk');
+      expect(res.statusCode).to.equal(401);
+    });
+
+    it('GET /teams succeeds with p_jbk as logged in user', async () => {
+      const res = await agent.get('/teams');
+      expect(res.statusCode).to.equal(200);
+      assertTeamResponse(res.body);
+    });
+
+    it('GET /teams/:username fails with p_jbk as logged in user', async () => {
+      const res = await agent.get('/teams/p_jbk');
+      expect(res.statusCode).to.equal(401);
+    });
+
+    it('GET /trainingSessions succeeds with p_jbk as logged in user', async () => {
+      const res = await agent.get('/trainingSessions');
+      expect(res.statusCode).to.equal(200);
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+    });
+
+    it('GET /trainingSessions/:username fails with p_jbk as logged in user', async () => {
+      const res = await request(app).get('/trainingSessions/p_warren');
+      expect(res.statusCode).to.equal(401);
+      // res.body.forEach((session: any)=>assertSessionResponse(session) );
+    });
+  });
 });

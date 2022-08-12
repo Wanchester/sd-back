@@ -10,7 +10,7 @@ import {
 import { resolve as pathResolve } from 'path';
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
-import { generateErrorBasedOnCode } from './throws';
+import throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
 
 export async function getPlayerTeamsAPI(
   db: Database,
@@ -151,7 +151,7 @@ export default function bindGetTeams(
         db,
         loggedInUsername!,
         async () => {
-          throw new Error('You are not allowed to make the request');
+          throwBasedOnCode('e401.1');
         },
         async () => {
           // the coach should only be able to see the teams of player
@@ -170,7 +170,7 @@ export default function bindGetTeams(
       )) as any[];
       res.send(teamsAPI);
     } catch (error) {
-      res.send({
+      res.status(500).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
