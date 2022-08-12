@@ -10,7 +10,7 @@ export function bindGetTeamPlayers(
   queryClient: QueryApi,
 ) {
 	app.get('/teamPlayers', async (req, res) => {
-		const players = getTeamPlayersAPI(sqlDB, queryClient, teamName);
+		const players = getTeamPlayersAPI(sqlDB, queryClient, req.body.teamName);
 		res.send(players);
 	});
 }
@@ -29,6 +29,7 @@ async function getTeamPlayersAPI(
 		list.forEach(row => 
 			namesFromInflux.push(row['Player Name'])
 		));
+	
 	
 	
 	console.log(namesFromInflux);
