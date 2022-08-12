@@ -9,7 +9,6 @@ import bindGetProfile, { bindPutProfile } from './profile';
 import 'dotenv/config';
 import bindGetStatistic from './playerStatistic';
 import bindLoginAPI from './login';
-import bindGetTrainingSessionStatistic from './trainingSessionStatistics';
 import bindGetTrainingSessionStatistics from './trainingSessionStatistics';
 
 function startExpressServer() {
