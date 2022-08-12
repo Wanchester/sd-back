@@ -15,7 +15,7 @@ function influxColumn(name: string) :string {
     default: return 'oops';
   }
 }
-export type AggregateFunc = 'mean' | 'median' | 'mode' | 'max';
+export type AggregateFunc = 'mean' | 'median' | 'mode' | 'max' | 'min';
 
 export type InfluxField = '2dAccuracy' |
 '3dAccuracy' |
