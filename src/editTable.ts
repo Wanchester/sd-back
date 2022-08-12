@@ -2,6 +2,7 @@ import * as sqlite from 'sqlite3';
 import * as DBI from './interfaceSQL';
 const sqlite3 = require('sqlite3').verbose();
 const db: sqlite.Database = new sqlite3.Database('test.db');
+db.configure('busyTimeout', 5000);
 
 function sanitize(input: string) :string {
   if (typeof input === 'number') {return input;}
