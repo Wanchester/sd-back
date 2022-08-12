@@ -1,10 +1,10 @@
 import { QueryApi } from '@influxdata/influxdb-client';
-import { readFileSync } from 'fs';
+import { appendFile, readFileSync } from 'fs';
 import interpole from 'string-interpolation-js';
 import { resolve as pathResolve } from 'path';
 import { callBasedOnRole, executeInflux, getPersonalInfoAPI } from './utils';
 import { Express } from 'express';
-import { SessionResponseType } from './interface';
+import { SessionResponseType, TrainingSessionsGetInterface } from './interface';
 import { getDuration } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
 import { Database } from 'sqlite3';
@@ -63,7 +63,8 @@ export default function bindGetTrainingSessionStatistics(
   app: Express, 
   sqlDB: Database,
   queryClient: QueryApi) {
-  app.get('/trainingSessionStatistics', async (req, res) => {
+  // app.get('/trainingSessionStatistics', async (req, res) => {
+  app.get('/trainingSessions', async (req, res) => {
     try {
       const loggedInUsername = req.session.username;
       if (loggedInUsername === undefined) {
@@ -75,8 +76,12 @@ export default function bindGetTrainingSessionStatistics(
       }
       const loggedInPersonalInfo = await getPersonalInfoAPI(sqlDB, loggedInUsername);
 
-      const teamName = req.body.teamName;
-      const sessionName = req.body.sessionName;
+      const teamName = (req.params as TrainingSessionsGetInterface).teamName;
+      const sessionName = (req.params as TrainingSessionsGetInterface).sessionName;
+      // const teamName = req.body.teamName;
+      // const sessionName = req.body.sessionName;
+      console.log("teamName: "+teamName);
+      console.log(sessionName);
 
       let trainingSessionsAPI = await callBasedOnRole(
         sqlDB,
@@ -118,3 +123,24 @@ export default function bindGetTrainingSessionStatistics(
     }
   });
 }
+
+// app.get('/team/teamPlayer/:teamName', async (req, res) => { 
+//   const teamName = req.param.teamName
+//   //do some code to get players from teamName
+// };
+
+// '/team/:teamName?players'
+
+// '/profile'
+
+// '/trainingSessions' 
+// ['name1', 'name2']
+
+// '/teams'
+// ['name1', 'name2']
+
+
+// '/trainingSessions/sessionname?fullStats'
+
+// '/trainingSessions/?name=sessionName&team=teamName&fullStats'
+
