@@ -1,7 +1,7 @@
 export interface SessionResponseType {
   'sessionName': string,
-  'sessionDate': string,
-  'sessionTime': string,
+  'sessionStart': string,
+  'sessionStop': string,
   'teamName': string,
   'duration':string,
 }

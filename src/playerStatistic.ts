@@ -5,31 +5,48 @@ import { Express } from 'express';
 import { readFileSync } from 'fs';
 import interpole from 'string-interpolation-js';
 import { resolve as pathResolve } from 'path';
+import { buildQuery, InfluxField, InfluxQuery } from './utilsInflux';
 
+// export async function getStatistic(
+//   queryClient: QueryApi, 
+//   dataFromFront: any[],
+// ) {
+//   let queryStatistic = buildQuery(dataFromFront);
+  
+//   let statistic = await executeInflux(queryStatistic, queryClient);
+  
+//   let cleanedStatistics: any[] = [];
+//   for (let i = 0; i < statistic.length; i++) {
+//     cleanedStatistics.push([statistic[i]._time,  statistic[i]._value]);
+//   }
+//   return cleanedStatistics;
+// }
+
+// old one
 export async function getStatistic(
   queryClient: QueryApi, 
-  playerUsername: string, 
-  teamName: string,
-  field: string,
-  startTime: Date,
-  stopTime: Date,
-  window?: number,
+  // playerUsername: string, 
+  // teamName: string,
+  // field: string,
+  // startTime: Date,
+  // stopTime: Date,
+  // window?: number,
+  dataFromFront: InfluxQuery,
 ) {
-  let queryStatistic = readFileSync(
-    pathResolve(__dirname, '../../queries/playerTeamSessionFieldStartStopWindowMean.flux'),
-    { encoding: 'utf8' },
-  );
+  // let queryStatistic = readFileSync(
+  //   pathResolve(__dirname, '../../queries/playerTeamSessionFieldStartStopWindowMean.flux'),
+  //   { encoding: 'utf8' },
+  // );
   
-  queryStatistic = interpole(queryStatistic, [playerUsername, teamName, field, Math.floor(startTime.getTime() / 1000), Math.floor(stopTime.getTime() / 1000), window]);
-  console.log(queryStatistic);
-  
+  // queryStatistic = interpole(queryStatistic, [playerUsername, teamName, field, Math.floor(startTime.getTime() / 1000), Math.floor(stopTime.getTime() / 1000), window]);
+  // console.log(queryStatistic);
+  let queryStatistic = buildQuery(dataFromFront);
   
   let statistic = await executeInflux(queryStatistic, queryClient);
-  // console.log(statistic);
   
   let cleanedStatistics: any[] = [];
   for (let i = 0; i < statistic.length; i++) {
-    cleanedStatistics.push([statistic[i]._start,  statistic[i]._value]);
+    cleanedStatistics.push([statistic[i]._time,  statistic[i]._value]);
   }
   return cleanedStatistics;
 }
@@ -49,15 +66,24 @@ export default function bindGetStatistic(
       // let username = sess.username;
       // let username = CURRENTLY_LOGGED_IN;
 
-      let statistic = await getStatistic(
-        queryClient, 
-        'Warren',
-        'TeamBit',
-        'Velocity',
-        new Date(0),
-        new Date(),
-        30,
-      );
+      let dataFromFront = {
+        range: { start: new Date(0) },
+        names: ['Warren'],
+        teams: ['TeamBit'],
+        fields: ['Velocity'] as InfluxField[],
+        time_window: { every: 60 },
+        func: 'mean',
+      };
+      // let statistic = await getStatistic(
+      //   queryClient,
+      //   'Warren', 
+      //   'TeamBit',
+      //   'Velocity',
+      //   new Date(0),
+      //   new Date(),
+      //   60,
+      // );
+      let statistic = await getStatistic(queryClient, dataFromFront);
       res.send(statistic);
     } catch (error) {
       console.log(error);

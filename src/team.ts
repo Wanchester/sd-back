@@ -7,12 +7,11 @@ import {
   executeInflux,
   callBasedOnRole,
   getCommonTeams,
-  CURRENTLY_LOGGED_IN,
 } from './utils';
 import { resolve as pathResolve } from 'path';
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
-import throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
+import { generateErrorBasedOnCode } from './throws';
 
 export async function getPlayerTeamsAPI(
   db: Database,
@@ -33,7 +32,7 @@ export async function getPlayerTeamsAPI(
       { encoding: 'utf8' },
     );
     queryPlayerTeam = interpole(queryPlayerTeam, [PLAYER]);
-    // queryPlayerTeam = 'test exception';
+    //queryPlayerTeam = 'test exception';
     const teams = await executeInflux(queryPlayerTeam, queryClient);
     const cleanedTeams: string[] = [];
 
@@ -42,8 +41,7 @@ export async function getPlayerTeamsAPI(
     }
     return cleanedTeams;
   } else {
-    // 'e404.0': 'Cannot find a player with given username :0',
-    throwBasedOnCode('e404.0', username);
+    throw new Error('cannot find a player with given username: ' + username);
   }
 }
 
@@ -65,7 +63,7 @@ export async function getCoachTeamsAPI(
       db.all(queryPlayerTeam, [username], function (err, row) {
         // process the row here 
         if (err) {
-          reject(generateErrorBasedOnCode('e500.1', err));
+          reject(err);
         } else {
           resolve(row);
         }
@@ -79,8 +77,7 @@ export async function getCoachTeamsAPI(
     return cleanedTeams;
 
   } else {
-    // 'e404.1': 'Cannot find a coach with given username',
-    throwBasedOnCode('e404.1', username);
+    throw new Error('cannot find a coach with given username');
   }
 }
 
@@ -114,9 +111,18 @@ export default function bindGetTeams(
     try {
       // const sess = req.session;
       // let username = sess.username;
-      let username = CURRENTLY_LOGGED_IN;
+      let loggedInUsername =  req.session.username;
+      if (loggedInUsername === undefined) {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+        return;
+      }
+      
+      // let username = CURRENTLY_LOGGED_IN;
 
-      let teamsAPI = await getTeamsAPI(db, queryClient, username);
+      let teamsAPI = await getTeamsAPI(db, queryClient, loggedInUsername);
       res.send(teamsAPI);
     } catch (error) {
       res.send({
@@ -131,25 +137,32 @@ export default function bindGetTeams(
     try {
       // const sess = req.session;
       // let username = 'p_warren';
-      let loggedInUsername = CURRENTLY_LOGGED_IN; // username will be set to the username from session variable when log in feature is implemented
+      // let loggedInUsername = CURRENTLY_LOGGED_IN; // username will be set to the username from session variable when log in feature is implemented
       //right now, just let the username = 'a_administrator' so that it has the right to see the teams list of all players.
-       
+      let loggedInUsername =  req.session.username;
+      if (loggedInUsername === undefined) {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+        return;
+      }
+      
       let teamsAPI = (await callBasedOnRole(
         db,
         loggedInUsername!,
         async () => {
-          // 'e401.1': 'You have to be a coach/admin to make this request.',
-          throwBasedOnCode('e401.1');
+          throw new Error('You are not allowed to make the request');
         },
         async () => {
           // the coach should only be able to see the teams of player
           // return getPlayerTeamsAPI(db, queryClient, req.params.username);
-          let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername, req.params.username);
+          // currently, the coach can see the teams of all players and coach for testing purpose 
+          let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername!, req.params.username);
           if (commonTeams.length !== 0) {
             return getPlayerTeamsAPI(db, queryClient, req.params.username);
           } else {
-            // 'Cannot find the input username :0 in your teams'
-            throwBasedOnCode('e404.4', req.params.username);
+            throw new Error('Cannot find the input username in your teams');
           }
         },
         async () => {

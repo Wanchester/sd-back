@@ -5,7 +5,6 @@ import * as DBI from './interfaceSQL';
 //db.configure('busyTimeout', 5000);
 
 function sanitize(input: string) :string {
-  if (typeof input === 'number') {return input;}
   let hasComment = input.includes('--');
   return ([...input].filter( (c) => {
     return (
@@ -38,10 +37,12 @@ function updateTable(
   if (DBI.isCorrectType(t as DBI.SQLTableName, k as DBI.TableKey, newValue)) {
     //TODO!serialize this properly. Database busy error
     //update table
-    db.run(`UPDATE ${t} SET ${k} = ? WHERE ${pk} = ?`, [
-      sanitize(newValue),
-      id,
-    ]);
+    db.serialize( function () {
+      db.run(`UPDATE ${t} SET ${k} = ? WHERE ${pk} = ?`, [
+        sanitize(newValue),
+        id,
+      ]);
+    });
   } else {
     //TODO: maybe notify that types were wrong
   }
@@ -51,9 +52,12 @@ export function userEditTable(db:sqlite.Database, key: DBI.UserTableKey, value: 
   updateTable(db, 'user', key, value, id);
 }
 
-//function quicktest() {
-//  updateTable('user', 'nationality', 'EDITED', 'c_coach1');
-//  userEditTable('email', 'TESTTESTESTETSETSETSETSE', 'p_warren');
-//  coachEditTable('nationality', 'EDIT 2!', 'c_coach1', 'c_coach1');
-//}
-//quicktest();
+function quicktest() {
+  updateTable('user', 'nationality', 'EDITED', 'c_coach1');
+  userEditTable('email', 'TESTTESTESTETSETSETSETSE', 'p_warren');
+  coachEditTable('nationality', 'EDIT 2!', 'c_coach1', 'c_coach1');
+
+  //must fail
+  //coachEditTable("teamID", "astring", "c_coach1");
+}
+quicktest();

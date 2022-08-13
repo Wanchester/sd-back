@@ -3,13 +3,13 @@ import { readFileSync } from 'fs';
 import moment from 'moment';
 import { Database } from 'sqlite3';
 import interpole from 'string-interpolation-js';
-import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams, CURRENTLY_LOGGED_IN } from './utils';
+import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } from './utils';
 import { resolve as pathResolve } from 'path';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
 import { getCoachTeamsAPI } from './team';
 import { getDuration } from './utilsInflux';
-import throwBasedOnCode from './throws';
+import { generateErrorBasedOnCode } from './throws';
 
 export async function getTeamTrainingSessionsAPI(
   queryClient: QueryApi,
@@ -24,15 +24,16 @@ export async function getTeamTrainingSessionsAPI(
   const cleanedTrainingSessions: any[] = [];
   for (let i = 0; i < trainingSessions.length; i++) {
     const aSession = {
+      playerName: '',
       sessionName: '',
-      sessionDate: '',
-      sessionTime: '',
+      sessionStart: '',
+      sessionStop: '',
       teamName: '',
       duration: '',
     } as SessionResponseType;
-    aSession.sessionName = trainingSessions[i].Session.split(' ')[0];
-    aSession.sessionDate = moment(trainingSessions[i]._time).format('DD-MM-YYYY');     //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
-    aSession.sessionTime = moment(trainingSessions[i]._time).format('HH:mm');          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
+    aSession.sessionName = trainingSessions[i].Session;
+    aSession.sessionStart = trainingSessions[i]._start;    //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
+    aSession.sessionStop = trainingSessions[i]._stop;          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
     aSession.teamName = trainingSessions[i]._measurement;
     // aSession.duration = TimeFormat.fromS(trainingSessions[i].elapsed, 'hh:mm:ss');     //hour:minutes:seconds.See https://github.com/Goldob/hh-mm-ss#supported-time-formats
     aSession.duration = getDuration(trainingSessions[i]._start, trainingSessions[i]._stop);
@@ -59,20 +60,19 @@ export async function getPlayerTrainingSessionsAPI(
     );
 
     queryPlayerSession = interpole(queryPlayerSession, [personalInfo.name]);
-    // queryPlayerSession = 'test exception';
     const trainingSessions = await executeInflux(queryPlayerSession, queryClient);
     const cleanedTrainingSessions: any[] = [];
     for (let i = 0; i < trainingSessions.length; i++) {
       const aSession = {
         sessionName: '',
-        sessionDate: '',
-        sessionTime: '',
+        sessionStart: '',
+        sessionStop: '',
         teamName: '',
         duration: '',
       } as SessionResponseType;
       aSession.sessionName = trainingSessions[i].Session.split(' ')[0];
-      aSession.sessionDate = moment(trainingSessions[i]._time).format('DD-MM-YYYY');     //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
-      aSession.sessionTime = moment(trainingSessions[i]._time).format('HH:mm');          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
+      aSession.sessionStart = moment(trainingSessions[i]._time).format('DD-MM-YYYY');     //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
+      aSession.sessionStop = moment(trainingSessions[i]._time).format('HH:mm');          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
       aSession.teamName = trainingSessions[i]._measurement;
       // aSession.duration = TimeFormat.fromS(trainingSessions[i].elapsed, 'hh:mm:ss');     //hour:minutes:seconds.See https://github.com/Goldob/hh-mm-ss#supported-time-formats
       aSession.duration = getDuration(trainingSessions[i]._start, trainingSessions[i]._stop);
@@ -80,8 +80,7 @@ export async function getPlayerTrainingSessionsAPI(
     }
     return cleanedTrainingSessions;
   } else {
-    // 'e404.0': 'Cannot find a player with given username :0',
-    throwBasedOnCode('e404.0', username);
+    throw new Error('cannot find player with given username');
   }
 }
 
@@ -106,8 +105,7 @@ export async function getCoachTrainingSessionsAPI(
     }
     return teamsTrainingSessions;
   } else {
-    // 'e404.1': 'Cannot find a coach with given username',
-    throwBasedOnCode('e404.1', username);
+    throw new Error('cannot find coach with given username');
   }
 }
 
@@ -138,12 +136,21 @@ export default function bindGetTrainingSessions(
     try {
       // const sess = req.session;
       // let username = sess.username;
-      let username = CURRENTLY_LOGGED_IN;
+      // let username = CURRENTLY_LOGGED_IN;
+
+      let loggedInUsername =  req.session.username;
+      if (loggedInUsername === undefined) {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+        return;
+      }
 
       let trainingSessionsAPI = await getTrainingSessionsAPI(
         db,
         queryClient,
-        username,
+        loggedInUsername,
       );
       res.send(trainingSessionsAPI);
     } catch (error) {
@@ -158,25 +165,33 @@ export default function bindGetTrainingSessions(
   app.get('/trainingSessions/:username', async (req, res) => {
     try {
       // let loggedInUsername = 'a_administrator'; // username will be set to the username from session variable when log in feature is implemented
-      let loggedInUsername = CURRENTLY_LOGGED_IN;
+      // let loggedInUsername = CURRENTLY_LOGGED_IN;
       // let username = req.params.us
       //right now, just let the username = 'a_administrator' so that it has the right to see the teams list of all players.
-       
+      
+      let loggedInUsername =  req.session.username;
+      if (loggedInUsername === undefined) {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+        return;
+      }
+
       let trainingSessionsAPI = (await callBasedOnRole(
         db,
         loggedInUsername!,
         async () => {
-          // 'e401.1': 'You have to be a coach/admin to make this request.',
-          throwBasedOnCode('e401.1');
+          throw new Error('You are not allowed to make the request');
         },
         async () => {
-          // the coach should only be able to see the training sessions of players in his teams
-          let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername, req.params.username);
+          // the coach should only be able to see the training sessions of player
+          // currently, the coach can see the training sessions of all players and coach for testing purpose 
+          let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername!, req.params.username);
           if (commonTeams.length !== 0) {
             return getPlayerTrainingSessionsAPI(db, queryClient, req.params.username);
           } else {
-            // 'e404.4': 'Cannot find the input username :0 in your teams,
-            throwBasedOnCode('e404.4', req.params.username);
+            throw new Error('Cannot find the input username in your teams');
           }
         },
         async () => {
