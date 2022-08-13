@@ -138,4 +138,65 @@ describe('Test Express server endpoints', () => {
       expect(res.statusCode).to.equal(401);
     });
   });
+
+  //TODO  
+  describe('/profile, /teams, /trainingSessions test with coach1 coach as logged in user', async () => {
+      const agent = request.agent(app);
+
+    it('POST /login succeeds with c_coach1 as logged in user', async () => {
+      const testUser = {
+        'username':'c_coach1',
+        'password':'12345678',
+      };
+      const res = await agent.post('/login').send(testUser);
+      expect(res.statusCode).to.equal(200);
+    });
+
+    it('GET /profile succeeds with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/profile');
+      expect(res.statusCode).to.equal(200);
+      assertHomepageResponse(res.body);
+    });
+
+    /*
+      unsure about user role permissions. This unfortunately succeeds 
+    */
+    // it('GET /profile/:username fails with c_coach1 as logged in user', async () => {
+    //   const res = await agent.get('/profile/c_coach2');
+    //   expect(res.statusCode).to.equal(401);
+    // });
+
+    it('GET /teams succeeds with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/teams');
+      expect(res.statusCode).to.equal(200);
+      assertTeamResponse(res.body);
+    });
+
+
+    /* 
+      role permissions error
+    */
+    // it('GET /teams/:username fails with c_coach1 as logged in user', async () => {
+    //   const res = await agent.get('/teams/c_coach2');
+    //   expect(res.statusCode).to.equal(401);
+    // });
+
+
+    /* 
+      incorrect response error
+    */
+    // it('GET /trainingSessions succeeds with c_coach1 as logged in user', async () => {
+    //   const res = await agent.get('/trainingSessions');
+    //   expect(res.statusCode).to.equal(200);
+    //   res.body.forEach((session: any)=>assertSessionResponse(session) );
+    // });
+
+  /*
+    role permissions problem 
+  */
+    // it('GET /trainingSessions/:username fails with c_coach1 as logged in user', async () => {
+    //   const res = await request(app).get('/trainingSessions/c_coach2');
+    //   expect(res.statusCode).to.equal(401);
+    // });
+  });
 });
