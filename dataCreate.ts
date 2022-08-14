@@ -42,7 +42,8 @@ let countryList = [ 'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'A
 function nameToID(s: string, role: string) {
   return (
     role[0].toLowerCase() + '_' + 
-      [...(s.toLowerCase())]  //lowercase
+      s.toLowerCase() //lowercase
+        .split('') // spread into array of char
         .filter((c) => c !== ' ' && c !== '\t') //filter all whitespace
         .join('')
   );
