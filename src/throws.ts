@@ -38,3 +38,11 @@ export default function throwBasedOnCode(exitCode: keyof typeof ExitCodeMap, ...
     throw generateErrorBasedOnCode(exitCode, ...args);
   }
 }
+
+export function getStatusCodeBasedOnErrorMessage(message: string) {
+  return Number.parseInt(message.match(/^e([0-9]{3})\./)?.[1] || '418' /* I'm a teapot! */);
+}
+
+export function getStatusCodeBasedOnError(error: Error) {
+  return getStatusCodeBasedOnErrorMessage(error.message);
+}
