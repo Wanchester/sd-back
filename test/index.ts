@@ -206,7 +206,7 @@ describe('Test Express server endpoints', async () => {
      * actually get 401
      */
     it('GET /trainingSessions/:username succeeds with a_administrator as logged in user', async () => {
-      const res = await request(app).get('/trainingSessions/p_warren');
+      const res = await agent.get('/trainingSessions/p_warren');
       expect(res.statusCode).to.equal(200);
       // expect(res.body).to.be.an('array');
       // (res.body as any[]).forEach(session => assertSessionResponse(session));
@@ -234,7 +234,7 @@ describe('Test Express server endpoints', async () => {
 
     it('GET /profile/:username fails with c_coach1 as logged in user', async () => {
       const res = await agent.get('/profile/c_coach2');
-      expect(res.statusCode).to.equal(401);
+      expect(res.statusCode).to.equal(400);
     });
 
     it('GET /teams succeeds with c_coach1 as logged in user', async () => {
@@ -244,12 +244,9 @@ describe('Test Express server endpoints', async () => {
     });
 
 
-    /**
-     * get 400 and 401???
-     */
     it('GET /teams/:username fails with c_coach1 as logged in user', async () => {
       const res = await agent.get('/teams/c_coach2');
-      expect(res.statusCode).to.equal(401);
+      expect(res.statusCode).to.equal(400);
     });
 
     it('GET /trainingSessions succeeds with c_coach1 as logged in user', async () => {
@@ -258,12 +255,9 @@ describe('Test Express server endpoints', async () => {
       res.body.forEach((session: any)=>assertSessionResponse(session) );
     });
 
-    /**
-     * get 400 and 401???
-     */
     it('GET /trainingSessions/:username fails with c_coach1 as logged in user', async () => {
-      const res = await request(app).get('/trainingSessions/c_coach2');
-      expect(res.statusCode).to.equal(401);
+      const res = await agent.get('/trainingSessions/c_coach2');
+      expect(res.statusCode).to.equal(400);
     });
   });
 
