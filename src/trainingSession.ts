@@ -78,7 +78,8 @@ export async function getPlayerTrainingSessionsAPI(
     }
     return cleanedTrainingSessions;
   } else {
-    throw new Error('cannot find player with given username');
+    // throw new Error('cannot find player with given username');
+    throwBasedOnCode('e400.4');
   }
 }
 
@@ -100,7 +101,8 @@ export async function getCoachTrainingSessionsAPI(
     }
     return teamsTrainingSessions;
   } else {
-    throw new Error('cannot find coach with given username');
+    // throw new Error('cannot find coach with given username');
+    throwBasedOnCode('e400.5');
   }
 }
 

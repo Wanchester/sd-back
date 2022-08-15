@@ -15,11 +15,13 @@ const ExitCodeMap = {
   'e400.8': 'Cannot find the input username :0 in your teams.',
   'e400.9': 'Team :0 does not have any training session with the name :1',
   'e400.10': 'The user :0 is not eligible to view the training session :2 of the team :1',
+  'e400.11': 'System expect a valid object',
 
   //401 Unauthenticated, Unauthorised
   'e401.0': 'You must login in order to make this request.',
   'e401.1': 'You have to be a coach/admin to make this request.',
   'e401.2': 'You have to be an admin to make this request.',
+  'e403.3': 'You have to be a player/coach to make this request',
 
   //403 Forbiden
   'e403.0': 'You are not allowed to edit the :0 attribute',

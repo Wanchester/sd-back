@@ -50,7 +50,8 @@ export async function getPlayerProfileAPI(
     
     return homepageInfo;
   } else {
-    throw new Error('cannot find a player with given username');
+    // throw new Error('cannot find a player with given username');
+    throwBasedOnCode('e400.4');
   }
 }
 
@@ -87,7 +88,7 @@ export async function getCoachProfileAPI(
     homepageInfo.weight = personalInfo.weight;
     homepageInfo.role = personalInfo.role;
     homepageInfo.teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
-    homepageInfo.trainingSessions = await getCoachTrainingSessionsAPI(sqlDB, queryClient, username);
+    homepageInfo.trainingSessions = await getCoachTrainingSessionsAPI(sqlDB, queryClient, username) || [{}];
     // homepageInfo.trainingSessions = ['TODO: to implement await getPlayerSessionsAPI(sqlDB, queryClient, username);'];
     return homepageInfo;
   } else {
@@ -132,7 +133,8 @@ export async function getProfileAPI(
 export async function putPlayerProfileAPI(sqlDB: Database, queryClient: QueryApi, username: string, newData: any[]) {
   let personalInfo = await getPersonalInfoAPI(sqlDB, username);
   if (personalInfo.role !== 'player') {
-    throw new Error('cannot find aplayer with given username');
+    // throw new Error('cannot find aplayer with given username');
+    throwBasedOnCode('e400.4');
   }
 
   if (isPlainObject(newData)) {
@@ -148,14 +150,16 @@ export async function putPlayerProfileAPI(sqlDB: Database, queryClient: QueryApi
     }
     return newData;
   } else {
-    throw new Error('PUT request expects a valid object.');
+    // throw new Error('PUT request expects a valid object.');
+    throwBasedOnCode('e400.11');
   }
 }
 
 export async function putCoachProfileAPI(sqlDB: Database, queryClient: QueryApi, username: string, newData: any[]) {
   let personalInfo = await getPersonalInfoAPI(sqlDB, username);
   if (personalInfo.role !== 'coach') {
-    throw new Error('cannot find a coach with given username');
+    // throw new Error('cannot find a coach with given username');
+    throwBasedOnCode('e400.5');
   }
 
   if (isPlainObject(newData)) {
@@ -171,7 +175,8 @@ export async function putCoachProfileAPI(sqlDB: Database, queryClient: QueryApi,
     }
     return newData;
   } else {
-    throw new Error('PUT request expects a valid object.');
+    // throw new Error('PUT request expects a valid object.');
+    throwBasedOnCode('e400.11');
   }
 }
 
@@ -179,11 +184,12 @@ export async function putProfileAPI(sqlDB: Database, queryClient: QueryApi, user
   let personalInfo = await getPersonalInfoAPI(sqlDB, username);
   let returnedData: any[] = [];
   if (personalInfo.role === 'player') {
-    returnedData = await putPlayerProfileAPI(sqlDB, queryClient, username, newData);
+    returnedData = await putPlayerProfileAPI(sqlDB, queryClient, username, newData) || [];
   } else if (personalInfo.role === 'coach') {
-    returnedData = await putCoachProfileAPI(sqlDB, queryClient, username, newData);
+    returnedData = await putCoachProfileAPI(sqlDB, queryClient, username, newData) || [];
   } else {
-    throw new Error('Cannot edit personal information because given username it not player or coach');
+    // throw new Error('Cannot edit personal information because given username it not player or coach');
+    throwBasedOnCode('e403.3');
   }
   return returnedData;
 }

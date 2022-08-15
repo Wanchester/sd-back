@@ -126,7 +126,8 @@ export async function hasCommonTeams( sqlDB:Database, queryClient: QueryApi, use
     console.log('1st username is coach');
     teams1 = await getCoachTeamsAPI(sqlDB, queryClient, username1 );
   } else {
-    throw new Error('the 1st input username is not a player or a coach');
+    // throw new Error('the 1st input username is not a player or a coach');
+    throwBasedOnCode('e403.3');
   }
   
   let teams2: string[] = [];
@@ -137,7 +138,8 @@ export async function hasCommonTeams( sqlDB:Database, queryClient: QueryApi, use
     console.log('2nd username is coach');
     teams2 = await getCoachTeamsAPI(sqlDB, queryClient, username2 );
   } else {
-    throw new Error('the 2nd input username is not a player or a coach');
+    // throw new Error('the 2nd input username is not a player or a coach');
+    throwBasedOnCode('e403.3');
   }
   
   let commonTeams = teams1.filter(value => teams2.includes(value));
@@ -159,7 +161,8 @@ export async function getCommonTeams(sqlDB:Database, queryClient: QueryApi, user
   } else if (personalInfo1.role == 'coach') {
     teams1 = await getCoachTeamsAPI(sqlDB, queryClient, username1 );
   } else {
-    throw new Error('the input username is not a player or a coach');
+    // throw new Error('the input username is not a player or a coach');
+    throwBasedOnCode('e403.3');
   }
   
   let teams2: string[] = [];
@@ -168,7 +171,8 @@ export async function getCommonTeams(sqlDB:Database, queryClient: QueryApi, user
   } else if (personalInfo2.role == 'coach') {
     teams2 = await getCoachTeamsAPI(sqlDB, queryClient, username2 );
   } else {
-    throw new Error('the input username is not a player or a coach');
+    // throw new Error('the input username is not a player or a coach');
+    throwBasedOnCode('e403.3');
   }
   
   let commonTeams = teams1.filter(value => teams2.includes(value));
