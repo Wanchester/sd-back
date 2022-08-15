@@ -106,7 +106,7 @@ describe('Test Express server endpoints', async () => {
     });
   });
 
-  describe('/profile, /teams, /trainingSessions test with jbk player as logged in user', async () => {
+  describe('Tests for p_jbk player', () => {
     const agent = request.agent(app);
 
     it('POST /login succeeds with p_jbk as logged in user', async () => {
@@ -152,53 +152,59 @@ describe('Test Express server endpoints', async () => {
     it('GET /trainingSessions/:username fails with p_jbk as logged in user', async () => {
       const res = await request(app).get('/trainingSessions/p_warren');
       expect(res.statusCode).to.equal(401);
-      // res.body.forEach((session: any)=>assertSessionResponse(session) );
     });
   });
 
-  // describe('Profile test for c_coach1 coach', async () => {
-  //   const agent = request.agent(app);
+  describe('Tests for a_administrator admin', () => {
+    const agent = request.agent(app);
 
-  //   it('POST /login succeeds with c_coach1 as logged in user', async () => {
-  //     const testUser = {
-  //       'username':'p_jbk',
-  //       'password':'12345678',
-  //     };
-  //     const res = await agent.post('/login').send(testUser);
-  //     expect(res.statusCode).to.equal(200);
-  //   });
+    it('POST /login succeeds with a_administrator as logged in user', async () => {
+      const testUser = {
+        'username':'a_administrator',
+        'password':'12345678',
+      };
+      const res = await agent.post('/login').send(testUser);
+      expect(res.statusCode).to.equal(200);
+    });
 
-  //   it('GET /profile succeeds with p_jbk as logged in user', async () => {
-  //     const res = await agent.get('/profile');
-  //     expect(res.statusCode).to.equal(200);
-  //     assertHomepageResponse(res.body);
-  //   });
+    // /profile
+    it('GET /profile succeeds with a_administrator as logged in user', async () => {
+      const res = await agent.get('/profile');
+      expect(res.statusCode).to.equal(200);
+      assertHomepageResponse(res.body);
+    });
 
-  //   it('GET /profile/:username fails with p_jbk as logged in user', async () => {
-  //     const res = await agent.get('/profile/p_jbk');
-  //     expect(res.statusCode).to.equal(401);
-  //   });
+    it('GET /profile/:username succeeds with a_administrator as logged in user', async () => {
+      const res = await agent.get('/profile/p_jbk');
+      expect(res.statusCode).to.equal(200);
+      assertHomepageResponse(res.body);
+    });
 
-  //   it('GET /teams succeeds with p_jbk as logged in user', async () => {
-  //     const res = await agent.get('/teams');
-  //     expect(res.statusCode).to.equal(200);
-  //     assertTeamResponse(res.body);
-  //   });
+    // /teams
+    it('GET /teams succeeds with a_administrator as logged in user', async () => {
+      const res = await agent.get('/teams');
+      expect(res.statusCode).to.equal(200);
+      assertTeamResponse(res.body);
+    });
 
-  //   it('GET /teams/:username fails with p_jbk as logged in user', async () => {
-  //     const res = await agent.get('/teams/p_jbk');
-  //     expect(res.statusCode).to.equal(401);
-  //   });
+    it('GET /teams/:username succeeds with a_administrator as logged in user', async () => {
+      const res = await agent.get('/teams/p_jbk');
+      expect(res.statusCode).to.equal(200);
+      assertTeamResponse(res.body);
+    });
 
-  //   it('GET /trainingSessions succeeds with p_jbk as logged in user', async () => {
-  //     const res = await agent.get('/trainingSessions');
-  //     expect(res.statusCode).to.equal(200);
-  //     res.body.forEach((session: any)=>assertSessionResponse(session) );
-  //   });
+    // /trainingSessions
+    it('GET /trainingSessions succeeds with a_administrator as logged in user', async () => {
+      const res = await agent.get('/trainingSessions');
+      expect(res.statusCode).to.equal(200);
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+    });
 
-  //   it('GET /trainingSessions/:username fails with p_jbk as logged in user', async () => {
-  //     const res = await request(app).get('/trainingSessions/p_warren');
-  //     expect(res.statusCode).to.equal(401);
-  //   });
-  // });
+    it('GET /trainingSessions/:username succeeds with a_administrator as logged in user', async () => {
+      const res = await request(app).get('/trainingSessions/p_warren');
+      expect(res.statusCode).to.equal(200);
+      expect(res.body).to.be.an('array');
+      (res.body as any[]).forEach(session => assertSessionResponse(session));
+    });
+  });
 });
