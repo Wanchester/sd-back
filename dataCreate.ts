@@ -1,6 +1,7 @@
 import * as sqlite from 'sqlite3';
 const sqlite3 = require('sqlite3').verbose();
 const db: sqlite.Database = new sqlite3.Database('test.db');
+import * as bcrypt from 'bcrypt';
 
 let nameList = [
   '5C3EBE',
@@ -32,7 +33,7 @@ let coachList = [
 
 let teamList = [ 
   'TeamBit',
-  'Team Wanchester',
+  'TeamWanchester',
   'Team3',
 ];
 
@@ -41,22 +42,23 @@ let countryList = [ 'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'A
 function nameToID(s: string, role: string) {
   return (
     role[0].toLowerCase() + '_' + 
-    [...(s.toLowerCase())]              //lowercase
-    .filter((c) => c !== ' ' && c !== '\t') //filter all whitespace
-    .join('')
+      s.toLowerCase() //lowercase
+        .split('') // spread into array of char
+        .filter((c) => c !== ' ' && c !== '\t') //filter all whitespace
+        .join('')
   );
 }
 
 function sample(array: any[]) {
   return array[Math.floor(Math.random() * array.length)];
-};
+}
 
 function insertUser(n: string, role: string) {
   const insertUserStmt = db.prepare('INSERT INTO User VALUES (?,?,?,?,?,?,?,?,?)');
   let id = nameToID(n, role);
   insertUserStmt.run(
     id,                                     //username
-    '12345678',                             //password    
+    bcrypt.hashSync('12345678', 10),        //password    
     n,                                      //name        
     id + '@gmail.com',                      //email       
     '01-01-1970',                           //dob         
@@ -81,13 +83,12 @@ db.serialize(() => {
             role        TEXT,
             PRIMARY KEY (username)
     )`);
- //TODO: primaryKeys areee unique. This restricts one coach per team
+  //TODO: primaryKeys areee unique. This restricts one coach per team
   db.run(`CREATE TABLE TeamCoach (
             teamName  TEXT PRIMARY KEY,
             teamID    INT NOT NULL, 
             username  TEXT NOT NULL
     )`);
-  //following makes coach unique
   //FOREIGN KEY (username) REFERENCES User(username)
   
   //prepare users
@@ -96,7 +97,7 @@ db.serialize(() => {
   }
 
   //prepare admin
-  insertUser("Administrator", 'Admin');
+  insertUser('Administrator', 'Admin');
 
   //prepare coaches
   for (let n of coachList) {
@@ -105,10 +106,10 @@ db.serialize(() => {
 
   //prepare coach TEAMS
   const insertCoachTeamStmt = db.prepare('INSERT INTO TeamCoach VALUES (?,?,?)');
-  insertCoachTeamStmt.run( teamList[0] ,nameToID(teamList[0], "Team"), nameToID(coachList[0], "coach"))
-  insertCoachTeamStmt.run( teamList[1] ,nameToID(teamList[1], "Team"), nameToID(coachList[1], "coach"))
-  insertCoachTeamStmt.run( teamList[2] ,nameToID(teamList[2], "Team"), nameToID(coachList[0], "coach"))
-  insertCoachTeamStmt.finalize()
+  insertCoachTeamStmt.run(teamList[0], nameToID(teamList[0], 'Team'), nameToID(coachList[0], 'coach'));
+  insertCoachTeamStmt.run(teamList[1], nameToID(teamList[1], 'Team'), nameToID(coachList[1], 'coach'));
+  insertCoachTeamStmt.run(teamList[2], nameToID(teamList[2], 'Team'), nameToID(coachList[0], 'coach'));
+  insertCoachTeamStmt.finalize();
 
 
 

@@ -1,7 +1,7 @@
 export interface SessionResponseType {
   'sessionName': string,
-  'sessionDate': string,
-  'sessionTime': string,
+  'sessionStart': string,
+  'sessionStop': string,
   'teamName': string,
   'duration':string,
 }
@@ -30,4 +30,9 @@ export interface PersonalInfoResponseType {
   'role': string,
   'teams':string[],
   'trainingSessions': SessionResponseType[],
+}
+
+export interface TrainingSessionsGetInterface {
+  'teamName': string,
+  'sessionName': string,
 }

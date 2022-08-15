@@ -1,3 +1,4 @@
+// import * as DBI from './utilsInflux';
 import { readFileSync } from 'fs';
 import { Database } from 'sqlite3';
 import interpole from 'string-interpolation-js';
@@ -6,11 +7,11 @@ import {
   executeInflux,
   callBasedOnRole,
   getCommonTeams,
-  CURRENTLY_LOGGED_IN,
 } from './utils';
 import { resolve as pathResolve } from 'path';
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
+import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 
 export async function getPlayerTeamsAPI(
   db: Database,
@@ -40,7 +41,8 @@ export async function getPlayerTeamsAPI(
     }
     return cleanedTeams;
   } else {
-    throw new Error('cannot find a player with given username: ' + username);
+    // throw new Error('cannot find a player with given username: ' + username);
+    throwBasedOnCode('e400.4');
   }
 }
 
@@ -76,7 +78,8 @@ export async function getCoachTeamsAPI(
     return cleanedTeams;
 
   } else {
-    throw new Error('cannot find a coach with given username');
+    // throw new Error('cannot find a coach with given username');
+    throwBasedOnCode('e400.5');
   }
 }
 
@@ -110,12 +113,21 @@ export default function bindGetTeams(
     try {
       // const sess = req.session;
       // let username = sess.username;
-      let username = CURRENTLY_LOGGED_IN;
+      let loggedInUsername =  req.session.username;
+      if (loggedInUsername === undefined) {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+        return;
+      }
+      
+      // let username = CURRENTLY_LOGGED_IN;
 
-      let teamsAPI = await getTeamsAPI(db, queryClient, username);
+      let teamsAPI = await getTeamsAPI(db, queryClient, loggedInUsername);
       res.send(teamsAPI);
     } catch (error) {
-      res.send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
@@ -127,24 +139,32 @@ export default function bindGetTeams(
     try {
       // const sess = req.session;
       // let username = 'p_warren';
-      let loggedInUsername = CURRENTLY_LOGGED_IN; // username will be set to the username from session variable when log in feature is implemented
+      // let loggedInUsername = CURRENTLY_LOGGED_IN; // username will be set to the username from session variable when log in feature is implemented
       //right now, just let the username = 'a_administrator' so that it has the right to see the teams list of all players.
-       
+      let loggedInUsername =  req.session.username;
+      if (loggedInUsername === undefined) {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+        return;
+      }
+      const queriedUsername = req.params.username;
       let teamsAPI = (await callBasedOnRole(
         db,
         loggedInUsername!,
         async () => {
-          throw new Error('You are not allowed to make the request');
+          throwBasedOnCode('e401.1');
         },
         async () => {
           // the coach should only be able to see the teams of player
           // return getPlayerTeamsAPI(db, queryClient, req.params.username);
           // currently, the coach can see the teams of all players and coach for testing purpose 
-          let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername, req.params.username);
+          let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername!, req.params.username);
           if (commonTeams.length !== 0) {
             return getPlayerTeamsAPI(db, queryClient, req.params.username);
           } else {
-            throw new Error('Cannot find the input username in your teams');
+            throwBasedOnCode('e400.8', queriedUsername);
           }
         },
         async () => {
@@ -153,7 +173,7 @@ export default function bindGetTeams(
       )) as any[];
       res.send(teamsAPI);
     } catch (error) {
-      res.send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
@@ -161,3 +181,4 @@ export default function bindGetTeams(
     }
   });
 }
+
