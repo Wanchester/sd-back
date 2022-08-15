@@ -42,14 +42,14 @@ function assertTeamResponse(team: any) {
 describe('Test Express server endpoints', async () => {
   const app = startExpressServer();
 
-  // describe('No log in test', () => {
-  //   const agent = request.agent(app);
-  //   it('GET /profile endpoint without login', async () => {
-  //     const res = await agent.get('/profile');
-  //     expect(res.statusCode).to.equal(401);
-  //     // assertHomepageResponse(res.body);
-  //   });
-  // });
+  describe('No log in test', () => {
+    const agent = request.agent(app);
+    it('GET /profile endpoint without login', async () => {
+      const res = await agent.get('/profile');
+      expect(res.statusCode).to.equal(401);
+      // assertHomepageResponse(res.body);
+    });
+  });
 
   describe('Log in/out tests', () => {
     const agent = request.agent(app);
@@ -167,7 +167,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(200);
     });
 
-    // /profile
+    // profile
     it('GET /profile succeeds with a_administrator as logged in user', async () => {
       const res = await agent.get('/profile');
       expect(res.statusCode).to.equal(200);
@@ -180,7 +180,7 @@ describe('Test Express server endpoints', async () => {
       assertHomepageResponse(res.body);
     });
 
-    // /teams
+    // teams
     it('GET /teams succeeds with a_administrator as logged in user', async () => {
       const res = await agent.get('/teams');
       expect(res.statusCode).to.equal(200);
@@ -193,7 +193,7 @@ describe('Test Express server endpoints', async () => {
       assertTeamResponse(res.body);
     });
 
-    // /trainingSessions
+    // trainingSessions
     it('GET /trainingSessions succeeds with a_administrator as logged in user', async () => {
       const res = await agent.get('/trainingSessions');
       expect(res.statusCode).to.equal(200);
@@ -201,10 +201,10 @@ describe('Test Express server endpoints', async () => {
     });
 
     it('GET /trainingSessions/:username succeeds with a_administrator as logged in user', async () => {
-      const res = await request(app).get('/trainingSessions/p_warren');
+      const res = await agent.get('/trainingSessions/p_warren');
       expect(res.statusCode).to.equal(200);
-      // expect(res.body).to.be.an('array');
-      // (res.body as any[]).forEach(session => assertSessionResponse(session));
+      expect(res.body).to.be.an('array');
+      (res.body as any[]).forEach(session => assertSessionResponse(session));
     });
   });
 });
