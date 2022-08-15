@@ -61,6 +61,9 @@ export function getDuration(first: string, second: string) :string {
 
 export function buildQuery(query: InfluxQuery) :string {
   //TODO: validate all input fields
+  
+  //disallow empty object query. Would return all data
+  if (Object.keys(query).length === 0) {return '';}
   let output = ['from(bucket: "test")'];
   //fill range
   if (query.range !== undefined) {
