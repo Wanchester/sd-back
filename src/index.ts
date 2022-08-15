@@ -34,8 +34,8 @@ function startExpressServer() {
   bindGetTeams(app, db, queryClient);
   bindGetTrainingSessions(app, db, queryClient);
   bindGetProfile(app, db, queryClient);
-  bindGetStatistic(app, db, queryClient);
-  // bindGetTeamPlayers(app, db, queryClient)
+  // bindGetStatistic(app, db, queryClient);
+  // bindGetTeamPlayers(app, db, queryClient);
 
   // PUT requests
   bindPutProfile(app, db, queryClient);
