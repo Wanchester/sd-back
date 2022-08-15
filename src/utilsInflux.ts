@@ -64,6 +64,7 @@ export function buildQuery(query: InfluxQuery) :string {
   
   //disallow empty object query. Would return all data
   if (Object.keys(query).length === 0) {return '';}
+
   let output = ['from(bucket: "test")'];
   //fill range
   if (query.range !== undefined) {
