@@ -106,7 +106,7 @@ describe('Test Express server endpoints', async () => {
     });
   });
 
-
+  // player
   describe('Tests for p_jbk player', () => {
     const agent = request.agent(app);
 
@@ -156,6 +156,55 @@ describe('Test Express server endpoints', async () => {
     });
   });
 
+  // coach
+  describe('/profile, /teams, /trainingSessions test with coach1 coach as logged in user', async () => {
+    const agent = request.agent(app);
+  
+    it('POST /login succeeds with c_coach1 as logged in user', async () => {
+      const testUser = {
+        'username':'c_coach1',
+        'password':'12345678',
+      };
+      const res = await agent.post('/login').send(testUser);
+      expect(res.statusCode).to.equal(200);
+    });
+  
+    it('GET /profile succeeds with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/profile');
+      expect(res.statusCode).to.equal(200);
+      assertHomepageResponse(res.body);
+    });
+  
+    it('GET /profile/:username fails with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/profile/c_coach2');
+      expect(res.statusCode).to.equal(400);
+    });
+  
+    it('GET /teams succeeds with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/teams');
+      expect(res.statusCode).to.equal(200);
+      assertTeamResponse(res.body);
+    });
+  
+  
+    it('GET /teams/:username fails with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/teams/c_coach2');
+      expect(res.statusCode).to.equal(400);
+    });
+  
+    it('GET /trainingSessions succeeds with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/trainingSessions');
+      expect(res.statusCode).to.equal(200);
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+    });
+  
+    it('GET /trainingSessions/:username fails with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/trainingSessions/c_coach2');
+      expect(res.statusCode).to.equal(400);
+    });
+  });
+
+  // admin
   describe('Tests for a_administrator admin', () => {
     const agent = request.agent(app);
 
@@ -212,53 +261,4 @@ describe('Test Express server endpoints', async () => {
       (res.body as any[]).forEach(session => assertSessionResponse(session));
     });
   });
-
-  //coach
-  describe('/profile, /teams, /trainingSessions test with coach1 coach as logged in user', async () => {
-    const agent = request.agent(app);
-
-    it('POST /login succeeds with c_coach1 as logged in user', async () => {
-      const testUser = {
-        'username':'c_coach1',
-        'password':'12345678',
-      };
-      const res = await agent.post('/login').send(testUser);
-      expect(res.statusCode).to.equal(200);
-    });
-
-    it('GET /profile succeeds with c_coach1 as logged in user', async () => {
-      const res = await agent.get('/profile');
-      expect(res.statusCode).to.equal(200);
-      assertHomepageResponse(res.body);
-    });
-
-    it('GET /profile/:username fails with c_coach1 as logged in user', async () => {
-      const res = await agent.get('/profile/c_coach2');
-      expect(res.statusCode).to.equal(400);
-    });
-
-    it('GET /teams succeeds with c_coach1 as logged in user', async () => {
-      const res = await agent.get('/teams');
-      expect(res.statusCode).to.equal(200);
-      assertTeamResponse(res.body);
-    });
-
-
-    it('GET /teams/:username fails with c_coach1 as logged in user', async () => {
-      const res = await agent.get('/teams/c_coach2');
-      expect(res.statusCode).to.equal(400);
-    });
-
-    it('GET /trainingSessions succeeds with c_coach1 as logged in user', async () => {
-      const res = await agent.get('/trainingSessions');
-      expect(res.statusCode).to.equal(200);
-      res.body.forEach((session: any)=>assertSessionResponse(session) );
-    });
-
-    it('GET /trainingSessions/:username fails with c_coach1 as logged in user', async () => {
-      const res = await agent.get('/trainingSessions/c_coach2');
-      expect(res.statusCode).to.equal(400);
-    });
-  });
-
 });
