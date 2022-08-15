@@ -68,12 +68,10 @@ export default function bindGetStatistic(
       // let username = CURRENTLY_LOGGED_IN;
 
       let dataFromFront = {
-        range: { start: new Date(0) },
         names: ['Warren'],
         teams: ['TeamBit'],
         fields: ['Velocity'] as InfluxField[],
-        time_window: { every: 60 },
-        func: 'mean',
+        time_window: { every: 60, func: 'mean' },
       };
       // let statistic = await getStatistic(
       //   queryClient,
@@ -84,7 +82,7 @@ export default function bindGetStatistic(
       //   new Date(),
       //   60,
       // );
-      let statistic = await getStatistic(queryClient, dataFromFront);
+      let statistic = await getStatistic(queryClient, dataFromFront as InfluxQuery);
       res.send(statistic);
     } catch (error) {
       console.log(error);

@@ -1,3 +1,4 @@
+import * as DBI from './utilsInflux';
 import { readFileSync } from 'fs';
 import { Database } from 'sqlite3';
 import interpole from 'string-interpolation-js';
@@ -180,3 +181,4 @@ export default function bindGetTeams(
     }
   });
 }
+
