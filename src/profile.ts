@@ -254,7 +254,7 @@ export default function bindGetProfile(
           if (commonTeams.length !== 0) {
             return getPlayerProfileAPI(sqlDB, queryClient, req.params.username);
           } else {
-            throwBasedOnCode('e400.8');
+            throwBasedOnCode('e400.8', req.params.username);
           }
         },
         async () => {

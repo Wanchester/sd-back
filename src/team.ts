@@ -148,7 +148,7 @@ export default function bindGetTeams(
         });
         return;
       }
-      
+      const queriedUsername = req.params.username;
       let teamsAPI = (await callBasedOnRole(
         db,
         loggedInUsername!,
@@ -163,7 +163,7 @@ export default function bindGetTeams(
           if (commonTeams.length !== 0) {
             return getPlayerTeamsAPI(db, queryClient, req.params.username);
           } else {
-            throwBasedOnCode('e400.8');
+            throwBasedOnCode('e400.8', queriedUsername);
           }
         },
         async () => {
