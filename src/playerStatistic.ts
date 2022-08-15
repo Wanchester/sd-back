@@ -2,9 +2,9 @@ import { QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 import { executeInflux } from './utils';
 import { Express } from 'express';
-import { readFileSync } from 'fs';
-import interpole from 'string-interpolation-js';
-import { resolve as pathResolve } from 'path';
+// import { readFileSync } from 'fs';
+// import interpole from 'string-interpolation-js';
+// import { resolve as pathResolve } from 'path';
 import { buildQuery, InfluxField, InfluxQuery } from './utilsInflux';
 import { getStatusCodeBasedOnError } from './throws';
 

@@ -7,7 +7,7 @@ import bindGetTeams from './team';
 import bindGetTrainingSessions from './trainingSession';
 import bindGetProfile, { bindPutProfile } from './profile';
 import 'dotenv/config';
-import bindGetStatistic from './playerStatistic';
+// import bindGetStatistic from './playerStatistic';
 import bindLoginAPI from './login';
 // import { bindGetTeamPlayers } from './teamPage';
 

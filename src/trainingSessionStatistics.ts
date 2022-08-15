@@ -1,10 +1,10 @@
 import { QueryApi } from '@influxdata/influxdb-client';
-import { appendFile, readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import interpole from 'string-interpolation-js';
 import { resolve as pathResolve } from 'path';
 import { callBasedOnRole, executeInflux, getPersonalInfoAPI } from './utils';
 import { Express } from 'express';
-import { SessionResponseType, TrainingSessionsGetInterface } from './interface';
+import { SessionResponseType } from './interface';
 import { getDuration } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { Database } from 'sqlite3';
@@ -80,7 +80,7 @@ export default function bindGetTrainingSessionStatistics(
       // const sessionName = (req.params as TrainingSessionsGetInterface).sessionName;
       const teamName = req.body.teamName;
       const sessionName = req.body.sessionName;
-      console.log("teamName: " + teamName);
+      console.log('teamName:  ' + teamName);
       console.log(sessionName);
 
       let trainingSessionsAPI = await callBasedOnRole(

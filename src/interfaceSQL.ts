@@ -52,11 +52,11 @@ function getModelTable(t: SQLTableName) : typeof userTableModel | typeof teamCoa
   }
 }
 
-function getTableKeys(table: SQLTableName) 
-  :UserTableKey[] | TeamCoachTableKey[] {
-  let model = getModelTable(table);
-  return Object.keys(model) as any; //if used, test for inherited object properties
-}
+// function getTableKeys(table: SQLTableName) 
+//   :UserTableKey[] | TeamCoachTableKey[] {
+//   let model = getModelTable(table);
+//   return Object.keys(model) as any; //if used, test for inherited object properties
+// }
 
 export function isCorrectType(t: SQLTableName, k: TableKey, v: any) :boolean {
   let model = getModelTable(t);
