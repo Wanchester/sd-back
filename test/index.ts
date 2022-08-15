@@ -201,6 +201,10 @@ describe('Test Express server endpoints', async () => {
       // res.body.forEach((session: any)=>assertSessionResponse(session) );
     });
 
+
+    /**
+     * actually get 401
+     */
     it('GET /trainingSessions/:username succeeds with a_administrator as logged in user', async () => {
       const res = await request(app).get('/trainingSessions/p_warren');
       expect(res.statusCode).to.equal(200);
@@ -209,7 +213,7 @@ describe('Test Express server endpoints', async () => {
     });
   });
 
-  //TODO  
+  //coach
   describe('/profile, /teams, /trainingSessions test with coach1 coach as logged in user', async () => {
     const agent = request.agent(app);
 
@@ -228,9 +232,6 @@ describe('Test Express server endpoints', async () => {
       assertHomepageResponse(res.body);
     });
 
-    /*
-      actual code: 500
-    */
     it('GET /profile/:username fails with c_coach1 as logged in user', async () => {
       const res = await agent.get('/profile/c_coach2');
       expect(res.statusCode).to.equal(401);
@@ -243,31 +244,27 @@ describe('Test Express server endpoints', async () => {
     });
 
 
-    /* 
-      role permissions error
-    */
-    // it('GET /teams/:username fails with c_coach1 as logged in user', async () => {
-    //   const res = await agent.get('/teams/c_coach2');
-    //   expect(res.statusCode).to.equal(401);
-    // });
+    /**
+     * get 400 and 401???
+     */
+    it('GET /teams/:username fails with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/teams/c_coach2');
+      expect(res.statusCode).to.equal(401);
+    });
 
+    it('GET /trainingSessions succeeds with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/trainingSessions');
+      expect(res.statusCode).to.equal(200);
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+    });
 
-    /* 
-      incorrect response error
-    */
-    // it('GET /trainingSessions succeeds with c_coach1 as logged in user', async () => {
-    //   const res = await agent.get('/trainingSessions');
-    //   expect(res.statusCode).to.equal(200);
-    //   res.body.forEach((session: any)=>assertSessionResponse(session) );
-    // });
-
-  /*
-    role permissions problem 
-  */
-    // it('GET /trainingSessions/:username fails with c_coach1 as logged in user', async () => {
-    //   const res = await request(app).get('/trainingSessions/c_coach2');
-    //   expect(res.statusCode).to.equal(401);
-    // });
+    /**
+     * get 400 and 401???
+     */
+    it('GET /trainingSessions/:username fails with c_coach1 as logged in user', async () => {
+      const res = await request(app).get('/trainingSessions/c_coach2');
+      expect(res.statusCode).to.equal(401);
+    });
   });
 
 });
