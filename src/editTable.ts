@@ -6,7 +6,7 @@ import * as DBI from './interfaceSQL';
 
 function sanitize(input: string) :string {
   let hasComment = input.includes('--');
-  return ([...input].filter( (c) => {
+  return (input.split('').filter( (c) => {
     return (
       (hasComment ? c !== '-' : true) && //remove dashes only if hasComment
       c !== ';' &&
