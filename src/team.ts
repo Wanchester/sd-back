@@ -41,7 +41,8 @@ export async function getPlayerTeamsAPI(
     }
     return cleanedTeams;
   } else {
-    throw new Error('cannot find a player with given username: ' + username);
+    // throw new Error('cannot find a player with given username: ' + username);
+    throwBasedOnCode('e400.4');
   }
 }
 
@@ -77,7 +78,8 @@ export async function getCoachTeamsAPI(
     return cleanedTeams;
 
   } else {
-    throw new Error('cannot find a coach with given username');
+    // throw new Error('cannot find a coach with given username');
+    throwBasedOnCode('e400.5');
   }
 }
 
