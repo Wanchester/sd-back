@@ -5,8 +5,8 @@ import request from 'supertest';
 function assertSessionResponse(session: any) {
   assert.isObject(session);
   assert.isString(session.sessionName);
-  assert.isString(session.sessionDate);
-  assert.isString(session.sessionTime);
+  assert.isString(session.sessionStart);
+  assert.isString(session.sessionStop);
   assert.isString(session.teamName);
   assert.isString(session.duration);
 }
@@ -109,7 +109,7 @@ describe('Test Express server endpoints', async () => {
 
   //TODO  
   describe('/profile, /teams, /trainingSessions test with coach1 coach as logged in user', async () => {
-      const agent = request.agent(app);
+    //const agent = request.agent(app);
 
     it('POST /login succeeds with c_coach1 as logged in user', async () => {
       const testUser = {
@@ -127,12 +127,12 @@ describe('Test Express server endpoints', async () => {
     });
 
     /*
-      unsure about user role permissions. This unfortunately succeeds 
+      actual code: 500
     */
-    // it('GET /profile/:username fails with c_coach1 as logged in user', async () => {
-    //   const res = await agent.get('/profile/c_coach2');
-    //   expect(res.statusCode).to.equal(401);
-    // });
+    it('GET /profile/:username fails with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/profile/c_coach2');
+      expect(res.statusCode).to.equal(401);
+    });
 
     it('GET /teams succeeds with c_coach1 as logged in user', async () => {
       const res = await agent.get('/teams');
