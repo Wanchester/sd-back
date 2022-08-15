@@ -5,7 +5,7 @@ import { Database } from 'sqlite3';
 import interpole from 'string-interpolation-js';
 import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } from './utils';
 import { resolve as pathResolve } from 'path';
-import { SessionResponseType, TrainingSessionsGetInterface } from './interface';
+import { SessionResponseType } from './interface';
 import { Express } from 'express';
 import { getCoachTeamsAPI } from './team';
 import { getDuration } from './utilsInflux';
@@ -50,9 +50,6 @@ export async function getPlayerTrainingSessionsAPI(
 ) {
   //search the personal information of given username from SQL database
   const personalInfo = await getPersonalInfoAPI(sqlDB, username);
-  if ('error' in personalInfo) {
-    return personalInfo;
-  }
   if (personalInfo.role == 'player') {
     //get the information of all the training sessions of given players
     let queryPlayerSession = readFileSync(
@@ -92,9 +89,6 @@ export async function getCoachTrainingSessionsAPI(
 ) {
   //search the personal information of given username from SQL database
   const personalInfo = await getPersonalInfoAPI(sqlDB, username);
-  if ('error' in personalInfo) {
-    return personalInfo;
-  }
   if (personalInfo.role == 'coach') {
     // get all the teams of given coach's username
     let teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
@@ -116,9 +110,6 @@ export async function getTrainingSessionsAPI(
   username: string,
 ) {
   const personalInfo = await getPersonalInfoAPI(sqlDB, username);
-  if ('error' in personalInfo) {
-    return personalInfo;
-  }
   if (personalInfo.role == 'player') {
     let trainingSessions = await getPlayerTrainingSessionsAPI(sqlDB, queryClient, username);
     return trainingSessions;
@@ -139,7 +130,7 @@ export default function bindGetTrainingSessions(
       // const sess = req.session;
       // let username = sess.username;
       // let username = CURRENTLY_LOGGED_IN;
-      if (req.params.fullStats) {
+      if ((req.params as any).fullStats) {
         const loggedInUsername = req.session.username;
         if (loggedInUsername === undefined) {
           res.status(401).send({
@@ -150,11 +141,11 @@ export default function bindGetTrainingSessions(
         }
         const loggedInPersonalInfo = await getPersonalInfoAPI(sqlDB, loggedInUsername);
   
-        const teamName = req.params.teamName;
-        const sessionName = req.params.sessionName;
+        const teamName = (req.params as any).teamName;
+        const sessionName = (req.params as any).sessionName;
         // const teamName = req.body.teamName;
         // const sessionName = req.body.sessionName;
-        console.log('teamName: '+teamName);
+        console.log('teamName: ', teamName);
         console.log(sessionName);
   
         let trainingSessionsAPI = await callBasedOnRole(

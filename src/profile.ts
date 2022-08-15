@@ -42,7 +42,12 @@ export async function getPlayerProfileAPI(
     homepageInfo.weight = personalInfo.weight;
     homepageInfo.role = personalInfo.role;
     homepageInfo.teams = await getPlayerTeamsAPI(sqlDB, queryClient, username);
-    homepageInfo.trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username);
+
+    const trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username);
+    if (trainingSessions) {
+      homepageInfo.trainingSessions = trainingSessions;
+    }
+    
     return homepageInfo;
   } else {
     throw new Error('cannot find a player with given username');
