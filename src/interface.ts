@@ -31,3 +31,8 @@ export interface PersonalInfoResponseType {
   'teams':string[],
   'trainingSessions': SessionResponseType[],
 }
+
+export interface TrainingSessionsGetInterface {
+  'teamName': string,
+  'sessionName': string,
+}

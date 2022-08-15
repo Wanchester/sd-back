@@ -11,7 +11,7 @@ import {
 import { resolve as pathResolve } from 'path';
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
-import { generateErrorBasedOnCode } from './throws';
+import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 
 export async function getPlayerTeamsAPI(
   db: Database,
@@ -125,7 +125,7 @@ export default function bindGetTeams(
       let teamsAPI = await getTeamsAPI(db, queryClient, loggedInUsername);
       res.send(teamsAPI);
     } catch (error) {
-      res.send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
@@ -152,7 +152,7 @@ export default function bindGetTeams(
         db,
         loggedInUsername!,
         async () => {
-          throw new Error('You are not allowed to make the request');
+          throwBasedOnCode('e401.1');
         },
         async () => {
           // the coach should only be able to see the teams of player
@@ -162,7 +162,7 @@ export default function bindGetTeams(
           if (commonTeams.length !== 0) {
             return getPlayerTeamsAPI(db, queryClient, req.params.username);
           } else {
-            throw new Error('Cannot find the input username in your teams');
+            throwBasedOnCode('e400.8');
           }
         },
         async () => {
@@ -171,7 +171,7 @@ export default function bindGetTeams(
       )) as any[];
       res.send(teamsAPI);
     } catch (error) {
-      res.send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });

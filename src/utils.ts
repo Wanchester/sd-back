@@ -52,8 +52,8 @@ export async function getPersonalInfoAPI(sqlDB: Database, username: string) {
   let playerInfo = await SQLretrieve(sqlDB, query, paramsLst);
 
   if (playerInfo.length == 0) {
-    // throw new Error('e4041: Given username is not found');
-    throwBasedOnCode('e404.0', username);
+    // throw new Error('e400.4: Given username is not found');
+    throwBasedOnCode('e400.4', username);
   }
   return playerInfo[0];
 }
@@ -77,7 +77,7 @@ export const executeInflux = async (
         reject(error);
       },
       complete: () => {
-        console.log('\nQuery Successfully');
+        // console.log('\nQuery Successfully InfluxDB');
         if (!rejected) {
           resolve();
         }

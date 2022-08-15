@@ -1,0 +1,6 @@
+from(bucket: "test")
+    |>range(start:-3y)
+    |>filter(fn: (r)=>r["_measurement"] == ":0")
+    |>filter(fn: (r)=>r["Session"] == ":1")
+    |>keep(columns: ["Player Name"])
+    |>limit(n: 1)

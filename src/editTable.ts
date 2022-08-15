@@ -52,11 +52,14 @@ export function userEditTable(db:sqlite.Database, key: DBI.UserTableKey, value: 
   updateTable(db, 'user', key, value, id);
 }
 
-//function quicktest() {
-//  updateTable(db, 'user', 'nationality', 'EDITED', 'c_coach1');
-//  userEditTable(db, 'email', 'TESTTESTESTETSETSETSETSE', 'p_warren');
-//
-//  //must fail
-//  //coachEditTable("teamID", "astring", "c_coach1");
-//}
-//quicktest();
+
+
+
+// function quicktest() {
+//   updateTable(db,'user', 'nationality', 'EDITED', 'c_coach1');
+
+
+//   //must fail
+//   //coachEditTable("teamID", "astring", "c_coach1");
+// }
+// quicktest();

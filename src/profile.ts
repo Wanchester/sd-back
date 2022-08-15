@@ -7,7 +7,7 @@ import { Express } from 'express';
 import { isPlainObject } from 'lodash';
 import { userEditTable } from './editTable';
 import  *  as DBI from './interfaceSQL';
-import throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
+import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 
 export async function getPlayerProfileAPI(
   sqlDB: Database,
@@ -42,7 +42,12 @@ export async function getPlayerProfileAPI(
     homepageInfo.weight = personalInfo.weight;
     homepageInfo.role = personalInfo.role;
     homepageInfo.teams = await getPlayerTeamsAPI(sqlDB, queryClient, username);
-    homepageInfo.trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username);
+
+    const trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username);
+    if (trainingSessions) {
+      homepageInfo.trainingSessions = trainingSessions;
+    }
+    
     return homepageInfo;
   } else {
     throw new Error('cannot find a player with given username');
@@ -86,8 +91,8 @@ export async function getCoachProfileAPI(
     // homepageInfo.trainingSessions = ['TODO: to implement await getPlayerSessionsAPI(sqlDB, queryClient, username);'];
     return homepageInfo;
   } else {
-    // 'e404.1': 'cannot find a coach with given username',
-    throwBasedOnCode('e404.1', username);
+    // 'e400.5': 'cannot find a coach with given username',
+    throwBasedOnCode('e400.5', username);
   }
 }
 
@@ -138,7 +143,7 @@ export async function putPlayerProfileAPI(sqlDB: Database, queryClient: QueryApi
         // update the new value
         userEditTable(sqlDB, key as DBI.UserTableKey, newData[key], username);
       } else {
-        throw new Error(`You are not allowed to edit the ${key} field`);
+        throwBasedOnCode('e403.0', key);
       }
     }
     return newData;
@@ -161,7 +166,7 @@ export async function putCoachProfileAPI(sqlDB: Database, queryClient: QueryApi,
         // update the new value
         userEditTable(sqlDB, key as DBI.UserTableKey, newData[key], username);
       } else {
-        throw new Error(`You are not allowed to edit the ${key} field`);
+        throwBasedOnCode('e403.0', key);
       }
     }
     return newData;
@@ -205,7 +210,7 @@ export default function bindGetProfile(
         });
       }
     } catch (error) {
-      res.status(500).send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
@@ -232,7 +237,7 @@ export default function bindGetProfile(
         sqlDB,
         loggedInUsername!,
         async () => {
-          throw new Error('You are not allowed to make the request');
+          throwBasedOnCode('e401.1');
         },
         async () => {
           // the coach should only be able to see the profile of player
@@ -243,7 +248,7 @@ export default function bindGetProfile(
           if (commonTeams.length !== 0) {
             return getPlayerProfileAPI(sqlDB, queryClient, req.params.username);
           } else {
-            throw new Error('Cannot find the input username in your teams');
+            throwBasedOnCode('e400.8');
           }
         },
         async () => {
@@ -254,7 +259,7 @@ export default function bindGetProfile(
       res.send(homepageAPI);
 
     } catch (error) {
-      res.status(500).send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
@@ -285,7 +290,7 @@ export function bindPutProfile(
       let putData = await putProfileAPI(sqlDB, queryClient, loggedInUsername!, newData);
       res.status(200).send(putData);
     } catch (error) {
-      res.status(500).send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
@@ -310,7 +315,7 @@ export function bindPutProfile(
         sqlDB,
         loggedInUsername!,
         async () => {
-          throw new Error('You are not allowed to make the request');
+          throwBasedOnCode('e401.1');
         },
         async () => {
           // the coach should only be able to eidt the profile of players in his teams
@@ -319,7 +324,8 @@ export function bindPutProfile(
             let editedData = await putPlayerProfileAPI(sqlDB, queryClient, req.params.username, newData);
             return editedData;
           } else {
-            throw new Error('Cannot find the input username in your teams');
+            // throw new Error('Cannot find the input username in your teams');
+            throwBasedOnCode('e400.9', req.params.username);
           }
         },
         async () => {
@@ -330,7 +336,7 @@ export function bindPutProfile(
       )) as any[];
       res.send(editedHomepageAPI);
     } catch (error) {
-      res.send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });

@@ -9,7 +9,8 @@ import { SessionResponseType } from './interface';
 import { Express } from 'express';
 import { getCoachTeamsAPI } from './team';
 import { getDuration } from './utilsInflux';
-import { generateErrorBasedOnCode } from './throws';
+import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
+import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } from './trainingSessionStatistics';
 
 export async function getTeamTrainingSessionsAPI(
   queryClient: QueryApi,
@@ -43,15 +44,12 @@ export async function getTeamTrainingSessionsAPI(
 }
 
 export async function getPlayerTrainingSessionsAPI(
-  db: Database,
+  sqlDB: Database,
   queryClient: QueryApi,
   username: string,
 ) {
   //search the personal information of given username from SQL database
-  const personalInfo = await getPersonalInfoAPI(db, username);
-  if ('error' in personalInfo) {
-    return personalInfo;
-  }
+  const personalInfo = await getPersonalInfoAPI(sqlDB, username);
   if (personalInfo.role == 'player') {
     //get the information of all the training sessions of given players
     let queryPlayerSession = readFileSync(
@@ -70,7 +68,7 @@ export async function getPlayerTrainingSessionsAPI(
         teamName: '',
         duration: '',
       } as SessionResponseType;
-      aSession.sessionName = trainingSessions[i].Session.split(' ')[0];
+      aSession.sessionName = trainingSessions[i].Session;
       aSession.sessionStart = moment(trainingSessions[i]._time).format('DD-MM-YYYY');     //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
       aSession.sessionStop = moment(trainingSessions[i]._time).format('HH:mm');          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
       aSession.teamName = trainingSessions[i]._measurement;
@@ -85,18 +83,15 @@ export async function getPlayerTrainingSessionsAPI(
 }
 
 export async function getCoachTrainingSessionsAPI(
-  db: Database,
+  sqlDB: Database,
   queryClient: QueryApi,
   username: string,
 ) {
   //search the personal information of given username from SQL database
-  const personalInfo = await getPersonalInfoAPI(db, username);
-  if ('error' in personalInfo) {
-    return personalInfo;
-  }
+  const personalInfo = await getPersonalInfoAPI(sqlDB, username);
   if (personalInfo.role == 'coach') {
     // get all the teams of given coach's username
-    let teams = await getCoachTeamsAPI(db, queryClient, username);
+    let teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
     let teamsTrainingSessions: any[] = []; 
     // for each of team in teams, get all training sessions of that team
     for (let i = 0; i < teams.length;  i++) {
@@ -110,56 +105,104 @@ export async function getCoachTrainingSessionsAPI(
 }
 
 export async function getTrainingSessionsAPI(
-  db: Database,
+  sqlDB: Database,
   queryClient: QueryApi,
   username: string,
 ) {
-  const personalInfo = await getPersonalInfoAPI(db, username);
-  if ('error' in personalInfo) {
-    return personalInfo;
-  }
+  const personalInfo = await getPersonalInfoAPI(sqlDB, username);
   if (personalInfo.role == 'player') {
-    let trainingSessions = await getPlayerTrainingSessionsAPI(db, queryClient, username);
+    let trainingSessions = await getPlayerTrainingSessionsAPI(sqlDB, queryClient, username);
     return trainingSessions;
   } else if (personalInfo.role == 'coach') {
-    let trainingSessions = await getCoachTrainingSessionsAPI(db, queryClient, username);
+    let trainingSessions = await getCoachTrainingSessionsAPI(sqlDB, queryClient, username);
     return trainingSessions;
   }
 }
 
 export default function bindGetTrainingSessions(
   app: Express,
-  db: Database,
+  sqlDB: Database,
   queryClient: QueryApi,
 ) {
+  // app.get('/trainingSessions?fullStats=:fullStats&teamName=:teamName&sessionName=:sessionName', async (req, res) => {
   app.get('/trainingSessions', async (req, res) => {
     try {
       // const sess = req.session;
       // let username = sess.username;
       // let username = CURRENTLY_LOGGED_IN;
+      console.log('query', req.query);
+      if ((req.query as any).fullStats) {
+        const loggedInUsername = req.session.username;
+        if (loggedInUsername === undefined) {
+          res.status(401).send({
+            name: 'Error',
+            error: generateErrorBasedOnCode('e401.0').message,
+          });
+          return;
+        }
+        const loggedInPersonalInfo = await getPersonalInfoAPI(sqlDB, loggedInUsername);
+  
+        const teamName = (req.query as any).teamName;
+        const sessionName = (req.query as any).sessionName;
+        // const teamName = req.body.teamName;
+        // const sessionName = req.body.sessionName;
+  
+        let trainingSessionsAPI = await callBasedOnRole(
+          sqlDB,
+          loggedInUsername!,
+          async () => {
+            const playerList = await getTrainingSessionPlayerNamesAPI(queryClient, teamName, sessionName);
+            console.log(loggedInPersonalInfo);
+            if ( !playerList.includes(loggedInPersonalInfo.name )) {
+              res.status(404).send({
+                'name': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).name,
+                'error': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).message,
+              });
+              return;
+            }
+            return getTrainingSessionStatisticsAPI(queryClient, teamName, sessionName);
+          },
+          async () => {
+            let coachTeams = await getCoachTeamsAPI(sqlDB, queryClient, loggedInUsername);
+            if (!coachTeams.includes(teamName)) {
+              res.status(404).send({
+                'name': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).name,
+                'error': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).message,
+              });
+              return;
+            }
+            return getTrainingSessionStatisticsAPI(queryClient, teamName, sessionName);
+          },
+          async () => {
+            return getTrainingSessionStatisticsAPI(queryClient, teamName, sessionName);
+          },
+        );
+        res.send(trainingSessionsAPI);        
+      } else {
+        let loggedInUsername =  req.session.username;
+        if (loggedInUsername === undefined) {
+          res.status(401).send({
+            name: 'Error',
+            error: generateErrorBasedOnCode('e401.0').message,
+          });
+          return;
+        }
 
-      let loggedInUsername =  req.session.username;
-      if (loggedInUsername === undefined) {
-        res.status(401).send({
-          name: 'Error',
-          error: generateErrorBasedOnCode('e401.0').message,
-        });
-        return;
+        let trainingSessionsAPI = await getTrainingSessionsAPI(
+          sqlDB,
+          queryClient,
+          loggedInUsername,
+        );
+        res.send(trainingSessionsAPI);
       }
-
-      let trainingSessionsAPI = await getTrainingSessionsAPI(
-        db,
-        queryClient,
-        loggedInUsername,
-      );
-      res.send(trainingSessionsAPI);
     } catch (error) {
-      res.send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
       console.log((error as Error).stack);
     }
+    
   });
 
   app.get('/trainingSessions/:username', async (req, res) => {
@@ -168,7 +211,7 @@ export default function bindGetTrainingSessions(
       // let loggedInUsername = CURRENTLY_LOGGED_IN;
       // let username = req.params.us
       //right now, just let the username = 'a_administrator' so that it has the right to see the teams list of all players.
-      
+      const queriedUsername = req.params.username;
       let loggedInUsername =  req.session.username;
       if (loggedInUsername === undefined) {
         res.status(401).send({
@@ -178,29 +221,30 @@ export default function bindGetTrainingSessions(
         return;
       }
 
-      let trainingSessionsAPI = (await callBasedOnRole(
-        db,
+      let trainingSessionsAPI = await callBasedOnRole(
+        sqlDB,
         loggedInUsername!,
         async () => {
-          throw new Error('You are not allowed to make the request');
+          throwBasedOnCode('e401.1');
         },
         async () => {
           // the coach should only be able to see the training sessions of player
           // currently, the coach can see the training sessions of all players and coach for testing purpose 
-          let commonTeams = await getCommonTeams( db, queryClient, loggedInUsername!, req.params.username);
+          let commonTeams = await getCommonTeams( sqlDB, queryClient, loggedInUsername!, req.params.username);
           if (commonTeams.length !== 0) {
-            return getPlayerTrainingSessionsAPI(db, queryClient, req.params.username);
+            return getPlayerTrainingSessionsAPI(sqlDB, queryClient, req.params.username);
           } else {
-            throw new Error('Cannot find the input username in your teams');
+            // throw new Error('Cannot find the input username in your teams');
+            throwBasedOnCode('e400.9', queriedUsername);
           }
         },
         async () => {
-          return getTrainingSessionsAPI(db, queryClient, req.params.username);
+          return getTrainingSessionsAPI(sqlDB, queryClient, req.params.username);
         },
-      )) as any[];
+      ) as any[];
       res.send(trainingSessionsAPI);
     } catch (error) {
-      res.send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
