@@ -7,7 +7,7 @@ import { Express } from 'express';
 import { isPlainObject } from 'lodash';
 import { userEditTable } from './editTable';
 import  *  as DBI from './interfaceSQL';
-import throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
+import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 
 export async function getPlayerProfileAPI(
   sqlDB: Database,
@@ -91,8 +91,8 @@ export async function getCoachProfileAPI(
     // homepageInfo.trainingSessions = ['TODO: to implement await getPlayerSessionsAPI(sqlDB, queryClient, username);'];
     return homepageInfo;
   } else {
-    // 'e404.1': 'cannot find a coach with given username',
-    throwBasedOnCode('e404.1', username);
+    // 'e400.5': 'cannot find a coach with given username',
+    throwBasedOnCode('e400.5', username);
   }
 }
 
@@ -210,7 +210,7 @@ export default function bindGetProfile(
         });
       }
     } catch (error) {
-      res.status(500).send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
@@ -248,7 +248,7 @@ export default function bindGetProfile(
           if (commonTeams.length !== 0) {
             return getPlayerProfileAPI(sqlDB, queryClient, req.params.username);
           } else {
-            throw new Error('Cannot find the input username in your teams');
+            throwBasedOnCode('e400.8');
           }
         },
         async () => {
@@ -259,7 +259,7 @@ export default function bindGetProfile(
       res.send(homepageAPI);
 
     } catch (error) {
-      res.status(500).send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
@@ -290,7 +290,7 @@ export function bindPutProfile(
       let putData = await putProfileAPI(sqlDB, queryClient, loggedInUsername!, newData);
       res.status(200).send(putData);
     } catch (error) {
-      res.status(500).send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
@@ -324,8 +324,8 @@ export function bindPutProfile(
             let editedData = await putPlayerProfileAPI(sqlDB, queryClient, req.params.username, newData);
             return editedData;
           } else {
-            throw new Error('Cannot find the input username in your teams');
-            throwBasedOnCode('e404.4', req.params.username);
+            // throw new Error('Cannot find the input username in your teams');
+            throwBasedOnCode('e400.9', req.params.username);
           }
         },
         async () => {
@@ -336,7 +336,7 @@ export function bindPutProfile(
       )) as any[];
       res.send(editedHomepageAPI);
     } catch (error) {
-      res.send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });

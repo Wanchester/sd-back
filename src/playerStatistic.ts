@@ -6,6 +6,7 @@ import { readFileSync } from 'fs';
 import interpole from 'string-interpolation-js';
 import { resolve as pathResolve } from 'path';
 import { buildQuery, InfluxField, InfluxQuery } from './utilsInflux';
+import { getStatusCodeBasedOnError } from './throws';
 
 // export async function getStatistic(
 //   queryClient: QueryApi, 
@@ -87,7 +88,7 @@ export default function bindGetStatistic(
       res.send(statistic);
     } catch (error) {
       console.log(error);
-      res.send({
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
         name: (error as Error).name,
       });
