@@ -22,7 +22,7 @@ async function getTeamPlayersAPI(
     
   let output = [];
   for (let playerName of namesFromInflux) {  
-    let queryResult = await SQLretrieve(sqlDB, 'SELECT username FROM USER WHERE NAME = ?', [playerName]);
+    let queryResult = await SQLretrieve(sqlDB, 'SELECT username FROM USER WHERE NAME = ? AND ROLE = \'player\'', [playerName]);
     
     //todo: case: name not returned
     // if (Object.keys(queryResult).length === 0) {return [];};
