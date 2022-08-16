@@ -10,6 +10,7 @@ async function getTeamPlayersAPI(
   queryClient: QueryApi,
   teamName: string,
 ) {
+  //todo ROLE MANAGEMENT
   const query = DBI.buildQuery({ teams: [teamName], get_unique: 'player' });
   const response = executeInflux(query, queryClient);
 
