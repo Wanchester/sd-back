@@ -31,6 +31,7 @@ async function getTeamPlayersAPI(
     let pair = { 'name': playerName, 'usename': username };
     output.push(pair);
   }
+  //todo output not empty {'username': []}
   return output;
 }
 
