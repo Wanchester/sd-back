@@ -19,19 +19,20 @@ async function getTeamPlayersAPI(
     list.forEach(row => 
       namesFromInflux.push(row['Player Name']),
     ));
+  //todo: what if response empty
     
   let output = [];
   for (let playerName of namesFromInflux) {  
     let queryResult = await SQLretrieve(sqlDB, 'SELECT username FROM USER WHERE NAME = ? AND ROLE = \'player\'', [playerName]);
     
     //todo: case: name not returned
-    // if (Object.keys(queryResult).length === 0) {return [];};
+    //something like if (Object.keys(queryResult).length === 0) {return [];};
     let username = queryResult[0].username;
 
     let pair = { 'name': playerName, 'usename': username };
     output.push(pair);
   }
-  //todo output not empty {'username': []}
+  //todo output not empty {'players': []}
   return output;
 }
 
