@@ -25,7 +25,6 @@ export async function getTeamTrainingSessionsAPI(
   const cleanedTrainingSessions: any[] = [];
   for (let i = 0; i < trainingSessions.length; i++) {
     const aSession = {
-      playerName: '',
       sessionName: '',
       sessionStart: '',
       sessionStop: '',
