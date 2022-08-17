@@ -177,7 +177,7 @@ describe('Test Express server endpoints', async () => {
     });
 
     it('GET /team?teamName=Team3 fails with p_jbk logged in as user', async () => {
-      const res = await agent.get('/team?teamName=TeamWanchester');
+      const res = await agent.get('/team?teamName=Team3');
       expect(res.statusCode).to.equal(400);
     });
   });
