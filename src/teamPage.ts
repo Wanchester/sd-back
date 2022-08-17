@@ -30,8 +30,7 @@ async function getTeamPlayersAPI(
     ),
   rejectedReason => {
     //influx problem
-    console.log('!!!!!!!!!!!!!!src/teamPage.ts:28. This influx error should never happen');
-    throwBasedOnCode('e500.0', rejectedReason);
+    throwBasedOnCode('e500.0', rejectedReason, '\nThis error shouldn\'t happen. teamPage.ts:33');
   });
     
   //use names from influx to query SQL, as player team is not in SQL 17/08/22
