@@ -31,6 +31,11 @@ async function getTeamPlayersAPI(
   //use names from influx to query SQL, as player team is not in SQL 17/08/22
   
   for (let playerName of namesFromInflux) {  
+    /**
+     * This hits SQL ~10 times (will be 20). At 100ms each, this query takes 1000ms on a good day. 
+     * If it hits 2000ms Mocha will timeout and the test will fail.
+     * I've looked into db.parallelize but I'm still not sure about it
+     */
     let queryResult = await SQLretrieve(sqlDB, 
       'SELECT username FROM USER WHERE NAME = ? AND ROLE = "player"', [playerName]);
     
