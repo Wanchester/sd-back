@@ -3,7 +3,7 @@ import { Database } from 'sqlite3';
 import { Express } from 'express';
 import * as DBI from './utilsInflux';
 import { callBasedOnRole, executeInflux, SQLretrieve } from './utils';
-import { generateErrorBasedOnCode } from './throws';
+import  throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
 import { getPlayerTeamsAPI, getCoachTeamsAPI } from './team';
 
 
@@ -24,8 +24,8 @@ async function getTeamPlayersAPI(
     ),
   rejectedReason => {
     //influx problem
-    console.log('!!!!!!!!!!!!!!src/teamPage.ts:28. This influx error might never happen');
-    return generateErrorBasedOnCode('e500.0', rejectedReason).message;
+    console.log('!!!!!!!!!!!!!!src/teamPage.ts:28. This influx error should never happen');
+    throwBasedOnCode('e500.0', rejectedReason);
   });
     
   //use names from influx to query SQL, as player team is not in SQL 17/08/22
@@ -40,12 +40,12 @@ async function getTeamPlayersAPI(
       output.push(pair);
     } else {
       //sql returned empty object (possible?)
-      //this wont actually handle properly 
-      generateErrorBasedOnCode('e500.1', `Unable to find username for player: ${playerName}.
+      throwBasedOnCode('e500.1', `Unable to find username for player: ${playerName}.
         SQL returned empty object.`);
     }
   }
   
+  //possibly empty array
   return output;
 }
 
@@ -55,8 +55,9 @@ export function bindGetTeamPlayers(
   queryClient: QueryApi,
 ) {
   app.get('/team', async (req, res) => {
-    
     const teamName = req.query.teamName as string;
+    
+    //actual request
     const performRequest = async () => {
       const players = await getTeamPlayersAPI(sqlDB, queryClient, teamName);
       //todo: what if no players returned ???
