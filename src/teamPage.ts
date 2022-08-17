@@ -12,6 +12,12 @@ async function getTeamPlayersAPI(
   queryClient: QueryApi,
   teamName: string,
 ): Promise<{ name: string; username: string; }[]> {
+  /**
+   * This function has a delay of about 1000ms. If it's SQL:
+   * ouch. Will need to parallelize.
+   * If it's influx (which isn't running on my machine, it's a network
+   * delay), then that's just a limitation of the customer requirement
+   */
   const query = DBI.buildQuery({ teams: [teamName], get_unique: 'player' });
   const influxResponse = executeInflux(query, queryClient);
   let output: { name: string, username: string }[] = [];
@@ -31,11 +37,6 @@ async function getTeamPlayersAPI(
   //use names from influx to query SQL, as player team is not in SQL 17/08/22
   
   for (let playerName of namesFromInflux) {  
-    /**
-     * This hits SQL ~10 times (will be 20). At 100ms each, this query takes 1000ms on a good day. 
-     * If it hits 2000ms Mocha will timeout and the test will fail.
-     * I've looked into db.parallelize but I'm still not sure about it
-     */
     let queryResult = await SQLretrieve(sqlDB, 
       'SELECT username FROM USER WHERE NAME = ? AND ROLE = "player"', [playerName]);
     
