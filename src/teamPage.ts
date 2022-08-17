@@ -102,11 +102,11 @@ export function bindGetTeamPlayers(
 
     callBasedOnRole(sqlDB, loggedInUsername, 
       //player
-      async () => performRequestWithPermissionOrError(),
+      performRequestWithPermissionOrError,
       //coach
-      async () => performRequestWithPermissionOrError(),
+      performRequestWithPermissionOrError,
       //admin
-      async () => performRequest(),
+      performRequest,
     );
   });
 }
