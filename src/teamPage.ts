@@ -3,37 +3,46 @@ import { Database } from 'sqlite3';
 import { Express } from 'express';
 import * as DBI from './utilsInflux';
 import { executeInflux, SQLretrieve } from './utils';
+import throwBasedOnCode from './throws';
 
 
 async function getTeamPlayersAPI(
   sqlDB: Database,
   queryClient: QueryApi,
   teamName: string,
-) {
-  //todo ROLE MANAGEMENT
+): Promise<{ name: string; username: string; }[]> {
   const query = DBI.buildQuery({ teams: [teamName], get_unique: 'player' });
-  const response = executeInflux(query, queryClient);
+  const influxResponse = executeInflux(query, queryClient);
+  let output = [];
 
-  //push names into array
+  //push real names from Influx into array
   let namesFromInflux: string[] = [];
-  await response.then(list => 
+  await influxResponse.then(list => 
     list.forEach(row => 
       namesFromInflux.push(row['Player Name']),
-    ));
-  //todo: what if response empty
+    ),
+  rejectedReason => {
+    //influx problem
+    throwBasedOnCode('e500.0', rejectedReason);
+  });
     
-  let output = [];
+  //use names from influx to query SQL, as player team is not in SQL 17/08/22
   for (let playerName of namesFromInflux) {  
-    let queryResult = await SQLretrieve(sqlDB, 'SELECT username FROM USER WHERE NAME = ? AND ROLE = \'player\'', [playerName]);
+    let queryResult = await SQLretrieve(sqlDB, 
+      'SELECT username FROM USER WHERE NAME = ? AND ROLE = "player"', [playerName]);
     
-    //todo: case: name not returned
-    //something like if (Object.keys(queryResult).length === 0) {return [];};
-    let username = queryResult[0].username;
-
-    let pair = { 'name': playerName, 'usename': username };
-    output.push(pair);
+    //if queryResult not empty object
+    if (Object.keys(queryResult).length !== 0) {
+      const username:string = queryResult[0].username;
+      let pair = { 'name': playerName, 'username': username };
+      output.push(pair);
+    } else {
+      //sql returned empty object (possible?)
+      throwBasedOnCode('e500.1', `Unable to find username for player: ${playerName}.
+        SQL returned empty object.`);
+    }
   }
-  //todo output not empty {'players': []}
+  
   return output;
 }
 
@@ -43,8 +52,10 @@ export function bindGetTeamPlayers(
   queryClient: QueryApi,
 ) {
   app.get('/team', async (req, res) => {
+    //todo ROLE MANAGEMENT
     const teamName = req.query.teamName as string;
     const players = await getTeamPlayersAPI(sqlDB, queryClient, teamName);
+    //todo: what if no players returned ???
     res.send({ 'players': players });
   });
 }
