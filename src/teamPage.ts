@@ -14,7 +14,7 @@ async function getTeamPlayersAPI(
 ): Promise<{ name: string; username: string; }[]> {
   const query = DBI.buildQuery({ teams: [teamName], get_unique: 'player' });
   const influxResponse = executeInflux(query, queryClient);
-  let output = [];
+  let output: { name: string, username: string }[] = [];
 
   //push real names from Influx into array
   let namesFromInflux: string[] = [];
@@ -29,13 +29,14 @@ async function getTeamPlayersAPI(
   });
     
   //use names from influx to query SQL, as player team is not in SQL 17/08/22
+  
   for (let playerName of namesFromInflux) {  
     let queryResult = await SQLretrieve(sqlDB, 
       'SELECT username FROM USER WHERE NAME = ? AND ROLE = "player"', [playerName]);
     
     //if queryResult not empty object
     if (Object.keys(queryResult).length !== 0) {
-      const username:string = queryResult[0].username;
+      const username: string = queryResult[0].username;
       let pair = { 'name': playerName, 'username': username };
       output.push(pair);
     } else {
@@ -44,6 +45,7 @@ async function getTeamPlayersAPI(
         SQL returned empty object.`);
     }
   }
+
   
   //possibly empty array
   return output;
@@ -76,7 +78,7 @@ export function bindGetTeamPlayers(
     }
 
     /** 
-     * query the right database depending on player or coach
+     * query the right database depending on player or coach.
      * permission depends on whether user is in requested team
     */
     const performRequestWithPermissionOrError = async () => {
