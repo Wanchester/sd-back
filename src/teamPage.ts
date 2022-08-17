@@ -65,6 +65,7 @@ export function bindGetTeamPlayers(
     };
     
     //ROLE MANAGEMENT
+    //not logged in
     const loggedInUsername = req.session.username as string;
     if (loggedInUsername === undefined) {
       res.status(401).send({
@@ -73,39 +74,34 @@ export function bindGetTeamPlayers(
       });
       return;
     }
+
+
+    const performRequestWithPermissionOrError = async (queryFunc: typeof getPlayerTeamsAPI | typeof getCoachTeamsAPI) => {
+      //query the right database depending on player or coach
+      const associatedTeams = await queryFunc(sqlDB, queryClient, loggedInUsername);
+      if (associatedTeams.includes(teamName)) {
+        performRequest();
+      } else {
+        //player/coach is not in this team
+        res.status(400).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e400.12', loggedInUsername, teamName).message,
+        });
+        return;
+      }
+    };
+
     callBasedOnRole(sqlDB, loggedInUsername, 
       //player
       async () => {
-        const associatedTeams = await getPlayerTeamsAPI(sqlDB, queryClient, loggedInUsername);
-        if (associatedTeams.includes(teamName)) {
-          await performRequest();
-          return;
-        } else {
-          //player is not in this team
-          res.status(400).send({
-            name: 'Error',
-            error: generateErrorBasedOnCode('e400.12', loggedInUsername, teamName).message,
-          });
-          return;
-        }
+        performRequestWithPermissionOrError(getPlayerTeamsAPI);
       },
       //coach
       async () => {
-        const associatedTeams = await getCoachTeamsAPI(sqlDB, queryClient, loggedInUsername);
-        if (associatedTeams.includes(teamName)) {
-          await performRequest();
-          return;
-        } else {
-          //coach is not in this team
-          res.status(400).send({
-            name: 'Error',
-            error: generateErrorBasedOnCode('e400.12', loggedInUsername, teamName).message,
-          });
-          return;
-        }
+        performRequestWithPermissionOrError(getCoachTeamsAPI);
       },
       //admin
-      async () => { await performRequest(); },
+      async () => { performRequest(); },
     );
   });
 }
