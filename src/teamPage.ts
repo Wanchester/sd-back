@@ -36,7 +36,7 @@ async function getTeamPlayersAPI(
   //use names from influx to query SQL, as player team is not in SQL 17/08/22
   for (let playerName of namesFromInflux) {  
     let queryResult = await SQLretrieve(sqlDB, 
-      'SELECT username FROM USER WHERE NAME = ? AND ROLE = "player"', [playerName]);
+      'SELECT username FROM USER WHERE NAME = ? AND ROLE = "player" LIMIT 1', [playerName]);
     
     //if queryResult not empty object
     if (Object.keys(queryResult).length !== 0) {
