@@ -59,7 +59,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(401);
       // assertHomepageResponse(res.body);
     });
-    it('GET /team', async () => {
+    it('GET /team fails when not logged in', async () => {
       const res = await agent.get('/team?teamName=TeamWanchester');
       expect(res.statusCode).to.equal(401);
     });
