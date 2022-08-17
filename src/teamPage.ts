@@ -24,7 +24,7 @@ async function getTeamPlayersAPI(
     ),
   rejectedReason => {
     //influx problem
-    console.log('src/teamPage.ts:28. This influx error might never happen');
+    console.log('!!!!!!!!!!!!!!src/teamPage.ts:28. This influx error might never happen');
     return generateErrorBasedOnCode('e500.0', rejectedReason).message;
   });
     
@@ -40,6 +40,7 @@ async function getTeamPlayersAPI(
       output.push(pair);
     } else {
       //sql returned empty object (possible?)
+      //this wont actually handle properly 
       generateErrorBasedOnCode('e500.1', `Unable to find username for player: ${playerName}.
         SQL returned empty object.`);
     }
