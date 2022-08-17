@@ -75,9 +75,11 @@ export function bindGetTeamPlayers(
       return;
     }
 
-
+    /** 
+     * query the right database depending on player or coach
+     * permission depends on whether user is in requested team
+    */
     const performRequestWithPermissionOrError = async (queryFunc: typeof getPlayerTeamsAPI | typeof getCoachTeamsAPI) => {
-      //query the right database depending on player or coach
       const associatedTeams = await queryFunc(sqlDB, queryClient, loggedInUsername);
       if (associatedTeams.includes(teamName)) {
         performRequest();
