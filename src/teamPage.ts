@@ -4,7 +4,7 @@ import { Express } from 'express';
 import * as DBI from './utilsInflux';
 import { callBasedOnRole, executeInflux, SQLretrieve } from './utils';
 import  throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
-import { getPlayerTeamsAPI, getCoachTeamsAPI } from './team';
+import { getTeamsAPI } from './team';
 
 
 async function getTeamPlayersAPI(
@@ -79,8 +79,8 @@ export function bindGetTeamPlayers(
      * query the right database depending on player or coach
      * permission depends on whether user is in requested team
     */
-    const performRequestWithPermissionOrError = async (queryFunc: typeof getPlayerTeamsAPI | typeof getCoachTeamsAPI) => {
-      const associatedTeams = await queryFunc(sqlDB, queryClient, loggedInUsername);
+    const performRequestWithPermissionOrError = async () => {
+      const associatedTeams = await getTeamsAPI(sqlDB, queryClient, loggedInUsername);
       if (associatedTeams.includes(teamName)) {
         performRequest();
       } else {
@@ -95,15 +95,11 @@ export function bindGetTeamPlayers(
 
     callBasedOnRole(sqlDB, loggedInUsername, 
       //player
-      async () => {
-        performRequestWithPermissionOrError(getPlayerTeamsAPI);
-      },
+      async () => performRequestWithPermissionOrError(),
       //coach
-      async () => {
-        performRequestWithPermissionOrError(getCoachTeamsAPI);
-      },
+      async () => performRequestWithPermissionOrError(),
       //admin
-      async () => { performRequest(); },
+      async () => performRequest(),
     );
   });
 }
