@@ -16,6 +16,7 @@ const ExitCodeMap = {
   'e400.9': 'Team :0 does not have any training session with the name :1',
   'e400.10': 'The user :0 is not eligible to view the training session :2 of the team :1',
   'e400.11': 'System expect a valid object',
+  'e400.12': 'You (username :0) are not associated with requested team :1',
 
   //401 Unauthenticated, Unauthorised
   'e401.0': 'You must login in order to make this request.',

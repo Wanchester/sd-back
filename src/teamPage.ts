@@ -2,8 +2,9 @@ import { QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 import { Express } from 'express';
 import * as DBI from './utilsInflux';
-import { executeInflux, SQLretrieve } from './utils';
-import throwBasedOnCode from './throws';
+import { callBasedOnRole, executeInflux, SQLretrieve } from './utils';
+import { generateErrorBasedOnCode } from './throws';
+import { getPlayerTeamsAPI, getCoachTeamsAPI } from './team';
 
 
 async function getTeamPlayersAPI(
@@ -23,7 +24,8 @@ async function getTeamPlayersAPI(
     ),
   rejectedReason => {
     //influx problem
-    throwBasedOnCode('e500.0', rejectedReason);
+    console.log('src/teamPage.ts:28. This influx error might never happen');
+    return generateErrorBasedOnCode('e500.0', rejectedReason).message;
   });
     
   //use names from influx to query SQL, as player team is not in SQL 17/08/22
@@ -38,7 +40,7 @@ async function getTeamPlayersAPI(
       output.push(pair);
     } else {
       //sql returned empty object (possible?)
-      throwBasedOnCode('e500.1', `Unable to find username for player: ${playerName}.
+      generateErrorBasedOnCode('e500.1', `Unable to find username for player: ${playerName}.
         SQL returned empty object.`);
     }
   }
@@ -52,10 +54,56 @@ export function bindGetTeamPlayers(
   queryClient: QueryApi,
 ) {
   app.get('/team', async (req, res) => {
-    //todo ROLE MANAGEMENT
+    
     const teamName = req.query.teamName as string;
-    const players = await getTeamPlayersAPI(sqlDB, queryClient, teamName);
-    //todo: what if no players returned ???
-    res.send({ 'players': players });
+    const performRequest = async () => {
+      const players = await getTeamPlayersAPI(sqlDB, queryClient, teamName);
+      //todo: what if no players returned ???
+      res.send({ 'players': players });
+    };
+    
+    //ROLE MANAGEMENT
+    const loggedInUsername = req.session.username as string;
+    if (loggedInUsername === undefined) {
+      res.status(401).send({
+        name: 'Error',
+        error: generateErrorBasedOnCode('e401.0').message,
+      });
+      return;
+    }
+    callBasedOnRole(sqlDB, loggedInUsername, 
+      //player
+      async () => {
+        const associatedTeams = await getPlayerTeamsAPI(sqlDB, queryClient, loggedInUsername);
+        if (associatedTeams.includes(teamName)) {
+          await performRequest();
+          return;
+        } else {
+          //player is not in this team
+          res.status(400).send({
+            name: 'Error',
+            error: generateErrorBasedOnCode('e400.12', loggedInUsername, teamName).message,
+          });
+          return;
+        }
+      },
+      //coach
+      async () => {
+        const associatedTeams = await getCoachTeamsAPI(sqlDB, queryClient, loggedInUsername);
+        if (associatedTeams.includes(teamName)) {
+          await performRequest();
+          return;
+        } else {
+          //coach is not in this team
+          res.status(400).send({
+            name: 'Error',
+            error: generateErrorBasedOnCode('e400.12', loggedInUsername, teamName).message,
+          });
+          return;
+        }
+      },
+      //admin
+      async () => { await performRequest(); },
+    );
   });
 }
