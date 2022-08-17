@@ -35,7 +35,6 @@ async function getTeamPlayersAPI(
   });
     
   //use names from influx to query SQL, as player team is not in SQL 17/08/22
-  
   for (let playerName of namesFromInflux) {  
     let queryResult = await SQLretrieve(sqlDB, 
       'SELECT username FROM USER WHERE NAME = ? AND ROLE = "player"', [playerName]);
@@ -51,7 +50,6 @@ async function getTeamPlayersAPI(
         SQL returned empty object.`);
     }
   }
-
   
   //possibly empty array
   return output;
@@ -65,7 +63,10 @@ export function bindGetTeamPlayers(
   app.get('/team', async (req, res) => {
     const teamName = req.query.teamName as string;
     
-    //actual request
+    /**
+     * Calls the api with the requested team name
+     * and sends to the frontend without role management
+     */
     const performRequest = async () => {
       const players = await getTeamPlayersAPI(sqlDB, queryClient, teamName);
       //todo: what if no players returned ???
