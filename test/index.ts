@@ -151,9 +151,22 @@ describe('Test Express server endpoints', async () => {
     });
 
     it('GET /trainingSessions/:username fails with p_jbk as logged in user', async () => {
-      const res = await request(app).get('/trainingSessions/p_warren');
+      const res = await agent.get('/trainingSessions/p_warren');
       expect(res.statusCode).to.equal(401);
     });
+
+    //trainingSessions fullStats
+    it('GET /trainingSessions?fullStats=true&teamName=TeamBit&sessionName=NULL 21/4/22 fails with p_jbk as logged in user', async () => {
+      const res = await agent.get('/trainingSessions?fullStats=true&teamName=TeamBit&sessionName=NULL 21/4/22');
+      expect(res.statusCode).to.equal(400);
+    });
+
+    it('GET /trainingSessions?fullStats=true&teamName=TeamWanchester&sessionName=NULL 24/4/22 succeeds with p_jbk as logged in user', async () => {
+      const res = await agent.get('/trainingSessions?fullStats=true&teamName=TeamWanchester&sessionName=NULL 24/4/22');
+      expect(res.statusCode).to.equal(200);
+      assertSessionResponse(res.body);
+    });
+
   });
 
   // coach

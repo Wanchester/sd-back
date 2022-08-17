@@ -143,7 +143,6 @@ export async function hasCommonTeams( sqlDB:Database, queryClient: QueryApi, use
   }
   
   let commonTeams = teams1.filter(value => teams2.includes(value));
-  console.log(commonTeams);
   if (commonTeams.length !== 0) {
     return true;
   } else {

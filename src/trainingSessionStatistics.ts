@@ -80,8 +80,6 @@ export default function bindGetTrainingSessionStatistics(
       // const sessionName = (req.params as TrainingSessionsGetInterface).sessionName;
       const teamName = req.body.teamName;
       const sessionName = req.body.sessionName;
-      console.log('teamName:  ' + teamName);
-      console.log(sessionName);
 
       let trainingSessionsAPI = await callBasedOnRole(
         sqlDB,
