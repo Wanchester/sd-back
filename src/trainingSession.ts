@@ -237,7 +237,7 @@ export default function bindGetTrainingSessions(
             return getPlayerTrainingSessionsAPI(sqlDB, queryClient, req.params.username);
           } else {
             // throw new Error('Cannot find the input username in your teams');
-            throwBasedOnCode('e400.9', queriedUsername);
+            throwBasedOnCode('e400.8', queriedUsername);
           }
         },
         async () => {

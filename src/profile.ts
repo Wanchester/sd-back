@@ -331,7 +331,7 @@ export function bindPutProfile(
             return editedData;
           } else {
             // throw new Error('Cannot find the input username in your teams');
-            throwBasedOnCode('e400.9', req.params.username);
+            throwBasedOnCode('e400.8', req.params.username);
           }
         },
         async () => {
