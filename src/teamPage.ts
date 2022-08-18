@@ -13,10 +13,9 @@ async function getTeamPlayersAPI(
   teamName: string,
 ): Promise<{ name: string; username: string; }[]> {
   /**
-   * This function has a delay of about 1000ms. If it's SQL:
-   * ouch. Will need to parallelize.
-   * If it's influx (which isn't running on my machine, it's a network
-   * delay), then that's just a limitation of the customer requirement
+   * This function has a delay of about 1000ms. 
+   * It's 100% influx (which isn't running on my machine, it's a network
+   * delay); that's just a limitation of the customer requirement.
    */
   const query = DBI.buildQuery({ teams: [teamName], get_unique: 'player' });
   const influxResponse = executeInflux(query, queryClient);
@@ -30,7 +29,8 @@ async function getTeamPlayersAPI(
     ),
   rejectedReason => {
     //influx problem
-    throwBasedOnCode('e500.0', rejectedReason, '\nThis error shouldn\'t happen. teamPage.ts:33');
+    throwBasedOnCode('e500.0', rejectedReason, 
+      '\nThis error shouldn\'t happen. teamPage.ts:33');
   });
     
   //use names from influx to query SQL, as player team is not in SQL 17/08/22
