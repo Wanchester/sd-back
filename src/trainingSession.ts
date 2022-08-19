@@ -1,4 +1,4 @@
-import { consoleLogger, QueryApi } from '@influxdata/influxdb-client';
+import { QueryApi } from '@influxdata/influxdb-client';
 import { readFileSync } from 'fs';
 // import moment from 'moment';
 import { Database } from 'sqlite3';
@@ -7,8 +7,8 @@ import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } fr
 import { resolve as pathResolve } from 'path';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
-import { getAllTeamsAPI, getCoachTeamsAPI, isValidTeam } from './team';
-import { buildQuery, getDuration } from './utilsInflux';
+import { getCoachTeamsAPI, isValidTeam } from './team';
+import { getDuration } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI, isValidTrainingSession } from './trainingSessionStats';
 
@@ -154,7 +154,7 @@ export default function bindGetTrainingSessions(
           throwBasedOnCode('e400.14', teamName);
         }
 
-        if (!(await isValidTrainingSession(queryClient, teamName))) {
+        if (!(await isValidTrainingSession(queryClient, sessionName))) {
           throwBasedOnCode('e400.15', sessionName);
         }
 

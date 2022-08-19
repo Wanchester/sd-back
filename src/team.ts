@@ -12,7 +12,6 @@ import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { buildQuery } from './utilsInflux';
-import { includes } from 'lodash';
 
 export async function getPlayerTeamsAPI(
   db: Database,
