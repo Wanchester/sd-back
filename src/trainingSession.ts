@@ -147,7 +147,31 @@ export default function bindGetTrainingSessions(
         const sessionName = (req.query as any).sessionName;
         // const teamName = req.body.teamName;
         // const sessionName = req.body.sessionName;
-  
+        
+        //teamName validation
+        const getTeamQuery = buildQuery({ get_unique: 'team' } );
+        const team = await executeInflux(getTeamQuery, queryClient);
+        console.log('team: ', team);
+        const teamsList: string[] = [];
+        team.forEach(row => 
+          teamsList.push(row._measurement),
+        );
+        console.log(teamsList);
+        if (!teamsList.includes(teamName)) {
+          throwBasedOnCode('e400.14', teamName);
+        }
+
+        // let namesFromInflux: string[] = [];
+        // await team.then(list => 
+        //   list.forEach(row => 
+        //     namesFromInflux.push(row['Player Name']),
+        //   ),
+        // rejectedReason => {
+        //   //influx problem
+        //   throwBasedOnCode('e500.0', rejectedReason, 
+        //     '\nThis error shouldn\'t happen. trainingSession.ts:163');
+        // });
+
         let trainingSessionsAPI = await callBasedOnRole(
           sqlDB,
           loggedInUsername!,

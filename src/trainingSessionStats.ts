@@ -44,6 +44,7 @@ export async function getTrainingSessionStatisticsAPI(
   return aSession;
 }
 
+// given a teamName and sessionName, return all the players in that sessions
 export async function getTrainingSessionPlayerNamesAPI(queryClient:QueryApi, teamName: string, sessionName: string) {
   let queryTrainingSessionPlayers = readFileSync(
     pathResolve(__dirname, '../../queries/trainingSession_players.flux'),
