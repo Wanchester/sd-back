@@ -5,11 +5,12 @@ import { resolve as pathResolve } from 'path';
 import { callBasedOnRole, executeInflux, getPersonalInfoAPI } from './utils';
 import { Express } from 'express';
 import { SessionResponseType } from './interface';
-import { getDuration } from './utilsInflux';
+import { buildQuery, getDuration } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI } from './team';
 
+// given a teamName, sessionName, return details information of that session
 export async function getTrainingSessionStatisticsAPI(
   queryClient: QueryApi,
   teamName: string, 
@@ -59,6 +60,45 @@ export async function getTrainingSessionPlayerNamesAPI(queryClient:QueryApi, tea
   }
   return playerList;
 }
+
+export async function getAllTrainingSessionsAPI(queryClient: QueryApi) {
+  const getAllTrainingSessions = buildQuery({ get_unique: 'sessions' } );
+  const trainingSessions = await executeInflux(getAllTrainingSessions, queryClient);
+  const trainingSessionsList: string[] = [];
+
+  trainingSessions.forEach(row => 
+    trainingSessionsList.push(row.Session),
+  );
+  console.log(trainingSessionsList);
+  return trainingSessionsList;
+}
+
+export async function isValidTrainingSession(queryClient: QueryApi, trainingSessionName: string) {
+  const allTrainingSessions = await getAllTrainingSessionsAPI(queryClient);
+  if ( allTrainingSessions.includes(trainingSessionName) ) {
+    return true;
+  }
+  return false;
+}
+
+
+// export async function getAllTeamsAPI(queryClient: QueryApi) {
+//   const getTeamQuery = buildQuery({ get_unique: 'team' } );
+//   const team = await executeInflux(getTeamQuery, queryClient);
+//   const teamsList: string[] = [];
+//   team.forEach(row => 
+//     teamsList.push(row._measurement),
+//   );
+//   return teamsList;
+// }
+
+// export async function isValidTeam(queryClient: QueryApi, teamName: string) {
+//   const allTeams = await getAllTeamsAPI(queryClient);
+//   if ( allTeams.includes(teamName) ) {
+//     return true;
+//   }
+//   return false;
+// }
 
 export default function bindGetTrainingSessionStatistics(
   app: Express, 
