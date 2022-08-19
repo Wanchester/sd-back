@@ -10,7 +10,7 @@ import { Express } from 'express';
 import { getCoachTeamsAPI } from './team';
 import { getDuration } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
-import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } from './trainingSessionStatistics';
+import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } from './trainingSessionStats';
 
 export async function getTeamTrainingSessionsAPI(
   queryClient: QueryApi,
@@ -25,7 +25,6 @@ export async function getTeamTrainingSessionsAPI(
   const cleanedTrainingSessions: any[] = [];
   for (let i = 0; i < trainingSessions.length; i++) {
     const aSession = {
-      playerName: '',
       sessionName: '',
       sessionStart: '',
       sessionStop: '',
@@ -132,9 +131,8 @@ export default function bindGetTrainingSessions(
       // const sess = req.session;
       // let username = sess.username;
       // let username = CURRENTLY_LOGGED_IN;
-      console.log('query', req.query);
-      if ((req.query as any).fullStats) {
-        const loggedInUsername = req.session.username;
+      if ((req.query as any).fullStats) {   // app.get('/trainingSessions?fullStats=:fullStats&teamName=:teamName&sessionName=:sessionName', async (req, res) => { 
+        const loggedInUsername = req.session.username;  
         if (loggedInUsername === undefined) {
           res.status(401).send({
             name: 'Error',
@@ -153,10 +151,11 @@ export default function bindGetTrainingSessions(
           sqlDB,
           loggedInUsername!,
           async () => {
+
             const playerList = await getTrainingSessionPlayerNamesAPI(queryClient, teamName, sessionName);
-            console.log(loggedInPersonalInfo);
+            // ensure this player do join the queried training session
             if ( !playerList.includes(loggedInPersonalInfo.name )) {
-              res.status(404).send({
+              res.status(400).send({
                 'name': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).name,
                 'error': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).message,
               });
@@ -166,8 +165,9 @@ export default function bindGetTrainingSessions(
           },
           async () => {
             let coachTeams = await getCoachTeamsAPI(sqlDB, queryClient, loggedInUsername);
+            // ensure the coach do coach the queried the team in querried training session
             if (!coachTeams.includes(teamName)) {
-              res.status(404).send({
+              res.status(400).send({
                 'name': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).name,
                 'error': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).message,
               });
@@ -180,7 +180,7 @@ export default function bindGetTrainingSessions(
           },
         );
         res.send(trainingSessionsAPI);        
-      } else {
+      } else {  // only /trainingSessions
         let loggedInUsername =  req.session.username;
         if (loggedInUsername === undefined) {
           res.status(401).send({
@@ -237,7 +237,7 @@ export default function bindGetTrainingSessions(
             return getPlayerTrainingSessionsAPI(sqlDB, queryClient, req.params.username);
           } else {
             // throw new Error('Cannot find the input username in your teams');
-            throwBasedOnCode('e400.9', queriedUsername);
+            throwBasedOnCode('e400.8', queriedUsername);
           }
         },
         async () => {

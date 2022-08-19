@@ -80,8 +80,6 @@ export default function bindGetTrainingSessionStatistics(
       // const sessionName = (req.params as TrainingSessionsGetInterface).sessionName;
       const teamName = req.body.teamName;
       const sessionName = req.body.sessionName;
-      console.log('teamName:  ' + teamName);
-      console.log(sessionName);
 
       let trainingSessionsAPI = await callBasedOnRole(
         sqlDB,
@@ -123,24 +121,3 @@ export default function bindGetTrainingSessionStatistics(
     }
   });
 }
-
-// app.get('/team/teamPlayer/:teamName', async (req, res) => { 
-//   const teamName = req.param.teamName
-//   //do some code to get players from teamName
-// };
-
-// '/team/:teamName?players'
-
-// '/profile'
-
-// '/trainingSessions' 
-// ['name1', 'name2']
-
-// '/teams'
-// ['name1', 'name2']
-
-
-// '/trainingSessions/sessionname?fullStats'
-
-// '/trainingSessions/?name=sessionName&team=teamName&fullStats'
-
