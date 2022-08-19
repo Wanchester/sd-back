@@ -18,7 +18,6 @@ function influxColumn(name: string) :string {
     case 'team': return '_measurement';
     case 'player': return 'Player Name';
     case 'sessions': return 'Session';
-    case 'sessions': return 'Session';
     //case 'field': return '_field';
     default: return 'oops';
   }
@@ -40,7 +39,6 @@ export type InfluxField = '2dAccuracy' |
 'lat' | 'lon';
 
 export async function getSessionBeginningAndEnd(sessionName: string, queryClient: QueryApi) {
-  // const trainingSessionStatistics = await executeInflux(queryTrainingSessionStatistic, queryClient);
   const loadedStartQuery = readFileSync(
     pathResolve(__dirname, '../../queries/session_start.flux'), { encoding: 'utf8' },
   );
@@ -52,7 +50,7 @@ export async function getSessionBeginningAndEnd(sessionName: string, queryClient
   
   const sessionStartTime: any = await executeInflux(readiedStartQuery, queryClient) as string[];
   const sessionEndTime: any = await executeInflux(readiedEndQuery, queryClient) as string[];
-  // console.log(sessionEndTime);
+
   return [sessionStartTime[0]._time, sessionEndTime[0]._time];
 }
 
