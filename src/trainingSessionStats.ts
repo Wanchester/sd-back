@@ -69,7 +69,6 @@ export async function getAllTrainingSessionsAPI(queryClient: QueryApi) {
   trainingSessions.forEach(row => 
     trainingSessionsList.push(row.Session),
   );
-  console.log(trainingSessionsList);
   return trainingSessionsList;
 }
 
