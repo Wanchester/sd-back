@@ -49,7 +49,6 @@ async function getTeamPlayersAPI(
         SQL returned empty object.`);
     }
   }
-  
   //possibly empty array
   return output;
 }
@@ -68,7 +67,13 @@ export function bindGetTeamPlayers(
      */
     const performRequest = async () => {
       const players = await getTeamPlayersAPI(sqlDB, queryClient, teamName);
-      //todo: what if no players returned ???
+      if (players.length === 0) {
+        res.status(400).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e400.13', teamName).message,
+        });
+        return;
+      } 
       res.send({ 'players': players });
     };
     
