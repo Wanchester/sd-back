@@ -174,7 +174,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.get('/team?teamName=TeamWanchester');
       expect(res.statusCode).to.equal(200);
       assertPlayerNameListResponse(res.body);
-    });
+    }).timeout(4000);
 
     it('GET /team?teamName=Team3 fails with p_jbk logged in as user', async () => {
       const res = await agent.get('/team?teamName=Team3');
@@ -233,7 +233,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.get('/team?teamName=TeamBit');
       expect(res.statusCode).to.equal(200);
       assertPlayerNameListResponse(res.body);
-    });
+    }).timeout(4000);
 
     it('GET /team?teamName=TeamWanchester fails with c_coach1 logged in as user', async () => {
       const res = await agent.get('/team?teamName=TeamWanchester');
@@ -299,6 +299,6 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.get('/team?teamName=TeamBit');
       expect(res.statusCode).to.equal(200);
       assertPlayerNameListResponse(res.body);
-    });
+    }).timeout(4000);
   }); 
 });
