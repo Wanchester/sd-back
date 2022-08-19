@@ -154,6 +154,7 @@ export default function bindGetTrainingSessions(
           throwBasedOnCode('e400.14', teamName);
         }
 
+        //check if the input training session name is a valid training session name
         if (!(await isValidTrainingSession(queryClient, sessionName))) {
           throwBasedOnCode('e400.15', sessionName);
         }
