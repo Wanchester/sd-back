@@ -169,6 +169,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(401);
     });
 
+
     // team players
     it('GET /team?teamName=TeamWanchester succeeds with p_jbk logged in as user', async () => {
       const res = await agent.get('/team?teamName=TeamWanchester');
@@ -180,6 +181,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.get('/team?teamName=Team3');
       expect(res.statusCode).to.equal(400);
     });
+
     //trainingSessions fullStats
     it('GET /trainingSessions?fullStats=true&teamName=TeamBit&sessionName=NULL 21/4/22 fails with p_jbk as logged in user', async () => {
       const res = await agent.get('/trainingSessions?fullStats=true&teamName=TeamBit&sessionName=NULL 21/4/22');
@@ -242,6 +244,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.get('/trainingSessions/c_coach2');
       expect(res.statusCode).to.equal(400);
     });
+
     // team players
     it('GET /team?teamName=TeamBit succeeds with c_coach1 logged in as user', async () => {
       const res = await agent.get('/team?teamName=TeamBit');
@@ -253,6 +256,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.get('/team?teamName=TeamWanchester');
       expect(res.statusCode).to.equal(400);
     });
+
 
     // trainingSessions fullStats
     it('GET /trainingSessions?fullStats=true&teamName=TeamBit&sessionName=NULL 21/4/22 succeeds with c_coach1 as logged in user', async () => {
@@ -320,12 +324,14 @@ describe('Test Express server endpoints', async () => {
       expect(res.body).to.be.an('array');
       (res.body as any[]).forEach(session => assertSessionResponse(session));
     });
+
     // team players
     it('GET /team?teamName=TeamBit succeeds with a_administrator logged in as user', async () => {
       const res = await agent.get('/team?teamName=TeamBit');
       expect(res.statusCode).to.equal(200);
       assertPlayerNameListResponse(res.body);
     }).timeout(4000);
+
 
     // trainingSessions fullStats
     it('GET /trainingSessions?fullStats=true&teamName=TeamBit&sessionName=NULL 21/4/22 succeeds with a_administrator as logged in user', async () => {
