@@ -7,7 +7,6 @@ const ExitCodeMap = {
   'e400.2': 'You have already logged in.',
   'e400.3': 'Login failed. Username or password is incorrect.',
 
-  //400 Not Found
   'e400.4': 'Cannot find a player with given username :0',
   'e400.5': 'Cannot find a coach with given username :0',
   'e400.6': 'Cannot find an admin with given username :0',

@@ -88,7 +88,7 @@ export default function bindGetTrainingSessionStatistics(
           const playerList = await getTrainingSessionPlayerNamesAPI(queryClient, teamName, sessionName);
           console.log(loggedInPersonalInfo);
           if ( !playerList.includes(loggedInPersonalInfo.name )) {
-            res.status(404).send({
+            res.status(400).send({
               'name': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).name,
               'error': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).message,
             });
@@ -99,7 +99,7 @@ export default function bindGetTrainingSessionStatistics(
         async () => {
           let coachTeams = await getCoachTeamsAPI(sqlDB, queryClient, loggedInUsername);
           if (!coachTeams.includes(teamName)) {
-            res.status(404).send({
+            res.status(400).send({
               'name': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).name,
               'error': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).message,
             });
