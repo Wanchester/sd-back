@@ -126,46 +126,46 @@ export function buildQuery(query: InfluxQuery) :string {
 }
 
 
-//function buildTest() {
-//  console.log(buildQuery(
-//    {
-//      names: ['Warren'],
-//      teams: ['TeamBit'],
-//      fields: ['Velocity'],
-//      time_window: { every: 60, func: 'mean' },
-//    },
-//  ));
-//  console.log('\n');
-//  console.log(buildQuery(
-//    {
-//      fields: ['Velocity'],
-//      sessions: ['NULL 21/4/22'],
-//      time_window:{ every: 86400, func: 'max' },
-//    },
-//  ));
-//  console.log('\n');
-//  console.log(buildQuery(
-//    {
-//      names: ['Warren'],
-//      get_unique: 'team',
-//    },
-//  ));
-//  console.log('\n');
-//  console.log(buildQuery(
-//    {
-//      teams: ['TeamBit'],
-//      get_unique: 'player',
-//    },
-//  ));
-//  console.log('\n');
-//  console.log(buildQuery(
-//    {
-//      names: ['Warren'],
-//      fields: ['Height'],
-//      time_window: { every: 5, func: 'median' },
-//    },
-//  ));
-//}
+// function buildTest() {
+//   console.log(buildQuery(
+//     {
+//       names: ['Warren'],
+//       teams: ['TeamBit'],
+//       fields: ['Velocity'],
+//       time_window: { every: 60, func: 'mean' },
+//     },
+//   ));
+//   console.log('\n');
+//   console.log(buildQuery(
+//     {
+//       fields: ['Velocity'],
+//       sessions: ['NULL 21/4/22'],
+//       time_window:{ every: 86400, func: 'max' },
+//     },
+//   ));
+//   console.log('\n');
+//   console.log(buildQuery(
+//     {
+//       names: ['Warren'],
+//       get_unique: 'team',
+//     },
+//   ));
+//   console.log('\n');
+//   console.log(buildQuery(
+//     {
+//       teams: ['TeamBit'],
+//       get_unique: 'player',
+//     },
+//   ));
+//   console.log('\n');
+//   console.log(buildQuery(
+//     {
+//       names: ['Warren'],
+//       fields: ['Height'],
+//       time_window: { every: 5, func: 'median' },
+//     },
+//   ));
+// }
 //buildTest();
 
 
