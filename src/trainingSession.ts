@@ -1,4 +1,4 @@
-import { QueryApi } from '@influxdata/influxdb-client';
+import { consoleLogger, QueryApi } from '@influxdata/influxdb-client';
 import { readFileSync } from 'fs';
 // import moment from 'moment';
 import { Database } from 'sqlite3';
@@ -8,7 +8,7 @@ import { resolve as pathResolve } from 'path';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
 import { getCoachTeamsAPI } from './team';
-import { getDuration } from './utilsInflux';
+import { buildQuery, getDuration } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } from './trainingSessionStats';
 
@@ -20,6 +20,7 @@ export async function getTeamTrainingSessionsAPI(
     pathResolve(__dirname, '../../queries/team_sessions.flux'),
     { encoding: 'utf8' },
   );
+  // get all trainingSessions stats of given teamName
   teamTrainingSessionsQuery = interpole(teamTrainingSessionsQuery, [teamName]);
   const trainingSessions = await executeInflux(teamTrainingSessionsQuery, queryClient);
   const cleanedTrainingSessions: any[] = [];
@@ -151,9 +152,7 @@ export default function bindGetTrainingSessions(
           sqlDB,
           loggedInUsername!,
           async () => {
-
             const playerList = await getTrainingSessionPlayerNamesAPI(queryClient, teamName, sessionName);
-            // ensure this player do join the queried training session
             if ( !playerList.includes(loggedInPersonalInfo.name )) {
               res.status(400).send({
                 'name': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).name,
