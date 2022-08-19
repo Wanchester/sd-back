@@ -7,11 +7,12 @@ import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } fr
 import { resolve as pathResolve } from 'path';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
-import { getCoachTeamsAPI } from './team';
+import { getAllTeamsAPI, getCoachTeamsAPI, isValidTeam } from './team';
 import { buildQuery, getDuration } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
-import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } from './trainingSessionStats';
+import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI, isValidTrainingSession } from './trainingSessionStats';
 
+// given a teamName, return the basic information of a training session
 export async function getTeamTrainingSessionsAPI(
   queryClient: QueryApi,
   teamName: string,
@@ -148,29 +149,14 @@ export default function bindGetTrainingSessions(
         // const teamName = req.body.teamName;
         // const sessionName = req.body.sessionName;
         
-        //teamName validation
-        const getTeamQuery = buildQuery({ get_unique: 'team' } );
-        const team = await executeInflux(getTeamQuery, queryClient);
-        console.log('team: ', team);
-        const teamsList: string[] = [];
-        team.forEach(row => 
-          teamsList.push(row._measurement),
-        );
-        console.log(teamsList);
-        if (!teamsList.includes(teamName)) {
+        //check if the input teamName is a valid teamName
+        if (!(await isValidTeam(queryClient, teamName))) {
           throwBasedOnCode('e400.14', teamName);
         }
 
-        // let namesFromInflux: string[] = [];
-        // await team.then(list => 
-        //   list.forEach(row => 
-        //     namesFromInflux.push(row['Player Name']),
-        //   ),
-        // rejectedReason => {
-        //   //influx problem
-        //   throwBasedOnCode('e500.0', rejectedReason, 
-        //     '\nThis error shouldn\'t happen. trainingSession.ts:163');
-        // });
+        if (!(await isValidTrainingSession(queryClient, teamName))) {
+          throwBasedOnCode('e400.15', sessionName);
+        }
 
         let trainingSessionsAPI = await callBasedOnRole(
           sqlDB,
