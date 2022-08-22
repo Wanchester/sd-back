@@ -20,6 +20,7 @@ const ExitCodeMap = {
   'e400.14': 'Input \':0\' team name does not exist',
   'e400.15': 'Input \':0\' training session name does not exist',
   'e400.16': 'Cannot query future',
+  'e400.17': 'Bad time window',
 
   //401 Unauthenticated, Unauthorised
   'e401.0': 'You must login in order to make this request.',
