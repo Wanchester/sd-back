@@ -7,11 +7,12 @@ import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } fr
 import { resolve as pathResolve } from 'path';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
-import { getCoachTeamsAPI } from './team';
+import { getCoachTeamsAPI, isValidTeam } from './team';
 import { getDuration } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
-import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } from './trainingSessionStats';
+import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI, isValidTrainingSession } from './trainingSessionStats';
 
+// given a teamName, return the basic information of a training session
 export async function getTeamTrainingSessionsAPI(
   queryClient: QueryApi,
   teamName: string,
@@ -20,6 +21,7 @@ export async function getTeamTrainingSessionsAPI(
     pathResolve(__dirname, '../../queries/team_sessions.flux'),
     { encoding: 'utf8' },
   );
+  // get all trainingSessions stats of given teamName
   teamTrainingSessionsQuery = interpole(teamTrainingSessionsQuery, [teamName]);
   const trainingSessions = await executeInflux(teamTrainingSessionsQuery, queryClient);
   const cleanedTrainingSessions: any[] = [];
@@ -146,14 +148,22 @@ export default function bindGetTrainingSessions(
         const sessionName = (req.query as any).sessionName;
         // const teamName = req.body.teamName;
         // const sessionName = req.body.sessionName;
-  
+        
+        //check if the input teamName is a valid teamName
+        if (!(await isValidTeam(queryClient, teamName))) {
+          throwBasedOnCode('e400.14', teamName);
+        }
+
+        //check if the input training session name is a valid training session name
+        if (!(await isValidTrainingSession(queryClient, sessionName))) {
+          throwBasedOnCode('e400.15', sessionName);
+        }
+
         let trainingSessionsAPI = await callBasedOnRole(
           sqlDB,
           loggedInUsername!,
           async () => {
-
             const playerList = await getTrainingSessionPlayerNamesAPI(queryClient, teamName, sessionName);
-            // ensure this player do join the queried training session
             if ( !playerList.includes(loggedInPersonalInfo.name )) {
               res.status(400).send({
                 'name': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).name,

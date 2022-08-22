@@ -7,7 +7,6 @@ const ExitCodeMap = {
   'e400.2': 'You have already logged in.',
   'e400.3': 'Login failed. Username or password is incorrect.',
 
-  //400 Not Found
   'e400.4': 'Cannot find a player with given username :0',
   'e400.5': 'Cannot find a coach with given username :0',
   'e400.6': 'Cannot find an admin with given username :0',
@@ -18,6 +17,8 @@ const ExitCodeMap = {
   'e400.11': 'System expect a valid object',
   'e400.12': 'You (username :0) are not associated with requested team :1',
   'e400.13': 'No Session associated with this Team \':0\'. Cannot find team players',
+  'e400.14': 'Input \':0\' team name does not exist',
+  'e400.15': 'Input \':0\' training session name does not exist',
 
   //401 Unauthenticated, Unauthorised
   'e401.0': 'You must login in order to make this request.',

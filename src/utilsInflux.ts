@@ -11,6 +11,7 @@ function influxColumn(name: string) :string {
   switch (name) {
     case 'team': return '_measurement';
     case 'player': return 'Player Name';
+    case 'sessions': return 'Session';
     //case 'field': return '_field';
     default: return 'oops';
   }

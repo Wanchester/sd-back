@@ -1,4 +1,3 @@
-// import * as DBI from './utilsInflux';
 import { readFileSync } from 'fs';
 import { Database } from 'sqlite3';
 import interpole from 'string-interpolation-js';
@@ -12,6 +11,7 @@ import { resolve as pathResolve } from 'path';
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
+import { buildQuery } from './utilsInflux';
 
 export async function getPlayerTeamsAPI(
   db: Database,
@@ -103,6 +103,24 @@ export async function getTeamsAPI(
   return cleanedTeams;
 }
 
+export async function getAllTeamsAPI(queryClient: QueryApi) {
+  const getTeamQuery = buildQuery({ get_unique: 'team' } );
+  const team = await executeInflux(getTeamQuery, queryClient);
+  const teamsList: string[] = [];
+  team.forEach(row => 
+    teamsList.push(row._measurement),
+  );
+  return teamsList;
+}
+
+export async function isValidTeam(queryClient: QueryApi, teamName: string) {
+  const allTeams = await getAllTeamsAPI(queryClient);
+  if ( allTeams.includes(teamName) ) {
+    return true;
+  }
+  return false;
+}
+
 //API return points
 export default function bindGetTeams(
   app: Express,
@@ -181,4 +199,3 @@ export default function bindGetTeams(
     }
   });
 }
-
