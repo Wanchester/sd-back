@@ -1,3 +1,4 @@
+import throwBasedOnCode from './throws';
 export type InfluxQuery = { //TODO:need more specific name
   range?: { start: string, stop?: string },
   names?: string[],
@@ -69,6 +70,19 @@ export function buildQuery(query: InfluxQuery) :string {
   let output = ['from(bucket: "test")'];
   //fill range
   if (query.range !== undefined) {
+    if (query.range.stop !== undefined) {
+      //swap ranges if wrong order
+      if (new Date(query.range.start) > new Date(query.range.stop)) {
+        const temp = query.range.start;
+        query.range.start = query.range.stop;
+        query.range.stop = temp;
+      }
+    }
+    if (Math.max(new Date(query.range.start).getTime(), new Date(query.range.stop || query.range.start).getTime()) > new Date().getTime()) {
+      //Error cannot query future
+      throwBasedOnCode('e400.16');
+    }
+
     output.push(`|>range(start: ${query.range.start}`);
     if (query.range.stop !== undefined) {
       output.push(`, stop: ${query.range.stop}`);
@@ -106,10 +120,9 @@ export function buildQuery(query: InfluxQuery) :string {
 
 
   //window and aggregate with fn
-  //TODO!currently assume ok window
-  if (query.time_window !== undefined) {
+  if (query.time_window !== undefined && query.time_window.every > 0) {
     output.push(`|>window(every: ${Math.floor(query.time_window.every)}s`);
-    if (query.time_window.period !== undefined) {
+    if (query.time_window.period !== undefined && query.time_window.period > 0) {
       output.push(`, period: ${Math.floor(query.time_window.period)}s`);
     }
     output.push(')');
