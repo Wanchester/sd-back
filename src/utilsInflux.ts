@@ -120,9 +120,11 @@ export function buildQuery(query: InfluxQuery) :string {
 
 
   //window and aggregate with fn
-  if (query.time_window !== undefined && query.time_window.every > 0) {
+  if (query.time_window !== undefined ) {
+    if (query.time_window.every < 1) {throwBasedOnCode('e400.17');}
     output.push(`|>window(every: ${Math.floor(query.time_window.every)}s`);
-    if (query.time_window.period !== undefined && query.time_window.period > 0) {
+    if (query.time_window.period !== undefined ) {
+      if (query.time_window.period < 1) {throwBasedOnCode('e400.17');}
       output.push(`, period: ${Math.floor(query.time_window.period)}s`);
     }
     output.push(')');

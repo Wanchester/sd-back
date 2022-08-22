@@ -3,7 +3,7 @@ import { Database } from 'sqlite3';
 import { Express } from 'express';
 import * as DBI from './utilsInflux';
 import { callBasedOnRole, executeInflux, SQLretrieve } from './utils';
-import  throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
+import  throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { getTeamsAPI } from './team';
 
 
@@ -59,60 +59,67 @@ export function bindGetTeamPlayers(
   queryClient: QueryApi,
 ) {
   app.get('/team', async (req, res) => {
-    const teamName = req.query.teamName as string;
+    try {
+      const teamName = req.query.teamName as string;
     
-    /**
+      /**
      * Calls the api with the requested team name
      * and sends to the frontend without role management
      */
-    const performRequest = async () => {
-      const players = await getTeamPlayersAPI(sqlDB, queryClient, teamName);
-      if (players.length === 0) {
-        res.status(400).send({
-          name: 'Error',
-          error: generateErrorBasedOnCode('e400.13', teamName).message,
-        });
-        return;
-      } 
-      res.send({ 'players': players });
-    };
+      const performRequest = async () => {
+        const players = await getTeamPlayersAPI(sqlDB, queryClient, teamName);
+        if (players.length === 0) {
+          res.status(400).send({
+            name: 'Error',
+            error: generateErrorBasedOnCode('e400.13', teamName).message,
+          });
+          return;
+        } 
+        res.send({ 'players': players });
+      };
     
-    //ROLE MANAGEMENT
-    //not logged in
-    const loggedInUsername = req.session.username as string;
-    if (loggedInUsername === undefined) {
-      res.status(401).send({
-        name: 'Error',
-        error: generateErrorBasedOnCode('e401.0').message,
-      });
-      return;
-    }
-
-    /** 
-     * query the right database depending on player or coach.
-     * permission depends on whether user is in requested team
-    */
-    const performRequestWithPermissionOrError = async () => {
-      const associatedTeams = await getTeamsAPI(sqlDB, queryClient, loggedInUsername);
-      if (associatedTeams.includes(teamName)) {
-        performRequest();
-      } else {
-        //player/coach is not in this team
-        res.status(400).send({
+      //ROLE MANAGEMENT
+      //not logged in
+      const loggedInUsername = req.session.username as string;
+      if (loggedInUsername === undefined) {
+        res.status(401).send({
           name: 'Error',
-          error: generateErrorBasedOnCode('e400.12', loggedInUsername, teamName).message,
+          error: generateErrorBasedOnCode('e401.0').message,
         });
         return;
       }
-    };
 
-    callBasedOnRole(sqlDB, loggedInUsername, 
+      /** 
+     * query the right database depending on player or coach.
+     * permission depends on whether user is in requested team
+    */
+      const performRequestWithPermissionOrError = async () => {
+        const associatedTeams = await getTeamsAPI(sqlDB, queryClient, loggedInUsername);
+        if (associatedTeams.includes(teamName)) {
+          performRequest();
+        } else {
+        //player/coach is not in this team
+          res.status(400).send({
+            name: 'Error',
+            error: generateErrorBasedOnCode('e400.12', loggedInUsername, teamName).message,
+          });
+          return;
+        }
+      };
+
+      callBasedOnRole(sqlDB, loggedInUsername, 
       //player
-      performRequestWithPermissionOrError,
-      //coach
-      performRequestWithPermissionOrError,
-      //admin
-      performRequest,
-    );
+        performRequestWithPermissionOrError,
+        //coach
+        performRequestWithPermissionOrError,
+        //admin
+        performRequest,
+      );
+    } catch (e) {
+      res.status(getStatusCodeBasedOnError(e as Error)).send({
+        name: (e as Error).name,
+        error: (e as Error).message,
+      });
+    }
   });
 }
