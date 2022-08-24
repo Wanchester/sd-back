@@ -5,7 +5,7 @@ import * as DBI from './interfaceSQL';
 //db.configure('busyTimeout', 5000);
 
 function sanitize(input: string) :string {
-  let hasComment = input.includes('--');
+  let hasComment = /--/.test(input);
   return (input.split('').filter( (c) => {
     return (
       (hasComment ? c !== '-' : true) && //remove dashes only if hasComment
