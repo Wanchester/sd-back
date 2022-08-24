@@ -95,7 +95,6 @@ export function buildQuery(query: InfluxQuery) :string {
   const filterWithList = (column: string, list: string[] | undefined) => {
     let outputBuffer: string[] = [];
     if (list !== undefined && list.length !== 0) {
-      outputBuffer.push(`|>group(columns: ["${column}"])`);
       outputBuffer.push(`|>filter(fn: (r)=> r["${column}"] == "${list[0]}"`);
       for (let name in list.slice(1)) {
         outputBuffer.push(` or r["${column}"] == ${name}`);
@@ -122,6 +121,7 @@ export function buildQuery(query: InfluxQuery) :string {
   //window and aggregate with fn
   if (query.time_window !== undefined ) {
     if (query.time_window.every < 1) {throwBasedOnCode('e400.17');}
+    output.push('|>group(columns: ["_field"])');
     output.push(`|>window(every: ${Math.floor(query.time_window.every)}s`);
     if (query.time_window.period !== undefined ) {
       if (query.time_window.period < 1) {throwBasedOnCode('e400.17');}
@@ -182,7 +182,7 @@ export function buildQuery(query: InfluxQuery) :string {
 //     },
 //   ));
 // }
-//buildTest();
+// buildTest();
 
 
 //function mytest() {
