@@ -36,3 +36,10 @@ export interface TrainingSessionsGetInterface {
   'teamName': string,
   'sessionName': string,
 }
+
+export interface TimeSeriesResponse {
+  data: [
+    string, //RFC3339 date string. try 'new Date().toISOString()' to see the format.
+    number,
+  ][]
+}
