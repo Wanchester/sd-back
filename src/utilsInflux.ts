@@ -1,4 +1,9 @@
+import interpole from 'string-interpolation-js';
+import { resolve as pathResolve } from 'path';
+import { readFileSync } from 'fs';
 import throwBasedOnCode from './throws';
+import { QueryApi } from '@influxdata/influxdb-client';
+import { executeInflux } from './utils';
 export type InfluxQuery = { //TODO:need more specific name
   range?: { start: string, stop?: string },
   names?: string[],
@@ -32,6 +37,22 @@ export type InfluxField = '2dAccuracy' |
 'Velocity' |
 'WorkRate' |
 'lat' | 'lon';
+
+export async function getSessionBeginningAndEnd(sessionName: string, queryClient: QueryApi): Promise<string[]> {
+  // const trainingSessionStatistics = await executeInflux(queryTrainingSessionStatistic, queryClient);
+  const loadedStartQuery = readFileSync(
+    pathResolve(__dirname, '../../queries/session_start.flux'), { encoding: 'utf8' },
+  );
+  const loadedEndQuery = readFileSync(
+    pathResolve(__dirname, '../../queries/session_end.flux'), { encoding: 'utf8' },
+  );
+  const readiedStartQuery = interpole(loadedStartQuery, [sessionName]);
+  const readiedEndQuery = interpole(loadedEndQuery, [sessionName]);
+  
+  const sessionStartTime = await executeInflux(readiedStartQuery, queryClient) as string[];
+  const sessionEndTime = await executeInflux(readiedEndQuery, queryClient) as string[];
+  return [sessionStartTime[0], sessionEndTime[0]];
+}
 
 // input format: RFC3339
 export function getDuration(first: string, second: string) :string {
