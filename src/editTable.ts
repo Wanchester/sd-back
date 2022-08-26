@@ -6,7 +6,7 @@ import * as DBI from './interfaceSQL';
 
 
 function sanitize(input: string) :string {
-  let hasComment = input.includes('--');
+  let hasComment = /--/.test(input);
   if (hasComment) {return '';}
 
   let output: string[] = [];
