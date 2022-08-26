@@ -37,6 +37,7 @@ export async function getTrainingSessionStatisticsAPI(
   } as SessionResponseType;
 
   aSession.sessionName = trainingSessionStatistic.Session;
+  //TODO
   aSession.sessionStart = trainingSessionStatistic._start;
   aSession.sessionStop = trainingSessionStatistic._stop;
   aSession.teamName = trainingSessionStatistic._measurement;

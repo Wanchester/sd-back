@@ -34,6 +34,7 @@ export async function getTeamTrainingSessionsAPI(
       duration: '',
     } as SessionResponseType;
     aSession.sessionName = trainingSessions[i].Session;
+    //TODO
     aSession.sessionStart = trainingSessions[i]._start;    //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
     aSession.sessionStop = trainingSessions[i]._stop;          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
     aSession.teamName = trainingSessions[i]._measurement;
@@ -70,6 +71,7 @@ export async function getPlayerTrainingSessionsAPI(
         duration: '',
       } as SessionResponseType;
       aSession.sessionName = trainingSessions[i].Session;
+      //TODO
       aSession.sessionStart = trainingSessions[i]._start;   //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
       aSession.sessionStop = trainingSessions[i]._stop;        //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
       aSession.teamName = trainingSessions[i]._measurement;
