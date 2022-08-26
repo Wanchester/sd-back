@@ -12,7 +12,6 @@ function sanitize(input: string) :string {
   let output: string[] = [];
   const notBannedChar = (c:string) => {
     return (
-      (hasComment ? c !== '-' : true) && //remove dashes only if hasComment
       c !== ';' &&
       c !== '/' &&
       c !== '\\' &&
