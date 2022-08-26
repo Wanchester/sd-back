@@ -4,11 +4,14 @@ import * as DBI from './interfaceSQL';
 //const db: sqlite.Database = new sqlite3.Database('test.db');
 //db.configure('busyTimeout', 5000);
 
+
 function sanitize(input: string) :string {
   let hasComment = /--/.test(input);
-  return (input.split('').filter( (c) => {
+  if (hasComment) {return '';}
+
+  let output: string[] = [];
+  const notBannedChar = (c:string) => {
     return (
-      (hasComment ? c !== '-' : true) && //remove dashes only if hasComment
       c !== ';' &&
       c !== '/' &&
       c !== '\\' &&
@@ -18,8 +21,16 @@ function sanitize(input: string) :string {
       c !== '=' &&
       c !== '&'
     );
-  },
-  ).join(''));
+  };
+
+  for (let i = 0; i < input.length; i++) {
+    let thisChar = input.charAt(i);
+    if (notBannedChar(thisChar)) {
+      output.push(thisChar);
+    }
+  }
+
+  return output.join('');
 }
 
 function updateTable(
