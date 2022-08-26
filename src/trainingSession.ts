@@ -7,13 +7,8 @@ import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } fr
 import { resolve as pathResolve } from 'path';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
-<<<<<<< HEAD
 import { getAllTeamsAPI, getCoachTeamsAPI, isValidTeam } from './team';
 import { buildQuery, getDuration, getSessionBeginningAndEnd } from './utilsInflux';
-=======
-import { getCoachTeamsAPI, isValidTeam } from './team';
-import { getDuration, getSessionBeginningAndEnd } from './utilsInflux';
->>>>>>> 87fc92e (all tests pass. postman looks good)
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI, isValidTrainingSession } from './trainingSessionStats';
 
@@ -39,10 +34,6 @@ export async function getTeamTrainingSessionsAPI(
       duration: '',
     } as SessionResponseType;
     aSession.sessionName = trainingSessions[i].Session;
-<<<<<<< HEAD
-=======
-    //TODO
->>>>>>> 87fc92e (all tests pass. postman looks good)
     const beginningAndEnd = await getSessionBeginningAndEnd(aSession.sessionName, queryClient);
     aSession.sessionStart = beginningAndEnd[0];
     aSession.sessionStop = beginningAndEnd[1];
@@ -80,10 +71,6 @@ export async function getPlayerTrainingSessionsAPI(
         duration: '',
       } as SessionResponseType;
       aSession.sessionName = trainingSessions[i].Session;
-<<<<<<< HEAD
-=======
-      //TODO
->>>>>>> 87fc92e (all tests pass. postman looks good)
       const beginningAndEnd = await getSessionBeginningAndEnd(aSession.sessionName, queryClient);
       aSession.sessionStart = beginningAndEnd[0];
       aSession.sessionStop = beginningAndEnd[1];
