@@ -5,7 +5,7 @@ import { resolve as pathResolve } from 'path';
 import { callBasedOnRole, executeInflux, getPersonalInfoAPI } from './utils';
 import { Express } from 'express';
 import { SessionResponseType } from './interface';
-import { buildQuery, getDuration } from './utilsInflux';
+import { buildQuery, getDuration, getSessionBeginningAndEnd } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI } from './team';
@@ -37,10 +37,11 @@ export async function getTrainingSessionStatisticsAPI(
   } as SessionResponseType;
 
   aSession.sessionName = trainingSessionStatistic.Session;
-  aSession.sessionStart = trainingSessionStatistic._start;
-  aSession.sessionStop = trainingSessionStatistic._stop;
+  const beginningAndEnd = await getSessionBeginningAndEnd(aSession.sessionName, queryClient);
+  aSession.sessionStart = beginningAndEnd[0];
+  aSession.sessionStop = beginningAndEnd[1];
   aSession.teamName = trainingSessionStatistic._measurement;
-  aSession.duration = getDuration(trainingSessionStatistic._start, trainingSessionStatistic._stop);
+  aSession.duration = getDuration(aSession.sessionStart, aSession.sessionStop);
 
   return aSession;
 }
@@ -60,6 +61,44 @@ export async function getTrainingSessionPlayerNamesAPI(queryClient:QueryApi, tea
   }
   return playerList;
 }
+
+// export async function getAllTrainingSessionsAPI(queryClient: QueryApi) {
+//   const getAllTrainingSessions = buildQuery({ get_unique: 'sessions' } );
+//   const trainingSessions = await executeInflux(getAllTrainingSessions, queryClient);
+//   const trainingSessionsList: string[] = [];
+
+//   trainingSessions.forEach(row => 
+//     trainingSessionsList.push(row.Session),
+//   );
+//   return trainingSessionsList;
+// }
+
+// export async function isValidTrainingSession(queryClient: QueryApi, trainingSessionName: string) {
+//   const allTrainingSessions = await getAllTrainingSessionsAPI(queryClient);
+//   if ( allTrainingSessions.includes(trainingSessionName) ) {
+//     return true;
+//   }
+//   return false;
+// }
+
+
+// export async function getAllTeamsAPI(queryClient: QueryApi) {
+//   const getTeamQuery = buildQuery({ get_unique: 'team' } );
+//   const team = await executeInflux(getTeamQuery, queryClient);
+//   const teamsList: string[] = [];
+//   team.forEach(row => 
+//     teamsList.push(row._measurement),
+//   );
+//   return teamsList;
+// }
+
+// export async function isValidTeam(queryClient: QueryApi, teamName: string) {
+//   const allTeams = await getAllTeamsAPI(queryClient);
+//   if ( allTeams.includes(teamName) ) {
+//     return true;
+//   }
+//   return false;
+// }
 
 export async function getAllTrainingSessionsAPI(queryClient: QueryApi) {
   const getAllTrainingSessions = buildQuery({ get_unique: 'sessions' } );

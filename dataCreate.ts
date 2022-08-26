@@ -83,7 +83,7 @@ db.serialize(() => {
             role        TEXT,
             PRIMARY KEY (username)
     )`);
-  //TODO: primaryKeys areee unique. This restricts one coach per team
+  //NOTE: primaryKeys areee unique. This restricts one coach per team
   db.run(`CREATE TABLE TeamCoach (
             teamName  TEXT PRIMARY KEY,
             teamID    INT NOT NULL, 

@@ -7,10 +7,10 @@ import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } fr
 import { resolve as pathResolve } from 'path';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
-import { getCoachTeamsAPI, isValidTeam } from './team';
-import { getDuration } from './utilsInflux';
+import { getCoachTeamsAPI } from './team';
+import { buildQuery, getDuration, getSessionBeginningAndEnd } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
-import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI, isValidTrainingSession } from './trainingSessionStats';
+import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } from './trainingSessionStats';
 
 // given a teamName, return the basic information of a training session
 export async function getTeamTrainingSessionsAPI(
@@ -34,11 +34,12 @@ export async function getTeamTrainingSessionsAPI(
       duration: '',
     } as SessionResponseType;
     aSession.sessionName = trainingSessions[i].Session;
-    aSession.sessionStart = trainingSessions[i]._start;    //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
-    aSession.sessionStop = trainingSessions[i]._stop;          //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
+    const beginningAndEnd = await getSessionBeginningAndEnd(aSession.sessionName, queryClient);
+    aSession.sessionStart = beginningAndEnd[0];
+    aSession.sessionStop = beginningAndEnd[1];
     aSession.teamName = trainingSessions[i]._measurement;
     // aSession.duration = TimeFormat.fromS(trainingSessions[i].elapsed, 'hh:mm:ss');     //hour:minutes:seconds.See https://github.com/Goldob/hh-mm-ss#supported-time-formats
-    aSession.duration = getDuration(trainingSessions[i]._start, trainingSessions[i]._stop);
+    aSession.duration = getDuration(aSession.sessionStart, aSession.sessionStop);
     cleanedTrainingSessions.push(aSession);
   }
   return cleanedTrainingSessions;
@@ -70,11 +71,12 @@ export async function getPlayerTrainingSessionsAPI(
         duration: '',
       } as SessionResponseType;
       aSession.sessionName = trainingSessions[i].Session;
-      aSession.sessionStart = trainingSessions[i]._start;   //DateOfMonth-Month-Year. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
-      aSession.sessionStop = trainingSessions[i]._stop;        //24HoursFormat:minutes. See https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/ 
+      const beginningAndEnd = await getSessionBeginningAndEnd(aSession.sessionName, queryClient);
+      aSession.sessionStart = beginningAndEnd[0];
+      aSession.sessionStop = beginningAndEnd[1];
       aSession.teamName = trainingSessions[i]._measurement;
       // aSession.duration = TimeFormat.fromS(trainingSessions[i].elapsed, 'hh:mm:ss');     //hour:minutes:seconds.See https://github.com/Goldob/hh-mm-ss#supported-time-formats
-      aSession.duration = getDuration(trainingSessions[i]._start, trainingSessions[i]._stop);
+      aSession.duration = getDuration(aSession.sessionStart, aSession.sessionStop);
       cleanedTrainingSessions.push(aSession);
     }
     return cleanedTrainingSessions;
@@ -149,15 +151,29 @@ export default function bindGetTrainingSessions(
         // const teamName = req.body.teamName;
         // const sessionName = req.body.sessionName;
         
-        //check if the input teamName is a valid teamName
-        if (!(await isValidTeam(queryClient, teamName))) {
+        //teamName validation
+        const getTeamQuery = buildQuery({ get_unique: 'team' } );
+        const team = await executeInflux(getTeamQuery, queryClient);
+        console.log('team: ', team);
+        const teamsList: string[] = [];
+        team.forEach(row => 
+          teamsList.push(row._measurement),
+        );
+        console.log(teamsList);
+        if (!teamsList.includes(teamName)) {
           throwBasedOnCode('e400.14', teamName);
         }
 
-        //check if the input training session name is a valid training session name
-        if (!(await isValidTrainingSession(queryClient, sessionName))) {
-          throwBasedOnCode('e400.15', sessionName);
-        }
+        // let namesFromInflux: string[] = [];
+        // await team.then(list => 
+        //   list.forEach(row => 
+        //     namesFromInflux.push(row['Player Name']),
+        //   ),
+        // rejectedReason => {
+        //   //influx problem
+        //   throwBasedOnCode('e500.0', rejectedReason, 
+        //     '\nThis error shouldn\'t happen. trainingSession.ts:163');
+        // });
 
         let trainingSessionsAPI = await callBasedOnRole(
           sqlDB,

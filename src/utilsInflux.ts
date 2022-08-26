@@ -1,4 +1,9 @@
+import interpole from 'string-interpolation-js';
+import { resolve as pathResolve } from 'path';
+import { readFileSync } from 'fs';
 import throwBasedOnCode from './throws';
+import { QueryApi } from '@influxdata/influxdb-client';
+import { executeInflux } from './utils';
 export type InfluxQuery = { //TODO:need more specific name
   range?: { start: string, stop?: string },
   names?: string[],
@@ -33,6 +38,21 @@ export type InfluxField = '2dAccuracy' |
 'WorkRate' |
 'lat' | 'lon';
 
+export async function getSessionBeginningAndEnd(sessionName: string, queryClient: QueryApi) {
+  const loadedStartQuery = readFileSync(
+    pathResolve(__dirname, '../../queries/session_start.flux'), { encoding: 'utf8' },
+  );
+  const loadedEndQuery = readFileSync(
+    pathResolve(__dirname, '../../queries/session_end.flux'), { encoding: 'utf8' },
+  );
+  const readiedStartQuery = interpole(loadedStartQuery, [sessionName]);
+  const readiedEndQuery = interpole(loadedEndQuery, [sessionName]);
+  
+  const sessionStartTime: any = await executeInflux(readiedStartQuery, queryClient) as string[];
+  const sessionEndTime: any = await executeInflux(readiedEndQuery, queryClient) as string[];
+  return [sessionStartTime[0]._time, sessionEndTime[0]._time];
+}
+
 // input format: RFC3339
 export function getDuration(first: string, second: string) :string {
   let f = new Date(first);
@@ -62,14 +82,25 @@ export function getDuration(first: string, second: string) :string {
 
 
 export function buildQuery(query: InfluxQuery) :string {
-  //TODO: validate all input fields
-  
   //disallow empty object query. Would return all data
   if (Object.keys(query).length === 0) {return '';}
 
   let output = ['from(bucket: "test")'];
   //fill range
   if (query.range !== undefined) {
+    if (query.range.stop !== undefined) {
+      //swap ranges if wrong order
+      if (new Date(query.range.start) > new Date(query.range.stop)) {
+        const temp = query.range.start;
+        query.range.start = query.range.stop;
+        query.range.stop = temp;
+      }
+    }
+    if (Math.max(new Date(query.range.start).getTime(), new Date(query.range.stop || query.range.start).getTime()) > new Date().getTime()) {
+      //Error cannot query future
+      throwBasedOnCode('e400.16');
+    }
+
     if (query.range.stop !== undefined) {
       //swap ranges if wrong order
       if (new Date(query.range.start) > new Date(query.range.stop)) {
@@ -121,7 +152,6 @@ export function buildQuery(query: InfluxQuery) :string {
   //window and aggregate with fn
   if (query.time_window !== undefined ) {
     if (query.time_window.every < 1) {throwBasedOnCode('e400.17');}
-    output.push('|>group(columns: ["_field"])');
     output.push(`|>window(every: ${Math.floor(query.time_window.every)}s`);
     if (query.time_window.period !== undefined ) {
       if (query.time_window.period < 1) {throwBasedOnCode('e400.17');}
