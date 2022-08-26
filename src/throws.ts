@@ -30,6 +30,7 @@ const ExitCodeMap = {
 
   //403 Forbiden
   'e403.0': 'You are not allowed to edit the :0 attribute',
+  'e403.1': 'Unacceptable user data edit request',
 
   // //404 Not Found
   // 'e404.0': 'Cannot find a player with given username :0',

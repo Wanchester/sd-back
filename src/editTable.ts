@@ -1,5 +1,6 @@
 import * as sqlite from 'sqlite3';
 import * as DBI from './interfaceSQL';
+import throwBasedOnCode from './throws';
 //const sqlite3 = require('sqlite3').verbose();
 //const db: sqlite.Database = new sqlite3.Database('test.db');
 //db.configure('busyTimeout', 5000);
@@ -45,7 +46,7 @@ function updateTable(
   let k = keyToEdit.toLowerCase();
 
   //typecheck
-  if (DBI.isCorrectType(t as DBI.SQLTableName, k as DBI.TableKey, newValue)) {
+  if (DBI.isCorrectType(t as DBI.SQLTableName, k as DBI.TableKey, newValue) && newValue !== undefined && newValue !== null) {
     //update table
     db.serialize( function () {
       db.run(`UPDATE ${t} SET ${k} = ? WHERE ${pk} = ?`, [
@@ -55,6 +56,7 @@ function updateTable(
     });
   } else {
     //TODO: maybe notify that types were wrong
+    throwBasedOnCode('e403.1');//refusing to edit with this data
   }
 }
 
