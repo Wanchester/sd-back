@@ -39,10 +39,6 @@ export type InfluxField = '2dAccuracy' |
 'lat' | 'lon';
 
 export async function getSessionBeginningAndEnd(sessionName: string, queryClient: QueryApi) {
-<<<<<<< HEAD
-=======
-  // const trainingSessionStatistics = await executeInflux(queryTrainingSessionStatistic, queryClient);
->>>>>>> 87fc92e (all tests pass. postman looks good)
   const loadedStartQuery = readFileSync(
     pathResolve(__dirname, '../../queries/session_start.flux'), { encoding: 'utf8' },
   );
@@ -54,11 +50,6 @@ export async function getSessionBeginningAndEnd(sessionName: string, queryClient
   
   const sessionStartTime: any = await executeInflux(readiedStartQuery, queryClient) as string[];
   const sessionEndTime: any = await executeInflux(readiedEndQuery, queryClient) as string[];
-<<<<<<< HEAD
-
-=======
-  // console.log(sessionEndTime);
->>>>>>> 87fc92e (all tests pass. postman looks good)
   return [sessionStartTime[0]._time, sessionEndTime[0]._time];
 }
 
