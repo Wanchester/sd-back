@@ -7,10 +7,10 @@ import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } fr
 import { resolve as pathResolve } from 'path';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
-import { getAllTeamsAPI, getCoachTeamsAPI, isValidTeam } from './team';
+import { getCoachTeamsAPI } from './team';
 import { buildQuery, getDuration, getSessionBeginningAndEnd } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
-import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI, isValidTrainingSession } from './trainingSessionStats';
+import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } from './trainingSessionStats';
 
 // given a teamName, return the basic information of a training session
 export async function getTeamTrainingSessionsAPI(
