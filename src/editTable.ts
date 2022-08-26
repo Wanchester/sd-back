@@ -55,9 +55,9 @@ function updateTable(
       ]);
     });
   } else {
-    //TODO: maybe notify that types were wrong
     throwBasedOnCode('e403.1');//refusing to edit with this data
   }
+  //GOT THIS 403 AND IT RAN EDIT. WTF
 }
 
 export function userEditTable(db:sqlite.Database, key: DBI.UserTableKey, value: string, id: string) {
