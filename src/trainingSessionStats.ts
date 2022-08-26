@@ -5,7 +5,7 @@ import { resolve as pathResolve } from 'path';
 import { callBasedOnRole, executeInflux, getPersonalInfoAPI } from './utils';
 import { Express } from 'express';
 import { SessionResponseType } from './interface';
-import { buildQuery, getDuration } from './utilsInflux';
+import { buildQuery, getDuration, getSessionBeginningAndEnd } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI } from './team';
@@ -38,10 +38,11 @@ export async function getTrainingSessionStatisticsAPI(
 
   aSession.sessionName = trainingSessionStatistic.Session;
   //TODO
-  aSession.sessionStart = trainingSessionStatistic._start;
-  aSession.sessionStop = trainingSessionStatistic._stop;
+  const beginningAndEnd = await getSessionBeginningAndEnd(aSession.sessionName, queryClient);
+  aSession.sessionStart = beginningAndEnd[0];
+  aSession.sessionStop = beginningAndEnd[1];
   aSession.teamName = trainingSessionStatistic._measurement;
-  aSession.duration = getDuration(trainingSessionStatistic._start, trainingSessionStatistic._stop);
+  aSession.duration = getDuration(aSession.sessionStart, aSession.sessionStop);
 
   return aSession;
 }

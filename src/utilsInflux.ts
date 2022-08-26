@@ -38,7 +38,7 @@ export type InfluxField = '2dAccuracy' |
 'WorkRate' |
 'lat' | 'lon';
 
-export async function getSessionBeginningAndEnd(sessionName: string, queryClient: QueryApi): Promise<string[]> {
+export async function getSessionBeginningAndEnd(sessionName: string, queryClient: QueryApi) {
   // const trainingSessionStatistics = await executeInflux(queryTrainingSessionStatistic, queryClient);
   const loadedStartQuery = readFileSync(
     pathResolve(__dirname, '../../queries/session_start.flux'), { encoding: 'utf8' },
@@ -49,9 +49,10 @@ export async function getSessionBeginningAndEnd(sessionName: string, queryClient
   const readiedStartQuery = interpole(loadedStartQuery, [sessionName]);
   const readiedEndQuery = interpole(loadedEndQuery, [sessionName]);
   
-  const sessionStartTime = await executeInflux(readiedStartQuery, queryClient) as string[];
-  const sessionEndTime = await executeInflux(readiedEndQuery, queryClient) as string[];
-  return [sessionStartTime[0], sessionEndTime[0]];
+  const sessionStartTime: any = await executeInflux(readiedStartQuery, queryClient) as string[];
+  const sessionEndTime: any = await executeInflux(readiedEndQuery, queryClient) as string[];
+  // console.log(sessionEndTime);
+  return [sessionStartTime[0]._time, sessionEndTime[0]._time];
 }
 
 // input format: RFC3339
