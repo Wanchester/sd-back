@@ -37,10 +37,6 @@ export async function getTrainingSessionStatisticsAPI(
   } as SessionResponseType;
 
   aSession.sessionName = trainingSessionStatistic.Session;
-<<<<<<< HEAD
-=======
-  //TODO
->>>>>>> 87fc92e (all tests pass. postman looks good)
   const beginningAndEnd = await getSessionBeginningAndEnd(aSession.sessionName, queryClient);
   aSession.sessionStart = beginningAndEnd[0];
   aSession.sessionStop = beginningAndEnd[1];
