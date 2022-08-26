@@ -13,7 +13,6 @@ import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError }
 import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI, isValidTrainingSession } from './trainingSessionStats';
 
 // given a teamName, return the basic information of a training session
-// given a teamName, return the basic information of a training session
 export async function getTeamTrainingSessionsAPI(
   queryClient: QueryApi,
   teamName: string,
@@ -22,7 +21,6 @@ export async function getTeamTrainingSessionsAPI(
     pathResolve(__dirname, '../../queries/team_sessions.flux'),
     { encoding: 'utf8' },
   );
-  // get all trainingSessions stats of given teamName
   // get all trainingSessions stats of given teamName
   teamTrainingSessionsQuery = interpole(teamTrainingSessionsQuery, [teamName]);
   const trainingSessions = await executeInflux(teamTrainingSessionsQuery, queryClient);
@@ -36,7 +34,6 @@ export async function getTeamTrainingSessionsAPI(
       duration: '',
     } as SessionResponseType;
     aSession.sessionName = trainingSessions[i].Session;
-    //TODO
     const beginningAndEnd = await getSessionBeginningAndEnd(aSession.sessionName, queryClient);
     aSession.sessionStart = beginningAndEnd[0];
     aSession.sessionStop = beginningAndEnd[1];
@@ -74,7 +71,6 @@ export async function getPlayerTrainingSessionsAPI(
         duration: '',
       } as SessionResponseType;
       aSession.sessionName = trainingSessions[i].Session;
-      //TODO
       const beginningAndEnd = await getSessionBeginningAndEnd(aSession.sessionName, queryClient);
       aSession.sessionStart = beginningAndEnd[0];
       aSession.sessionStop = beginningAndEnd[1];
