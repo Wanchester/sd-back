@@ -13,6 +13,7 @@ import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError }
 import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI, isValidTrainingSession } from './trainingSessionStats';
 
 // given a teamName, return the basic information of a training session
+// given a teamName, return the basic information of a training session
 export async function getTeamTrainingSessionsAPI(
   queryClient: QueryApi,
   teamName: string,
@@ -21,6 +22,7 @@ export async function getTeamTrainingSessionsAPI(
     pathResolve(__dirname, '../../queries/team_sessions.flux'),
     { encoding: 'utf8' },
   );
+  // get all trainingSessions stats of given teamName
   // get all trainingSessions stats of given teamName
   teamTrainingSessionsQuery = interpole(teamTrainingSessionsQuery, [teamName]);
   const trainingSessions = await executeInflux(teamTrainingSessionsQuery, queryClient);
@@ -152,7 +154,17 @@ export default function bindGetTrainingSessions(
         const sessionName = (req.query as any).sessionName;
         // const teamName = req.body.teamName;
         // const sessionName = req.body.sessionName;
-        
+              
+        //check if the input teamName is a valid teamName
+        if (!(await isValidTeam(queryClient, teamName))) {
+          throwBasedOnCode('e400.14', teamName);
+        }
+
+        //check if the input training session name is a valid training session name
+        if (!(await isValidTrainingSession(queryClient, sessionName))) {
+          throwBasedOnCode('e400.15', sessionName);
+        }
+
         //check if the input teamName is a valid teamName
         if (!(await isValidTeam(queryClient, teamName))) {
           throwBasedOnCode('e400.14', teamName);

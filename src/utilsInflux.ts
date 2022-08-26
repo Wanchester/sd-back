@@ -18,6 +18,7 @@ function influxColumn(name: string) :string {
     case 'team': return '_measurement';
     case 'player': return 'Player Name';
     case 'sessions': return 'Session';
+    case 'sessions': return 'Session';
     //case 'field': return '_field';
     default: return 'oops';
   }
@@ -103,6 +104,19 @@ export function buildQuery(query: InfluxQuery) :string {
       throwBasedOnCode('e400.16');
     }
 
+    if (query.range.stop !== undefined) {
+      //swap ranges if wrong order
+      if (new Date(query.range.start) > new Date(query.range.stop)) {
+        const temp = query.range.start;
+        query.range.start = query.range.stop;
+        query.range.stop = temp;
+      }
+    }
+    if (Math.max(new Date(query.range.start).getTime(), new Date(query.range.stop || query.range.start).getTime()) > new Date().getTime()) {
+      //Error cannot query future
+      throwBasedOnCode('e400.16');
+    }
+
     output.push(`|>range(start: ${query.range.start}`);
     if (query.range.stop !== undefined) {
       output.push(`, stop: ${query.range.stop}`);
@@ -115,7 +129,6 @@ export function buildQuery(query: InfluxQuery) :string {
   const filterWithList = (column: string, list: string[] | undefined) => {
     let outputBuffer: string[] = [];
     if (list !== undefined && list.length !== 0) {
-      outputBuffer.push(`|>group(columns: ["${column}"])`);
       outputBuffer.push(`|>filter(fn: (r)=> r["${column}"] == "${list[0]}"`);
       for (let name in list.slice(1)) {
         outputBuffer.push(` or r["${column}"] == ${name}`);
@@ -202,7 +215,7 @@ export function buildQuery(query: InfluxQuery) :string {
 //     },
 //   ));
 // }
-//buildTest();
+// buildTest();
 
 
 //function mytest() {
