@@ -1,5 +1,5 @@
 from(bucket: "test")
     |>range(start: 0)
-    |>filter(fn: (r)=> r["Session"] == :0)
+    |>filter(fn: (r)=> r["Session"] == ":0")
     |>group(columns: ["Session"])
     |>last()
