@@ -240,9 +240,15 @@ describe('Test Express server endpoints', async () => {
       res.body.forEach((session: any)=>assertSessionResponse(session) );
     }).timeout(10000);
   
-    it('GET /trainingSessions/:username fails with c_coach1 as logged in user', async () => {
+    it('GET /trainingSessions/other_coach_name fails with c_coach1 as logged in user', async () => {
       const res = await agent.get('/trainingSessions/c_coach2');
       expect(res.statusCode).to.equal(400);
+    });
+
+    it('GET /trainingSessions/player_name succeeds with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/trainingSessions/p_warren');
+      expect(res.statusCode).to.equal(200);
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
     });
 
     // team players
