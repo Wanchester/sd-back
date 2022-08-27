@@ -24,7 +24,15 @@ export async function getTeamTrainingSessionsAPI(
   // get all trainingSessions stats of given teamName
   teamTrainingSessionsQuery = interpole(teamTrainingSessionsQuery, [teamName]);
   const trainingSessions = await executeInflux(teamTrainingSessionsQuery, queryClient);
-  const cleanedTrainingSessions: any[] = [];
+  const cleanedTrainingSessions = [];
+  const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
+    
+  //send requests for session times
+  for (let sessionResponse of trainingSessions) {
+    sessionTimePromises.push(getSessionBeginningAndEnd(sessionResponse.Session, queryClient));
+  }
+
+  //ready objects and assign session name and team
   for (let i = 0; i < trainingSessions.length; i++) {
     const aSession = {
       sessionName: '',
@@ -34,14 +42,22 @@ export async function getTeamTrainingSessionsAPI(
       duration: '',
     } as SessionResponseType;
     aSession.sessionName = trainingSessions[i].Session;
-    const beginningAndEnd = await getSessionBeginningAndEnd(aSession.sessionName, queryClient);
-    aSession.sessionStart = beginningAndEnd[0];
-    aSession.sessionStop = beginningAndEnd[1];
     aSession.teamName = trainingSessions[i]._measurement;
-    // aSession.duration = TimeFormat.fromS(trainingSessions[i].elapsed, 'hh:mm:ss');     //hour:minutes:seconds.See https://github.com/Goldob/hh-mm-ss#supported-time-formats
-    aSession.duration = getDuration(aSession.sessionStart, aSession.sessionStop);
     cleanedTrainingSessions.push(aSession);
   }
+
+  //await and assign times
+  const sessionTimes = await Promise.all(sessionTimePromises);
+  for (let sessionTime of sessionTimes) {
+    for (let cleanedSession of cleanedTrainingSessions) {
+      if (sessionTime.name === cleanedSession.sessionName) {
+        cleanedSession.sessionStart = sessionTime.beginning;
+        cleanedSession.sessionStop = sessionTime.end;
+        cleanedSession.duration = getDuration(sessionTime.beginning, sessionTime.end);
+      }
+    }
+  }
+
   return cleanedTrainingSessions;
 }
 
@@ -51,7 +67,7 @@ export async function getPlayerTrainingSessionsAPI(
   username: string,
 ) {
   //search the personal information of given username from SQL database
-  const personalInfo = await getPersonalInfoAPI(sqlDB, username);
+  const personalInfo = await getPersonalInfoAPI(sqlDB, username);//@TIDY:some callers already checked this 27/8/22
   if (personalInfo.role == 'player') {
     //get the information of all the training sessions of given players
     let queryPlayerSession = readFileSync(
@@ -61,7 +77,15 @@ export async function getPlayerTrainingSessionsAPI(
 
     queryPlayerSession = interpole(queryPlayerSession, [personalInfo.name]);
     const trainingSessions = await executeInflux(queryPlayerSession, queryClient);
-    const cleanedTrainingSessions: any[] = [];
+    const cleanedTrainingSessions = [];
+    const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
+    
+    //send requests for session times
+    for (let sessionResponse of trainingSessions) {
+      sessionTimePromises.push(getSessionBeginningAndEnd(sessionResponse.Session, queryClient));
+    }
+
+    //ready objects and assign sessionName, teamName
     for (let i = 0; i < trainingSessions.length; i++) {
       const aSession = {
         sessionName: '',
@@ -71,14 +95,22 @@ export async function getPlayerTrainingSessionsAPI(
         duration: '',
       } as SessionResponseType;
       aSession.sessionName = trainingSessions[i].Session;
-      const beginningAndEnd = await getSessionBeginningAndEnd(aSession.sessionName, queryClient);
-      aSession.sessionStart = beginningAndEnd[0];
-      aSession.sessionStop = beginningAndEnd[1];
       aSession.teamName = trainingSessions[i]._measurement;
-      // aSession.duration = TimeFormat.fromS(trainingSessions[i].elapsed, 'hh:mm:ss');     //hour:minutes:seconds.See https://github.com/Goldob/hh-mm-ss#supported-time-formats
-      aSession.duration = getDuration(aSession.sessionStart, aSession.sessionStop);
       cleanedTrainingSessions.push(aSession);
     }
+
+    //await and assign times
+    const sessionTimes = await Promise.all(sessionTimePromises);
+    for (let sessionTime of sessionTimes) {
+      for (let cleanedSession of cleanedTrainingSessions) {
+        if (sessionTime.name === cleanedSession.sessionName) {
+          cleanedSession.sessionStart = sessionTime.beginning;
+          cleanedSession.sessionStop = sessionTime.end;
+          cleanedSession.duration = getDuration(sessionTime.beginning, sessionTime.end);
+        }
+      }
+    }
+
     return cleanedTrainingSessions;
   } else {
     // throw new Error('cannot find player with given username');

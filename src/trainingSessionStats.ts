@@ -38,10 +38,10 @@ export async function getTrainingSessionStatisticsAPI(
 
   aSession.sessionName = trainingSessionStatistic.Session;
   const beginningAndEnd = await getSessionBeginningAndEnd(aSession.sessionName, queryClient);
-  aSession.sessionStart = beginningAndEnd[0];
-  aSession.sessionStop = beginningAndEnd[1];
+  aSession.sessionStart = beginningAndEnd.beginning;
+  aSession.sessionStop = beginningAndEnd.end;
   aSession.teamName = trainingSessionStatistic._measurement;
-  aSession.duration = getDuration(aSession.sessionStart, aSession.sessionStop);
+  aSession.duration = getDuration(beginningAndEnd.beginning, beginningAndEnd.end);
 
   return aSession;
 }

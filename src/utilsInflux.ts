@@ -50,7 +50,7 @@ export async function getSessionBeginningAndEnd(sessionName: string, queryClient
   
   const sessionStartTime: any = await executeInflux(readiedStartQuery, queryClient) as string[];
   const sessionEndTime: any = await executeInflux(readiedEndQuery, queryClient) as string[];
-  return [sessionStartTime[0]._time, sessionEndTime[0]._time];
+  return { name: sessionName, beginning: sessionStartTime[0]._time, end: sessionEndTime[0]._time };
 }
 
 // input format: RFC3339
