@@ -17,13 +17,8 @@ export async function getTeamTrainingSessionsAPI(
   queryClient: QueryApi,
   teamName: string,
 ) {
-  let teamTrainingSessionsQuery = readFileSync(
-    pathResolve(__dirname, '../../queries/team_sessions.flux'),
-    { encoding: 'utf8' },
-  );
   // get all trainingSessions stats of given teamName
-  teamTrainingSessionsQuery = interpole(teamTrainingSessionsQuery, [teamName]);
-  const trainingSessions = await executeInflux(teamTrainingSessionsQuery, queryClient);
+  const trainingSessions = await executeInflux(buildQuery({ teams: [teamName], get_unique: 'sessions' }), queryClient);
   const cleanedTrainingSessions = [];
   const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
     
@@ -66,15 +61,8 @@ export async function getPlayerTrainingSessionsAPI(
   queryClient: QueryApi,
   username: string,
 ) {
-  //search the personal information of given username from SQL database
-  //get the information of all the training sessions of given players
-  let queryPlayerSession = readFileSync(
-    pathResolve(__dirname, '../../queries/players_sessions.flux'),
-    { encoding: 'utf8' },
-  );
-
-  queryPlayerSession = interpole(queryPlayerSession, [username]);
-  const trainingSessions = await executeInflux(queryPlayerSession, queryClient);
+  //all sessions of a given username
+  const trainingSessions = await executeInflux(buildQuery({ names: [username], get_unique: 'sessions' }), queryClient);
   const cleanedTrainingSessions = [];
   const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
     
@@ -140,6 +128,7 @@ export async function getTrainingSessionsAPI(
   queryClient: QueryApi,
   username: string,
 ) {
+  //coaches query based on their team
   const personalInfo = await getPersonalInfoAPI(sqlDB, username);
   if (personalInfo.role == 'player') {
     let trainingSessions = await getPlayerTrainingSessionsAPI(sqlDB, queryClient, username);
