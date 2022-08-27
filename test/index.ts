@@ -317,7 +317,6 @@ describe('Test Express server endpoints', async () => {
       res.body.forEach((session: any)=>assertSessionResponse(session) );
     }).timeout(10000);
 
-
     it('GET /trainingSessions/:username succeeds with a_administrator as logged in user', async () => {
       const res = await agent.get('/trainingSessions/p_warren');
       expect(res.statusCode).to.equal(200);
@@ -325,6 +324,11 @@ describe('Test Express server endpoints', async () => {
       (res.body as any[]).forEach(session => assertSessionResponse(session));
     }).timeout(10000);
 
+    it('GET /trainingSessions/:username fails with invalid username as admin', async () => {
+      const res = await agent.get('/trainingSessions/BAD_NAME');
+      expect(res.statusCode).to.equal(400);
+    }).timeout(10000);
+    
     // team players
     it('GET /team?teamName=TeamBit succeeds with a_administrator logged in as user', async () => {
       const res = await agent.get('/team?teamName=TeamBit');
