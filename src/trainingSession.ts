@@ -108,7 +108,7 @@ export async function getTeamTrainingSessionsAPI(
 //     let teamsTrainingSessions: any[] = []; 
 //     // for each of team in teams, get all training sessions of that team
 //     for (let i = 0; i < teams.length;  i++) {
-//       let trainingSessions = await getTeamTrainingSessionsAPI(queryClient, teams[i]);//@TIDY:awaiting in this loop
+//       let trainingSessions = await getTeamTrainingSessionsAPI(queryClient, teams[i]);//:awaiting in this loop
 //       teamsTrainingSessions.push(...trainingSessions);
 //     }
 //     return teamsTrainingSessions;
