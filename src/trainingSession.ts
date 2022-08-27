@@ -67,55 +67,49 @@ export async function getPlayerTrainingSessionsAPI(
   username: string,
 ) {
   //search the personal information of given username from SQL database
-  const personalInfo = await getPersonalInfoAPI(sqlDB, username);//@TIDY:all callers already checked this 27/8/22
-  if (personalInfo.role == 'player') {
-    //get the information of all the training sessions of given players
-    let queryPlayerSession = readFileSync(
-      pathResolve(__dirname, '../../queries/players_sessions.flux'),
-      { encoding: 'utf8' },
-    );
+  //get the information of all the training sessions of given players
+  let queryPlayerSession = readFileSync(
+    pathResolve(__dirname, '../../queries/players_sessions.flux'),
+    { encoding: 'utf8' },
+  );
 
-    queryPlayerSession = interpole(queryPlayerSession, [personalInfo.name]);
-    const trainingSessions = await executeInflux(queryPlayerSession, queryClient);
-    const cleanedTrainingSessions = [];
-    const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
+  queryPlayerSession = interpole(queryPlayerSession, [username]);
+  const trainingSessions = await executeInflux(queryPlayerSession, queryClient);
+  const cleanedTrainingSessions = [];
+  const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
     
-    //send requests for session times
-    for (let sessionResponse of trainingSessions) {
-      sessionTimePromises.push(getSessionBeginningAndEnd(sessionResponse.Session, queryClient));
-    }
+  //send requests for session times
+  for (let sessionResponse of trainingSessions) {
+    sessionTimePromises.push(getSessionBeginningAndEnd(sessionResponse.Session, queryClient));
+  }
 
-    //ready objects and assign sessionName, teamName
-    for (let i = 0; i < trainingSessions.length; i++) {
-      const aSession = {
-        sessionName: '',
-        sessionStart: '',
-        sessionStop: '',
-        teamName: '',
-        duration: '',
-      } as SessionResponseType;
-      aSession.sessionName = trainingSessions[i].Session;
-      aSession.teamName = trainingSessions[i]._measurement;
-      cleanedTrainingSessions.push(aSession);
-    }
+  //ready objects and assign sessionName, teamName
+  for (let i = 0; i < trainingSessions.length; i++) {
+    const aSession = {
+      sessionName: '',
+      sessionStart: '',
+      sessionStop: '',
+      teamName: '',
+      duration: '',
+    } as SessionResponseType;
+    aSession.sessionName = trainingSessions[i].Session;
+    aSession.teamName = trainingSessions[i]._measurement;
+    cleanedTrainingSessions.push(aSession);
+  }
 
-    //await and assign times
-    const sessionTimes = await Promise.all(sessionTimePromises);
-    for (let sessionTime of sessionTimes) {
-      for (let cleanedSession of cleanedTrainingSessions) {
-        if (sessionTime.name === cleanedSession.sessionName) {
-          cleanedSession.sessionStart = sessionTime.beginning;
-          cleanedSession.sessionStop = sessionTime.end;
-          cleanedSession.duration = getDuration(sessionTime.beginning, sessionTime.end);
-        }
+  //await and assign times
+  const sessionTimes = await Promise.all(sessionTimePromises);
+  for (let sessionTime of sessionTimes) {
+    for (let cleanedSession of cleanedTrainingSessions) {
+      if (sessionTime.name === cleanedSession.sessionName) {
+        cleanedSession.sessionStart = sessionTime.beginning;
+        cleanedSession.sessionStop = sessionTime.end;
+        cleanedSession.duration = getDuration(sessionTime.beginning, sessionTime.end);
       }
     }
-
-    return cleanedTrainingSessions;
-  } else {
-    // throw new Error('cannot find player with given username');
-    throwBasedOnCode('e400.4');
   }
+
+  return cleanedTrainingSessions;
 }
 
 export async function getCoachTrainingSessionsAPI(
@@ -131,7 +125,7 @@ export async function getCoachTrainingSessionsAPI(
     let teamsTrainingSessions: any[] = []; 
     // for each of team in teams, get all training sessions of that team
     for (let i = 0; i < teams.length;  i++) {
-      let trainingSessions = await getTeamTrainingSessionsAPI(queryClient, teams[i]);
+      let trainingSessions = await getTeamTrainingSessionsAPI(queryClient, teams[i]);//@TIDY:awaiting in this loop
       teamsTrainingSessions.push(...trainingSessions);
     }
     return teamsTrainingSessions;
