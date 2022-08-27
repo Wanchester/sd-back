@@ -248,7 +248,7 @@ describe('Test Express server endpoints', async () => {
     it('GET /trainingSessions/bad_player_name fails with c_coach1 as logged in user', async () => {
       const res = await agent.get('/trainingSessions/p_ballard');
       expect(res.statusCode).to.equal(400);
-    });
+    }).timeout(4000);
 
     it('GET /trainingSessions/good_player_name succeeds with c_coach1 as logged in user', async () => {
       const res = await agent.get('/trainingSessions/p_warren');
