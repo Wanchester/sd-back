@@ -156,15 +156,24 @@ export async function getTrainingSessionsAPI(
 
     //await and assign times
     const sessionTimes = await Promise.all(sessionTimePromises);
-    for (let sessionTime of sessionTimes) {
-      for (let cleanedSession of cleanedTrainingSessions) {
-        if (sessionTime.name === cleanedSession.sessionName) {
-          cleanedSession.sessionStart = sessionTime.beginning;
-          cleanedSession.sessionStop = sessionTime.end;
-          cleanedSession.duration = getDuration(sessionTime.beginning, sessionTime.end);
-        }
-      }
+    const keyedTimes = Object.fromEntries(sessionTimes.map((o) => [o.name, o]));
+    console.log(keyedTimes);
+    
+    for (const cleanedSession of cleanedTrainingSessions) {
+      cleanedSession.sessionStart = keyedTimes[cleanedSession.sessionName].beginning;
+      cleanedSession.sessionStop = keyedTimes[cleanedSession.sessionName].end;
+      cleanedSession.duration = getDuration(cleanedSession.sessionStart, cleanedSession.sessionStop);
     }
+
+    // for (let sessionTime of sessionTimes) {
+    //   for (let cleanedSession of cleanedTrainingSessions) {
+    //     if (sessionTime.name === cleanedSession.sessionName) {
+    //       cleanedSession.sessionStart = sessionTime.beginning;
+    //       cleanedSession.sessionStop = sessionTime.end;
+    //       cleanedSession.duration = getDuration(sessionTime.beginning, sessionTime.end);
+    //     }
+    //   }
+    // }
     return cleanedTrainingSessions;
   };
 
@@ -172,7 +181,7 @@ export async function getTrainingSessionsAPI(
   const output = await callBasedOnRole(sqlDB, username, 
     //player
     async () => {
-      const userInfo = await getPersonalInfoAPI(sqlDB, username);
+      const userInfo = await getPersonalInfoAPI(sqlDB, username);//callBasedOnRole does this too...
       const trainingSessions = await performQuery({ names: [userInfo.name], get_unique: 'sessions' }); 
       return trainingSessions;
     },
