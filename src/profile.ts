@@ -1,7 +1,7 @@
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
-import { getCoachTrainingSessionsAPI, getTrainingSessionsAPI } from './trainingSession';
+import { getTrainingSessionsAPI } from './trainingSession';
 import { getPersonalInfoAPI, callBasedOnRole, getCommonTeams } from './utils';
 import { Express } from 'express';
 import { isPlainObject } from 'lodash';
@@ -88,7 +88,7 @@ export async function getCoachProfileAPI(
     homepageInfo.weight = personalInfo.weight;
     homepageInfo.role = personalInfo.role;
     homepageInfo.teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
-    homepageInfo.trainingSessions = await getCoachTrainingSessionsAPI(sqlDB, queryClient, username) || [{}];
+    homepageInfo.trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username) || [{}];
     // homepageInfo.trainingSessions = ['TODO: to implement await getPlayerSessionsAPI(sqlDB, queryClient, username);'];
     return homepageInfo;
   } else {

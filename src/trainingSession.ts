@@ -328,7 +328,7 @@ export default function bindGetTrainingSessions(
           // currently, the coach can see the training sessions of all players and coach for testing purpose 
           let commonTeams = await getCommonTeams( sqlDB, queryClient, loggedInUsername!, req.params.username);
           if (commonTeams.length !== 0) {
-            return getPlayerTrainingSessionsAPI(sqlDB, queryClient, req.params.username);
+            return getTrainingSessionsAPI(sqlDB, queryClient, req.params.username);
           } else {
             // throw new Error('Cannot find the input username in your teams');
             throwBasedOnCode('e400.8', queriedUsername);
