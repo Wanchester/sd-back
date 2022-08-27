@@ -12,11 +12,6 @@ async function getTeamPlayersAPI(
   queryClient: QueryApi,
   teamName: string,
 ): Promise<{ name: string; username: string; }[]> {
-  /**
-   * This function has a delay of about 1000ms. 
-   * It's 100% influx (which isn't running on my machine, it's a network
-   * delay); that's just a limitation of the customer requirement.
-   */
   const query = DBI.buildQuery({ teams: [teamName], get_unique: 'player' });
   const influxResponse = executeInflux(query, queryClient);
   let output: { name: string, username: string }[] = [];
