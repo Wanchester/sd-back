@@ -1,17 +1,13 @@
 import { QueryApi } from '@influxdata/influxdb-client';
-import { readFileSync } from 'fs';
 // import moment from 'moment';
 import { Database } from 'sqlite3';
-import interpole from 'string-interpolation-js';
 import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } from './utils';
-import { resolve as pathResolve } from 'path';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
 import { getCoachTeamsAPI } from './team';
 import { buildQuery, getDuration, getSessionBeginningAndEnd, InfluxQuery } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } from './trainingSessionStats';
-import { Session } from 'express-session';
 
 // given a teamName, return the basic information of a training session
 export async function getTeamTrainingSessionsAPI(
