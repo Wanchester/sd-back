@@ -40,62 +40,60 @@ export async function getTeamTrainingSessionsAPI(
 
   //await and assign times
   const sessionTimes = await Promise.all(sessionTimePromises);
-  for (let sessionTime of sessionTimes) {
-    for (let cleanedSession of cleanedTrainingSessions) {
-      if (sessionTime.name === cleanedSession.sessionName) {
-        cleanedSession.sessionStart = sessionTime.beginning;
-        cleanedSession.sessionStop = sessionTime.end;
-        cleanedSession.duration = getDuration(sessionTime.beginning, sessionTime.end);
-      }
-    }
-  }
-
-  return cleanedTrainingSessions;
-}
-
-export async function getPlayerTrainingSessionsAPI(//@depr
-  sqlDB: Database,
-  queryClient: QueryApi,
-  username: string,
-) {
-  //all sessions of a given username
-  const trainingSessions = await executeInflux(buildQuery({ names: [username], get_unique: 'sessions' }), queryClient);
-  const cleanedTrainingSessions: SessionResponseType[] = [];
-  const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
+  const keyedTimes = Object.fromEntries(sessionTimes.map((o) => [o.name, o]));
     
-  //send requests for session times
-  for (let sessionResponse of trainingSessions) {
-    sessionTimePromises.push(getSessionBeginningAndEnd(sessionResponse.Session, queryClient));
-  }
-
-  //ready objects and assign sessionName, teamName
-  for (let i = 0; i < trainingSessions.length; i++) {
-    const aSession = {
-      sessionName: '',
-      sessionStart: '',
-      sessionStop: '',
-      teamName: '',
-      duration: '',
-    } as SessionResponseType;
-    aSession.sessionName = trainingSessions[i].Session;
-    aSession.teamName = trainingSessions[i]._measurement;
-    cleanedTrainingSessions.push(aSession);
-  }
-
-  //await and assign times
-  const sessionTimes = await Promise.all(sessionTimePromises);
-  for (let sessionTime of sessionTimes) {
-    for (let cleanedSession of cleanedTrainingSessions) {
-      if (sessionTime.name === cleanedSession.sessionName) {
-        cleanedSession.sessionStart = sessionTime.beginning;
-        cleanedSession.sessionStop = sessionTime.end;
-        cleanedSession.duration = getDuration(sessionTime.beginning, sessionTime.end);
-      }
-    }
+  for (const cleanedSession of cleanedTrainingSessions) {
+    cleanedSession.sessionStart = keyedTimes[cleanedSession.sessionName].beginning;
+    cleanedSession.sessionStop = keyedTimes[cleanedSession.sessionName].end;
+    cleanedSession.duration = getDuration(cleanedSession.sessionStart, cleanedSession.sessionStop);
   }
 
   return cleanedTrainingSessions;
 }
+
+// export async function getPlayerTrainingSessionsAPI(//@depr
+//   sqlDB: Database,
+//   queryClient: QueryApi,
+//   username: string,
+// ) {
+//   //all sessions of a given username
+//   const trainingSessions = await executeInflux(buildQuery({ names: [username], get_unique: 'sessions' }), queryClient);
+//   const cleanedTrainingSessions: SessionResponseType[] = [];
+//   const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
+    
+//   //send requests for session times
+//   for (let sessionResponse of trainingSessions) {
+//     sessionTimePromises.push(getSessionBeginningAndEnd(sessionResponse.Session, queryClient));
+//   }
+
+//   //ready objects and assign sessionName, teamName
+//   for (let i = 0; i < trainingSessions.length; i++) {
+//     const aSession = {
+//       sessionName: '',
+//       sessionStart: '',
+//       sessionStop: '',
+//       teamName: '',
+//       duration: '',
+//     } as SessionResponseType;
+//     aSession.sessionName = trainingSessions[i].Session;
+//     aSession.teamName = trainingSessions[i]._measurement;
+//     cleanedTrainingSessions.push(aSession);
+//   }
+
+//   //await and assign times
+//   const sessionTimes = await Promise.all(sessionTimePromises);
+//   for (let sessionTime of sessionTimes) {
+//     for (let cleanedSession of cleanedTrainingSessions) {
+//       if (sessionTime.name === cleanedSession.sessionName) {
+//         cleanedSession.sessionStart = sessionTime.beginning;
+//         cleanedSession.sessionStop = sessionTime.end;
+//         cleanedSession.duration = getDuration(sessionTime.beginning, sessionTime.end);
+//       }
+//     }
+//   }
+
+//   return cleanedTrainingSessions;
+// }
 
 // export async function getCoachTrainingSessionsAPI(//@depr
 //   sqlDB: Database,
