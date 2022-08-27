@@ -11,6 +11,7 @@ import { getCoachTeamsAPI } from './team';
 import { buildQuery, getDuration, getSessionBeginningAndEnd } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } from './trainingSessionStats';
+import { Session } from 'express-session';
 
 // given a teamName, return the basic information of a training session
 export async function getTeamTrainingSessionsAPI(
@@ -19,7 +20,7 @@ export async function getTeamTrainingSessionsAPI(
 ) {
   // get all trainingSessions stats of given teamName
   const trainingSessions = await executeInflux(buildQuery({ teams: [teamName], get_unique: 'sessions' }), queryClient);
-  const cleanedTrainingSessions = [];
+  const cleanedTrainingSessions: SessionResponseType[] = [];
   const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
     
   //send requests for session times
@@ -63,7 +64,7 @@ export async function getPlayerTrainingSessionsAPI(
 ) {
   //all sessions of a given username
   const trainingSessions = await executeInflux(buildQuery({ names: [username], get_unique: 'sessions' }), queryClient);
-  const cleanedTrainingSessions = [];
+  const cleanedTrainingSessions: SessionResponseType[] = [];
   const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
     
   //send requests for session times
