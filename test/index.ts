@@ -324,6 +324,13 @@ describe('Test Express server endpoints', async () => {
       (res.body as any[]).forEach(session => assertSessionResponse(session));
     }).timeout(10000);
 
+    it('GET /trainingSessions/coach_name succeeds with a_administrator as logged in user', async () => {
+      const res = await agent.get('/trainingSessions/c_coach1');
+      expect(res.statusCode).to.equal(200);
+      expect(res.body).to.be.an('array');
+      (res.body as any[]).forEach(session => assertSessionResponse(session));
+    }).timeout(10000);
+
     it('GET /trainingSessions/:username fails with invalid username as admin', async () => {
       const res = await agent.get('/trainingSessions/BAD_NAME');
       expect(res.statusCode).to.equal(400);
