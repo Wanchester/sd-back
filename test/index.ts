@@ -314,7 +314,7 @@ describe('Test Express server endpoints', async () => {
     it('GET /trainingSessions succeeds with a_administrator as logged in user', async () => {
       const res = await agent.get('/trainingSessions');
       expect(res.statusCode).to.equal(200);
-      // res.body.forEach((session: any)=>assertSessionResponse(session) );
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
     }).timeout(10000);
 
 
