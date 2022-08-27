@@ -101,28 +101,28 @@ export async function getPlayerTrainingSessionsAPI(//@depr
   return cleanedTrainingSessions;
 }
 
-export async function getCoachTrainingSessionsAPI(//@depr
-  sqlDB: Database,
-  queryClient: QueryApi,
-  username: string,
-) {
-  //search the personal information of given username from SQL database
-  const personalInfo = await getPersonalInfoAPI(sqlDB, username);
-  if (personalInfo.role == 'coach') {
-    // get all the teams of given coach's username
-    let teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
-    let teamsTrainingSessions: any[] = []; 
-    // for each of team in teams, get all training sessions of that team
-    for (let i = 0; i < teams.length;  i++) {
-      let trainingSessions = await getTeamTrainingSessionsAPI(queryClient, teams[i]);//@TIDY:awaiting in this loop
-      teamsTrainingSessions.push(...trainingSessions);
-    }
-    return teamsTrainingSessions;
-  } else {
-    // throw new Error('cannot find coach with given username');
-    throwBasedOnCode('e400.5');
-  }
-}
+// export async function getCoachTrainingSessionsAPI(//@depr
+//   sqlDB: Database,
+//   queryClient: QueryApi,
+//   username: string,
+// ) {
+//   //search the personal information of given username from SQL database
+//   const personalInfo = await getPersonalInfoAPI(sqlDB, username);
+//   if (personalInfo.role == 'coach') {
+//     // get all the teams of given coach's username
+//     let teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
+//     let teamsTrainingSessions: any[] = []; 
+//     // for each of team in teams, get all training sessions of that team
+//     for (let i = 0; i < teams.length;  i++) {
+//       let trainingSessions = await getTeamTrainingSessionsAPI(queryClient, teams[i]);//@TIDY:awaiting in this loop
+//       teamsTrainingSessions.push(...trainingSessions);
+//     }
+//     return teamsTrainingSessions;
+//   } else {
+//     // throw new Error('cannot find coach with given username');
+//     throwBasedOnCode('e400.5');
+//   }
+// }
 
 export async function getTrainingSessionsAPI(
   sqlDB: Database,
@@ -157,7 +157,6 @@ export async function getTrainingSessionsAPI(
     //await and assign times
     const sessionTimes = await Promise.all(sessionTimePromises);
     const keyedTimes = Object.fromEntries(sessionTimes.map((o) => [o.name, o]));
-    console.log(keyedTimes);
     
     for (const cleanedSession of cleanedTrainingSessions) {
       cleanedSession.sessionStart = keyedTimes[cleanedSession.sessionName].beginning;
@@ -165,15 +164,6 @@ export async function getTrainingSessionsAPI(
       cleanedSession.duration = getDuration(cleanedSession.sessionStart, cleanedSession.sessionStop);
     }
 
-    // for (let sessionTime of sessionTimes) {
-    //   for (let cleanedSession of cleanedTrainingSessions) {
-    //     if (sessionTime.name === cleanedSession.sessionName) {
-    //       cleanedSession.sessionStart = sessionTime.beginning;
-    //       cleanedSession.sessionStop = sessionTime.end;
-    //       cleanedSession.duration = getDuration(sessionTime.beginning, sessionTime.end);
-    //     }
-    //   }
-    // }
     return cleanedTrainingSessions;
   };
 
@@ -187,12 +177,14 @@ export async function getTrainingSessionsAPI(
     },
     //coach
     async () => {
+      //coach queries based on his assigned teams in SQL
       const coachTeamNames = await getCoachTeamsAPI(sqlDB, queryClient, username);
       const trainingSessions = await performQuery({ teams: coachTeamNames, get_unique: 'sessions' });
       return trainingSessions;
     },
     //admin
     async () => {
+      //getting ALL sessions for admin
       const trainingSessions = await performQuery({ get_unique: 'sessions' });
       return trainingSessions;
     },
