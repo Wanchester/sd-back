@@ -8,7 +8,7 @@ import { resolve as pathResolve } from 'path';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
 import { getCoachTeamsAPI } from './team';
-import { buildQuery, getDuration, getSessionBeginningAndEnd } from './utilsInflux';
+import { buildQuery, getDuration, getSessionBeginningAndEnd, InfluxQuery } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } from './trainingSessionStats';
 import { Session } from 'express-session';
@@ -57,7 +57,7 @@ export async function getTeamTrainingSessionsAPI(
   return cleanedTrainingSessions;
 }
 
-export async function getPlayerTrainingSessionsAPI(
+export async function getPlayerTrainingSessionsAPI(//@depr
   sqlDB: Database,
   queryClient: QueryApi,
   username: string,
@@ -101,7 +101,7 @@ export async function getPlayerTrainingSessionsAPI(
   return cleanedTrainingSessions;
 }
 
-export async function getCoachTrainingSessionsAPI(
+export async function getCoachTrainingSessionsAPI(//@depr
   sqlDB: Database,
   queryClient: QueryApi,
   username: string,
@@ -129,15 +129,66 @@ export async function getTrainingSessionsAPI(
   queryClient: QueryApi,
   username: string,
 ) {
-  //coaches query based on their team
-  const personalInfo = await getPersonalInfoAPI(sqlDB, username);
-  if (personalInfo.role == 'player') {
-    let trainingSessions = await getPlayerTrainingSessionsAPI(sqlDB, queryClient, username);
-    return trainingSessions;
-  } else if (personalInfo.role == 'coach') {
-    let trainingSessions = await getCoachTrainingSessionsAPI(sqlDB, queryClient, username);
-    return trainingSessions;
-  }
+  //actual job
+  const performQuery = async (query: InfluxQuery) => {
+    const trainingSessions = await executeInflux(buildQuery(query), queryClient);
+    const cleanedTrainingSessions: SessionResponseType[] = [];
+    const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
+    
+    //send requests for session times
+    for (let sessionResponse of trainingSessions) {
+      sessionTimePromises.push(getSessionBeginningAndEnd(sessionResponse.Session, queryClient));
+    }
+
+    //ready objects and assign sessionName, teamName
+    for (let i = 0; i < trainingSessions.length; i++) {
+      const aSession = {
+        sessionName: '',
+        sessionStart: '',
+        sessionStop: '',
+        teamName: '',
+        duration: '',
+      } as SessionResponseType;
+      aSession.sessionName = trainingSessions[i].Session;
+      aSession.teamName = trainingSessions[i]._measurement;
+      cleanedTrainingSessions.push(aSession);
+    }
+
+    //await and assign times
+    const sessionTimes = await Promise.all(sessionTimePromises);
+    for (let sessionTime of sessionTimes) {
+      for (let cleanedSession of cleanedTrainingSessions) {
+        if (sessionTime.name === cleanedSession.sessionName) {
+          cleanedSession.sessionStart = sessionTime.beginning;
+          cleanedSession.sessionStop = sessionTime.end;
+          cleanedSession.duration = getDuration(sessionTime.beginning, sessionTime.end);
+        }
+      }
+    }
+    return cleanedTrainingSessions;
+  };
+
+  //role management and output
+  const output = await callBasedOnRole(sqlDB, username, 
+    //player
+    async () => {
+      const userInfo = await getPersonalInfoAPI(sqlDB, username);
+      const trainingSessions = await performQuery({ names: [userInfo.name], get_unique: 'sessions' }); 
+      return trainingSessions;
+    },
+    //coach
+    async () => {
+      const coachTeamNames = await getCoachTeamsAPI(sqlDB, queryClient, username);
+      const trainingSessions = await performQuery({ teams: coachTeamNames, get_unique: 'sessions' });
+      return trainingSessions;
+    },
+    //admin
+    async () => {
+      const trainingSessions = await performQuery({ get_unique: 'sessions' });
+      return trainingSessions;
+    },
+  );
+  return output;
 }
 
 export default function bindGetTrainingSessions(
