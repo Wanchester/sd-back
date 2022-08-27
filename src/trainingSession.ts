@@ -67,7 +67,7 @@ export async function getPlayerTrainingSessionsAPI(
   username: string,
 ) {
   //search the personal information of given username from SQL database
-  const personalInfo = await getPersonalInfoAPI(sqlDB, username);//@TIDY:some callers already checked this 27/8/22
+  const personalInfo = await getPersonalInfoAPI(sqlDB, username);//@TIDY:all callers already checked this 27/8/22
   if (personalInfo.role == 'player') {
     //get the information of all the training sessions of given players
     let queryPlayerSession = readFileSync(
