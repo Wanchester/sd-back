@@ -254,7 +254,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.get('/trainingSessions/p_warren');
       expect(res.statusCode).to.equal(200);
       res.body.forEach((session: any)=>assertSessionResponse(session) );
-    });
+    }).timeout(4000);
 
     // team players
     it('GET /team?teamName=TeamBit succeeds with c_coach1 logged in as user', async () => {
