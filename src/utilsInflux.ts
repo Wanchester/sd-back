@@ -13,13 +13,14 @@ export type InfluxQuery = { //TODO:need more specific name
   time_window?: { every: number, period?: number, func?: AggregateFunc }, //seconds
   get_unique?: string
 };
-function influxColumn(name: string) :string {
+function influxColumn(name: string) :string | undefined {
   switch (name) {
     case 'teams': return '_measurement';
     case 'players': return 'Player Name';
     case 'sessions': return 'Session';
     //case 'field': return '_field';
-    default: return 'oops';
+    default: throwBasedOnCode('e400.18', name);
+      //do not support this column error
   }
 }
 export type AggregateFunc = 'mean' | 'median' | 'mode' | 'max' | 'min';
