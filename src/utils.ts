@@ -2,7 +2,7 @@ import { QueryApi } from '@influxdata/influxdb-client';
 
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
-import throwBasedOnCode from './throws';
+import throwBasedOnCode, { generateErrorBasedOnCode } from './throws';
 
 export const DEFAULT_PLAYER = 'p_warren';
 export const DEFAULT_COACH = 'c_coach1';
@@ -73,7 +73,7 @@ export const executeInflux = async (
       },
       error: (error) => {
         rejected = true;
-        error.message = 'e5001: Error when querying InfluxDB';
+        error.message = generateErrorBasedOnCode('e500.0').message;
         reject(error);
       },
       complete: () => {
