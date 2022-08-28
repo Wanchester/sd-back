@@ -19,6 +19,9 @@ export async function getPlayerProfileAPI(
   if ('error' in personalInfo) {
     return personalInfo;
   }
+  //two influx queries; need to be sent independantly
+  const playerTeamsPromise = getPlayerTeamsAPI(sqlDB, queryClient, username);
+  const playerSessionsPromise = getTrainingSessionsAPI(sqlDB, queryClient, username);
   if (personalInfo.role == 'player') {
     //define the structure of the API that will be returned to frontend
     const homepageInfo = {
@@ -41,9 +44,9 @@ export async function getPlayerProfileAPI(
     homepageInfo.height = personalInfo.height;
     homepageInfo.weight = personalInfo.weight;
     homepageInfo.role = personalInfo.role;
-    homepageInfo.teams = await getPlayerTeamsAPI(sqlDB, queryClient, username);
+    homepageInfo.teams = await playerTeamsPromise;
 
-    const trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username);
+    const trainingSessions = await playerSessionsPromise;
     if (trainingSessions) {
       homepageInfo.trainingSessions = trainingSessions;
     }
