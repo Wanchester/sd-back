@@ -214,7 +214,7 @@ export default function bindGetTrainingSessions(
         // const sessionName = req.body.sessionName;
         
         //teamName validation
-        const getTeamQuery = buildQuery({ get_unique: 'team' } );
+        const getTeamQuery = buildQuery({ get_unique: 'teams' } );
         const team = await executeInflux(getTeamQuery, queryClient);
         console.log('team: ', team);
         const teamsList: string[] = [];

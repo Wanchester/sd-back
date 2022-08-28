@@ -12,7 +12,7 @@ async function getTeamPlayersAPI(
   queryClient: QueryApi,
   teamName: string,
 ): Promise<{ name: string; username: string; }[]> {
-  const query = DBI.buildQuery({ teams: [teamName], get_unique: 'player' });
+  const query = DBI.buildQuery({ teams: [teamName], get_unique: 'players' });
   const influxResponse = executeInflux(query, queryClient);
   let output: { name: string, username: string }[] = [];
 

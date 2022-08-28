@@ -104,7 +104,7 @@ export async function getTeamsAPI(
 }
 
 export async function getAllTeamsAPI(queryClient: QueryApi) {
-  const getTeamQuery = buildQuery({ get_unique: 'team' } );
+  const getTeamQuery = buildQuery({ get_unique: 'teams' } );
   const team = await executeInflux(getTeamQuery, queryClient);
   const teamsList: string[] = [];
   team.forEach(row => 
