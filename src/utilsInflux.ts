@@ -48,9 +48,9 @@ export async function getSessionBeginningAndEnd(sessionName: string, queryClient
   const readiedStartQuery = interpole(loadedStartQuery, [sessionName]);
   const readiedEndQuery = interpole(loadedEndQuery, [sessionName]);
   
-  const sessionStartTime: any = await executeInflux(readiedStartQuery, queryClient) as string[];
-  const sessionEndTime: any = await executeInflux(readiedEndQuery, queryClient) as string[];
-  return { name: sessionName, beginning: sessionStartTime[0]._time, end: sessionEndTime[0]._time };
+  const sessionStartTimePromise = executeInflux(readiedStartQuery, queryClient);
+  const sessionEndTimePromise = executeInflux(readiedEndQuery, queryClient);
+  return { name: sessionName, beginning: (await sessionStartTimePromise)[0]._time, end: (await sessionEndTimePromise)[0]._time };
 }
 
 // input format: RFC3339
