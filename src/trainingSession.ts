@@ -122,7 +122,7 @@ export async function getTrainingSessionsAPI(
   sqlDB: Database,
   queryClient: QueryApi,
   username: string,
-) {
+): Promise<SessionResponseType[] | undefined> {
   //actual job
   const cleanTrainingSessionsWithQuery = async (query: InfluxQuery) => {
     const trainingSessions = await executeInflux(buildQuery(query), queryClient);
@@ -158,6 +158,7 @@ export async function getTrainingSessionsAPI(
       cleanedSession.duration = getDuration(cleanedSession.sessionStart, cleanedSession.sessionStop);
     }
 
+    //possibly empty...
     return cleanedTrainingSessions;
   };
 
