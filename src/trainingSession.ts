@@ -124,7 +124,7 @@ export async function getTrainingSessionsAPI(
   username: string,
 ) {
   //actual job
-  const performQuery = async (query: InfluxQuery) => {
+  const cleanTrainingSessionsWithQuery = async (query: InfluxQuery) => {
     const trainingSessions = await executeInflux(buildQuery(query), queryClient);
     const cleanedTrainingSessions: SessionResponseType[] = [];
     const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
@@ -166,20 +166,20 @@ export async function getTrainingSessionsAPI(
     //player
     async () => {
       const userInfo = await getPersonalInfoAPI(sqlDB, username);//callBasedOnRole does this too...
-      const trainingSessions = await performQuery({ names: [userInfo.name], get_unique: 'sessions' }); 
+      const trainingSessions = await cleanTrainingSessionsWithQuery({ names: [userInfo.name], get_unique: 'sessions' }); 
       return trainingSessions;
     },
     //coach
     async () => {
       //coach queries based on his assigned teams in SQL
       const coachTeamNames = await getCoachTeamsAPI(sqlDB, queryClient, username);
-      const trainingSessions = await performQuery({ teams: coachTeamNames, get_unique: 'sessions' });
+      const trainingSessions = await cleanTrainingSessionsWithQuery({ teams: coachTeamNames, get_unique: 'sessions' });
       return trainingSessions;
     },
     //admin
     async () => {
       //getting ALL sessions for admin
-      const trainingSessions = await performQuery({ get_unique: 'sessions' });
+      const trainingSessions = await cleanTrainingSessionsWithQuery({ get_unique: 'sessions' });
       return trainingSessions;
     },
   );
