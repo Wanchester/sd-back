@@ -4,7 +4,6 @@ import { readFileSync } from 'fs';
 import throwBasedOnCode from './throws';
 import { QueryApi } from '@influxdata/influxdb-client';
 import { executeInflux } from './utils';
-import { type } from 'os';
 export type InfluxQuery = { //TODO:need more specific name
   range?: { start: string, stop?: string },
   names?: string[],
