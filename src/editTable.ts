@@ -38,7 +38,7 @@ function updateTable(
   db: sqlite.Database,
   table: DBI.SQLTableName, //known when clicked edit/user role permissions
   keyToEdit: DBI.TableKey, //known when clicked edit
-  newValue: string,
+  newValue: any,
   id: string, //known from login/clicked edit
 ): void {
   let pk = DBI.getPrimaryKey(table.toLowerCase() as DBI.SQLTableName);
@@ -50,7 +50,7 @@ function updateTable(
     //update table
     db.serialize( function () {
       db.run(`UPDATE ${t} SET ${k} = ? WHERE ${pk} = ?`, [
-        sanitize(newValue),
+        typeof newValue == 'string' ? sanitize(newValue) : newValue,
         id,
       ]);
     });
