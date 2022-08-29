@@ -11,7 +11,7 @@ export async function getLineGraphAPI(
   influxRequest: InfluxQuery,
 ): Promise<TimeSeriesResponse | undefined> {
   if (influxRequest.names === undefined || influxRequest.fields === undefined) {
-    throwBasedOnCode('e400.19', influxRequest);
+    throwBasedOnCode('e400.19', JSON.stringify(influxRequest) as string);
     return;
   }
   //prepare output object skeleton
