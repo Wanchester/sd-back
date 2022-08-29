@@ -14,9 +14,12 @@ export async function getLineGraphAPI(
     throwBasedOnCode('e400.19', influxRequest);
     return;
   }
-  const influxResponse = await executeInflux(buildQuery(influxRequest), queryClient);
+  //prepare output object skeleton
   let stats: { [s:string]:[string, number][] } = Object.fromEntries(influxRequest.fields.map((f) => [f, []]));
   let output: TimeSeriesResponse = Object.fromEntries(influxRequest.names.map((p) => [p, stats]));
+
+  const influxResponse = await executeInflux(buildQuery(influxRequest), queryClient);
+  //organise times and values into output
   influxResponse.forEach((row) => {
     output[row['Player Name']][row._field].push([row._time, row._value]);
   });
@@ -27,6 +30,10 @@ export default function bindGetLineGraph(
   app: Express,
   queryClient: QueryApi,
 ) {
+  /**
+   * TODO:
+   *  [ ] any role management?
+   */
   app.get('/lineGraph', async (req, res) => {
     try {
       const lineGraphData = await getLineGraphAPI(queryClient, req.body as InfluxQuery);
