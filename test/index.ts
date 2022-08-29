@@ -216,7 +216,7 @@ describe('Test Express server endpoints', async () => {
   });
 
   // coach
-  describe('/profile, /teams, /trainingSessions test with coach1 coach as logged in user', async () => {
+  describe('Tsets for c_coach1 coach', async () => {
     const agent = request.agent(app);
   
     it('POST /login succeeds with c_coach1 as logged in user', async () => {
