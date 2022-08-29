@@ -240,10 +240,21 @@ describe('Test Express server endpoints', async () => {
       res.body.forEach((session: any)=>assertSessionResponse(session) );
     }).timeout(10000);
   
-    it('GET /trainingSessions/:username fails with c_coach1 as logged in user', async () => {
+    it('GET /trainingSessions/other_coach_name fails with c_coach1 as logged in user', async () => {
       const res = await agent.get('/trainingSessions/c_coach2');
       expect(res.statusCode).to.equal(400);
     });
+
+    it('GET /trainingSessions/bad_player_name fails with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/trainingSessions/p_ballard');
+      expect(res.statusCode).to.equal(400);
+    }).timeout(4000);
+
+    it('GET /trainingSessions/good_player_name succeeds with c_coach1 as logged in user', async () => {
+      const res = await agent.get('/trainingSessions/p_warren');
+      expect(res.statusCode).to.equal(200);
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+    }).timeout(4000);
 
     // team players
     it('GET /team?teamName=TeamBit succeeds with c_coach1 logged in as user', async () => {
@@ -314,9 +325,8 @@ describe('Test Express server endpoints', async () => {
     it('GET /trainingSessions succeeds with a_administrator as logged in user', async () => {
       const res = await agent.get('/trainingSessions');
       expect(res.statusCode).to.equal(200);
-      // res.body.forEach((session: any)=>assertSessionResponse(session) );
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
     }).timeout(10000);
-
 
     it('GET /trainingSessions/:username succeeds with a_administrator as logged in user', async () => {
       const res = await agent.get('/trainingSessions/p_warren');
@@ -325,6 +335,18 @@ describe('Test Express server endpoints', async () => {
       (res.body as any[]).forEach(session => assertSessionResponse(session));
     }).timeout(10000);
 
+    it('GET /trainingSessions/coach_name succeeds with a_administrator as logged in user', async () => {
+      const res = await agent.get('/trainingSessions/c_coach1');
+      expect(res.statusCode).to.equal(200);
+      expect(res.body).to.be.an('array');
+      (res.body as any[]).forEach(session => assertSessionResponse(session));
+    }).timeout(10000);
+
+    it('GET /trainingSessions/:username fails with invalid username as admin', async () => {
+      const res = await agent.get('/trainingSessions/BAD_NAME');
+      expect(res.statusCode).to.equal(400);
+    }).timeout(10000);
+    
     // team players
     it('GET /team?teamName=TeamBit succeeds with a_administrator logged in as user', async () => {
       const res = await agent.get('/team?teamName=TeamBit');

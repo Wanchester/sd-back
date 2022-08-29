@@ -21,6 +21,7 @@ const ExitCodeMap = {
   'e400.15': 'Input \':0\' training session name does not exist',
   'e400.16': 'Cannot query future',
   'e400.17': 'Bad time window',
+  'e400.18': 'Invalid get_unique influx column. Do not support :0',
 
   //401 Unauthenticated, Unauthorised
   'e401.0': 'You must login in order to make this request.',

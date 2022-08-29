@@ -13,13 +13,14 @@ export type InfluxQuery = { //TODO:need more specific name
   time_window?: { every: number, period?: number, func?: AggregateFunc }, //seconds
   get_unique?: string
 };
-function influxColumn(name: string) :string {
+function influxColumn(name: string) :string | undefined {
   switch (name) {
-    case 'team': return '_measurement';
-    case 'player': return 'Player Name';
+    case 'teams': return '_measurement';
+    case 'players': return 'Player Name';
     case 'sessions': return 'Session';
     //case 'field': return '_field';
-    default: return 'oops';
+    default: throwBasedOnCode('e400.18', name);
+      //do not support this column error
   }
 }
 export type AggregateFunc = 'mean' | 'median' | 'mode' | 'max' | 'min';
@@ -48,9 +49,9 @@ export async function getSessionBeginningAndEnd(sessionName: string, queryClient
   const readiedStartQuery = interpole(loadedStartQuery, [sessionName]);
   const readiedEndQuery = interpole(loadedEndQuery, [sessionName]);
   
-  const sessionStartTime: any = await executeInflux(readiedStartQuery, queryClient) as string[];
-  const sessionEndTime: any = await executeInflux(readiedEndQuery, queryClient) as string[];
-  return [sessionStartTime[0]._time, sessionEndTime[0]._time];
+  const sessionStartTimePromise = executeInflux(readiedStartQuery, queryClient);
+  const sessionEndTimePromise = executeInflux(readiedEndQuery, queryClient);
+  return { name: sessionName, beginning: (await sessionStartTimePromise)[0]._time, end: (await sessionEndTimePromise)[0]._time };
 }
 
 // input format: RFC3339

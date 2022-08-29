@@ -1,7 +1,7 @@
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
-import { getCoachTrainingSessionsAPI, getTrainingSessionsAPI } from './trainingSession';
+import { getTrainingSessionsAPI } from './trainingSession';
 import { getPersonalInfoAPI, callBasedOnRole, getCommonTeams } from './utils';
 import { Express } from 'express';
 import { isPlainObject } from 'lodash';
@@ -19,6 +19,9 @@ export async function getPlayerProfileAPI(
   if ('error' in personalInfo) {
     return personalInfo;
   }
+  //two influx queries; need to be sent independantly
+  const playerTeamsPromise = getPlayerTeamsAPI(sqlDB, queryClient, username);
+  const playerSessionsPromise = getTrainingSessionsAPI(sqlDB, queryClient, username);
   if (personalInfo.role == 'player') {
     //define the structure of the API that will be returned to frontend
     const homepageInfo = {
@@ -41,9 +44,9 @@ export async function getPlayerProfileAPI(
     homepageInfo.height = personalInfo.height;
     homepageInfo.weight = personalInfo.weight;
     homepageInfo.role = personalInfo.role;
-    homepageInfo.teams = await getPlayerTeamsAPI(sqlDB, queryClient, username);
+    homepageInfo.teams = await playerTeamsPromise;
 
-    const trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username);
+    const trainingSessions = await playerSessionsPromise;
     if (trainingSessions) {
       homepageInfo.trainingSessions = trainingSessions;
     }
@@ -88,7 +91,7 @@ export async function getCoachProfileAPI(
     homepageInfo.weight = personalInfo.weight;
     homepageInfo.role = personalInfo.role;
     homepageInfo.teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
-    homepageInfo.trainingSessions = await getCoachTrainingSessionsAPI(sqlDB, queryClient, username) || [{}];
+    homepageInfo.trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username) || [{}];
     // homepageInfo.trainingSessions = ['TODO: to implement await getPlayerSessionsAPI(sqlDB, queryClient, username);'];
     return homepageInfo;
   } else {

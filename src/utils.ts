@@ -73,7 +73,7 @@ export const executeInflux = async (
       },
       error: (error) => {
         rejected = true;
-        error.message = 'e5001: Error when querying InfluxDB';
+        error.message = 'e500.0: Error when querying InfluxDB';
         reject(error);
       },
       complete: () => {
