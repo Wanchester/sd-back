@@ -15,7 +15,8 @@ export async function getLineGraphAPI(
     return;
   }
   const influxResponse = await executeInflux(buildQuery(influxRequest), queryClient);
-  let output: TimeSeriesResponse = { [influxRequest.names as any]: { [influxRequest.fields as any]: [] } };
+  let stats: { [s:string]:[string, number][] } = Object.fromEntries(influxRequest.fields.map((f) => [f, []]));
+  let output = Object.fromEntries(influxRequest.names.map((p) => [p, stats]));
   influxResponse.forEach((row) => {
     output[row['Player Name']][row._field].push([row._time, row._value]);
   });
