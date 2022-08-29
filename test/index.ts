@@ -1,6 +1,6 @@
 import { assert, expect } from 'chai';
 import startExpressServer from '../src';
-import request from 'supertest';
+import request, { SuperAgentTest } from 'supertest';
 
 function assertSessionResponse(session: any) {
   assert.isObject(session);
@@ -47,6 +47,15 @@ function assertPlayerNameListResponse(playerList: any) {
     assert.isString(value.name);
     assert.isString(value.username);
   });
+}
+
+async function verifyPutProfileRequest(agent: SuperAgentTest, endpoint: string, height = 170) {
+  const res = await agent.put(endpoint).send({ height });
+  expect(res.statusCode).to.equal(200);
+  expect(res.body).to.haveOwnProperty('height', height);
+
+  const dblcheck = await agent.get(endpoint);
+  expect(dblcheck.body).to.haveOwnProperty('height', height);
 }
 
 describe('Test Express server endpoints', async () => {
@@ -194,6 +203,16 @@ describe('Test Express server endpoints', async () => {
       assertSessionResponse(res.body);
     }).timeout(10000);
 
+    // edit profile
+    it('PUT /profile succeeds with p_jbk as logged in user', async () => {
+      await verifyPutProfileRequest(agent, '/profile');
+    });
+
+    it('PUT /profile/OTHER_USER fails with p_jbk as logged in user', async () => {
+      const res = await agent.put('/profile/p_warren').send({ height: 170 });
+      expect(res.statusCode).to.equal(401);
+    });
+
   });
 
   // coach
@@ -265,6 +284,20 @@ describe('Test Express server endpoints', async () => {
 
     it('GET /team?teamName=TeamWanchester fails with c_coach1 logged in as user', async () => {
       const res = await agent.get('/team?teamName=TeamWanchester');
+      expect(res.statusCode).to.equal(400);
+    });
+
+    // edit profile
+    it('PUT /profile succeeds with c_coach1 as logged in user', async () => {
+      await verifyPutProfileRequest(agent, '/profile');
+    }).timeout(4000);
+
+    it('PUT /profile/PLAYER_IN_TEAM succeeds with c_coach1 as logged in user', async () => {
+      await verifyPutProfileRequest(agent, '/profile/p_jbk', 171);
+    });
+
+    it('PUT /profile/PLAYER_NOT_IN_TEAM fails with c_coach1 as logged in user', async () => {
+      const res = await agent.put('/profile/p_ballard').send({ height: 170 });
       expect(res.statusCode).to.equal(400);
     });
 
@@ -371,5 +404,14 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.get('/trainingSessions?fullStats=true&teamName=TeamBit&sessionName=NULL 0/4/22');
       expect(res.statusCode).to.equal(400);
     }).timeout(10000);
+    // edit profile
+    it('PUT /profile fails with a_administrator as logged in user', async () => {
+      const res = await agent.put('/profile').send({ height: 170 });
+      expect(res.statusCode).to.equal(403);
+    });
+
+    it('PUT /profile/OTHER_USER succeeds with a_administrator as logged in user', async () => {
+      await verifyPutProfileRequest(agent, '/profile/p_jbk', 172);
+    });
   });
 });
