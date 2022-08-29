@@ -4,6 +4,7 @@ import { readFileSync } from 'fs';
 import throwBasedOnCode from './throws';
 import { QueryApi } from '@influxdata/influxdb-client';
 import { executeInflux } from './utils';
+import { type } from 'os';
 export type InfluxQuery = { //TODO:need more specific name
   range?: { start: string, stop?: string },
   names?: string[],
@@ -128,8 +129,8 @@ export function buildQuery(query: InfluxQuery) :string {
     let outputBuffer: string[] = [];
     if (list !== undefined && list.length !== 0) {
       outputBuffer.push(`|>filter(fn: (r)=> r["${column}"] == "${list[0]}"`);
-      for (let name in list.slice(1)) {
-        outputBuffer.push(` or r["${column}"] == ${name}`);
+      for (let n of (list.slice(1))) {
+        outputBuffer.push(` or r["${column}"] == ${n}`);
       }
       outputBuffer.push(')');
     }
