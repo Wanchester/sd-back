@@ -37,7 +37,7 @@ export interface TrainingSessionsGetInterface {
   'sessionName': string,
 }
 
-export interface TimeSeriesResponse {
+export interface TimeSeriesResponse { //out of date
   data: [
     string, //RFC3339 date string. try 'new Date().toISOString()' to see the format. Date objects handle this well
     number,
