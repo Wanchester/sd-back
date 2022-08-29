@@ -294,7 +294,7 @@ describe('Test Express server endpoints', async () => {
 
     it('PUT /profile/PLAYER_IN_TEAM succeeds with c_coach1 as logged in user', async () => {
       await verifyPutProfileRequest(agent, '/profile/p_jbk', 171);
-    });
+    }).timeout(4000);
 
     it('PUT /profile/PLAYER_NOT_IN_TEAM fails with c_coach1 as logged in user', async () => {
       const res = await agent.put('/profile/p_ballard').send({ height: 170 });
