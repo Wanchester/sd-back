@@ -15,8 +15,9 @@ export async function getLineGraphAPI(
     return;
   }
   //prepare output object skeleton
-  let stats: { [s:string]:[string, number][] } = Object.fromEntries(influxRequest.fields.map((f) => [f, []]));
-  let output: TimeSeriesResponse = Object.fromEntries(influxRequest.names.map((p) => [p, stats]));
+  //  arrow function will create new arrays, so they are not shared between players
+  let generateStatsSkeleton = () => Object.fromEntries(influxRequest.fields!.map((f) => [f, []]));
+  let output: TimeSeriesResponse = Object.fromEntries(influxRequest.names.map((p) => [p, generateStatsSkeleton()]));
 
   const influxResponse = await executeInflux(buildQuery(influxRequest), queryClient);
   //organise times and values into output
