@@ -118,6 +118,8 @@ import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } fro
 //   }
 // }
 
+
+
 export async function getTrainingSessionsAPI(
   sqlDB: Database,
   queryClient: QueryApi,

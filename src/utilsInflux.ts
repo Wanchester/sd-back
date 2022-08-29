@@ -129,7 +129,7 @@ export function buildQuery(query: InfluxQuery) :string {
     if (list !== undefined && list.length !== 0) {
       outputBuffer.push(`|>filter(fn: (r)=> r["${column}"] == "${list[0]}"`);
       for (let n of (list.slice(1))) {
-        outputBuffer.push(` or r["${column}"] == ${n}`);
+        outputBuffer.push(` or r["${column}"] == "${n}"`);
       }
       outputBuffer.push(')');
     }
