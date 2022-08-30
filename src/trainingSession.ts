@@ -3,7 +3,7 @@ import { QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } from './utils';
 import { SessionResponseType } from './interface';
-import { Express, query } from 'express';
+import { Express } from 'express';
 import { getCoachTeamsAPI } from './team';
 import { buildQuery, getDuration, getSessionBeginningAndEnd, InfluxQuery } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
