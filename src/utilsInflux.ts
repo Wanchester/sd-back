@@ -97,10 +97,6 @@ export function buildQuery(query: InfluxQuery) :string {
         query.range.stop = temp;
       }
     }
-    if (Math.max(new Date(query.range.start).getTime(), new Date(query.range.stop || query.range.start).getTime()) > new Date().getTime()) {
-      //Error cannot query future
-      throwBasedOnCode('e400.16');
-    }
 
     if (query.range.stop !== undefined) {
       //swap ranges if wrong order
@@ -160,13 +156,14 @@ export function buildQuery(query: InfluxQuery) :string {
       output.push(`, period: ${Math.floor(query.time_window.period)}s`);
     }
     output.push(')');
-    //repair _time column after window
     if (query.time_window.func !== undefined) {
       output.push(`|>${query.time_window.func}()`);
     } else {
       output.push('|>mean()');
     }
+    //repair _time column after window
     output.push('|>duplicate(column: "_stop", as: "_time")');
+
     //collect as one window
     // output.push('|>window(every: inf)');
   }
