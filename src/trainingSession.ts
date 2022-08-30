@@ -3,121 +3,53 @@ import { QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } from './utils';
 import { SessionResponseType } from './interface';
-import { Express } from 'express';
+import { Express, query } from 'express';
 import { getCoachTeamsAPI } from './team';
 import { buildQuery, getDuration, getSessionBeginningAndEnd, InfluxQuery } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } from './trainingSessionStats';
 
-// given a teamName, return the basic information of a training session
-// export async function getTeamTrainingSessionsAPI(
-//   queryClient: QueryApi,
-//   teamName: string,
-// ) {
-//   // get all trainingSessions stats of given teamName
-//   const trainingSessions = await executeInflux(buildQuery({ teams: [teamName], get_unique: 'sessions' }), queryClient);
-//   const cleanedTrainingSessions: SessionResponseType[] = [];
-//   const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
-    
-//   //send requests for session times
-//   for (let sessionResponse of trainingSessions) {
-//     sessionTimePromises.push(getSessionBeginningAndEnd(sessionResponse.Session, queryClient));
-//   }
+async function cleanTrainingSessionsWithQuery(queryClient: QueryApi, queryFromFrontend: InfluxQuery) {
+  const trainingSessions = await executeInflux(buildQuery(queryFromFrontend), queryClient);
+  const cleanedTrainingSessions: SessionResponseType[] = [];
+  const sessionTimePromises: Promise<{ name: string; beginning: any; end: any; }>[] = [];
 
-//   //ready objects and assign session name and team
-//   for (let i = 0; i < trainingSessions.length; i++) {
-//     const aSession = {
-//       sessionName: '',
-//       sessionStart: '',
-//       sessionStop: '',
-//       teamName: '',
-//       duration: '',
-//     } as SessionResponseType;
-//     aSession.sessionName = trainingSessions[i].Session;
-//     aSession.teamName = trainingSessions[i]._measurement;
-//     cleanedTrainingSessions.push(aSession);
-//   }
+  //send requests for session times
+  for (let sessionResponse of trainingSessions) {
+    sessionTimePromises.push(getSessionBeginningAndEnd(sessionResponse.Session, queryClient));
+  }
 
-//   //await and assign times
-//   const sessionTimes = await Promise.all(sessionTimePromises);
-//   const keyedTimes = Object.fromEntries(sessionTimes.map((o) => [o.name, o]));
-    
-//   for (const cleanedSession of cleanedTrainingSessions) {
-//     cleanedSession.sessionStart = keyedTimes[cleanedSession.sessionName].beginning;
-//     cleanedSession.sessionStop = keyedTimes[cleanedSession.sessionName].end;
-//     cleanedSession.duration = getDuration(cleanedSession.sessionStart, cleanedSession.sessionStop);
-//   }
+  //ready objects and assign sessionName, teamName
+  for (let i = 0; i < trainingSessions.length; i++) {
+    const aSession = {
+      sessionName: '',
+      sessionStart: '',
+      sessionStop: '',
+      teamName: '',
+      duration: '',
+    } as SessionResponseType;
+    aSession.sessionName = trainingSessions[i].Session;
+    aSession.teamName = trainingSessions[i]._measurement;
+    cleanedTrainingSessions.push(aSession);
+  }
 
-//   return cleanedTrainingSessions;
-// }
+  //await and assign times
+  const sessionTimes = await Promise.all(sessionTimePromises);
+  const keyedTimes = Object.fromEntries(sessionTimes.map((o) => [o.name, o]));
 
-// export async function getPlayerTrainingSessionsAPI(//@depr
-//   sqlDB: Database,
-//   queryClient: QueryApi,
-//   username: string,
-// ) {
-//   //all sessions of a given username
-//   const trainingSessions = await executeInflux(buildQuery({ names: [username], get_unique: 'sessions' }), queryClient);
-//   const cleanedTrainingSessions: SessionResponseType[] = [];
-//   const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
-    
-//   //send requests for session times
-//   for (let sessionResponse of trainingSessions) {
-//     sessionTimePromises.push(getSessionBeginningAndEnd(sessionResponse.Session, queryClient));
-//   }
+  for (const cleanedSession of cleanedTrainingSessions) {
+    cleanedSession.sessionStart = keyedTimes[cleanedSession.sessionName].beginning;
+    cleanedSession.sessionStop = keyedTimes[cleanedSession.sessionName].end;
+    cleanedSession.duration = getDuration(cleanedSession.sessionStart, cleanedSession.sessionStop);
+  }
 
-//   //ready objects and assign sessionName, teamName
-//   for (let i = 0; i < trainingSessions.length; i++) {
-//     const aSession = {
-//       sessionName: '',
-//       sessionStart: '',
-//       sessionStop: '',
-//       teamName: '',
-//       duration: '',
-//     } as SessionResponseType;
-//     aSession.sessionName = trainingSessions[i].Session;
-//     aSession.teamName = trainingSessions[i]._measurement;
-//     cleanedTrainingSessions.push(aSession);
-//   }
+  //possibly empty...
+  return cleanedTrainingSessions;
+}
 
-//   //await and assign times
-//   const sessionTimes = await Promise.all(sessionTimePromises);
-//   for (let sessionTime of sessionTimes) {
-//     for (let cleanedSession of cleanedTrainingSessions) {
-//       if (sessionTime.name === cleanedSession.sessionName) {
-//         cleanedSession.sessionStart = sessionTime.beginning;
-//         cleanedSession.sessionStop = sessionTime.end;
-//         cleanedSession.duration = getDuration(sessionTime.beginning, sessionTime.end);
-//       }
-//     }
-//   }
-
-//   return cleanedTrainingSessions;
-// }
-
-// export async function getCoachTrainingSessionsAPI(//@depr
-//   sqlDB: Database,
-//   queryClient: QueryApi,
-//   username: string,
-// ) {
-//   //search the personal information of given username from SQL database
-//   const personalInfo = await getPersonalInfoAPI(sqlDB, username);
-//   if (personalInfo.role == 'coach') {
-//     // get all the teams of given coach's username
-//     let teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
-//     let teamsTrainingSessions: any[] = []; 
-//     // for each of team in teams, get all training sessions of that team
-//     for (let i = 0; i < teams.length;  i++) {
-//       let trainingSessions = await getTeamTrainingSessionsAPI(queryClient, teams[i]);//:awaiting in this loop
-//       teamsTrainingSessions.push(...trainingSessions);
-//     }
-//     return teamsTrainingSessions;
-//   } else {
-//     // throw new Error('cannot find coach with given username');
-//     throwBasedOnCode('e400.5');
-//   }
-// }
-
+export async function getTeamsTrainingSessionsAPI(queryClient: QueryApi, teamName: string) {
+  return cleanTrainingSessionsWithQuery(queryClient, { teams: [teamName] });
+}
 
 
 export async function getTrainingSessionsAPI(
@@ -125,64 +57,25 @@ export async function getTrainingSessionsAPI(
   queryClient: QueryApi,
   username: string,
 ): Promise<SessionResponseType[] | undefined> {
-  //actual job
-  const cleanTrainingSessionsWithQuery = async (query: InfluxQuery) => {
-    const trainingSessions = await executeInflux(buildQuery(query), queryClient);
-    const cleanedTrainingSessions: SessionResponseType[] = [];
-    const sessionTimePromises: Promise<{ name:string, beginning:any, end:any }>[] = [];
-    
-    //send requests for session times
-    for (let sessionResponse of trainingSessions) {
-      sessionTimePromises.push(getSessionBeginningAndEnd(sessionResponse.Session, queryClient));
-    }
-
-    //ready objects and assign sessionName, teamName
-    for (let i = 0; i < trainingSessions.length; i++) {
-      const aSession = {
-        sessionName: '',
-        sessionStart: '',
-        sessionStop: '',
-        teamName: '',
-        duration: '',
-      } as SessionResponseType;
-      aSession.sessionName = trainingSessions[i].Session;
-      aSession.teamName = trainingSessions[i]._measurement;
-      cleanedTrainingSessions.push(aSession);
-    }
-
-    //await and assign times
-    const sessionTimes = await Promise.all(sessionTimePromises);
-    const keyedTimes = Object.fromEntries(sessionTimes.map((o) => [o.name, o]));
-    
-    for (const cleanedSession of cleanedTrainingSessions) {
-      cleanedSession.sessionStart = keyedTimes[cleanedSession.sessionName].beginning;
-      cleanedSession.sessionStop = keyedTimes[cleanedSession.sessionName].end;
-      cleanedSession.duration = getDuration(cleanedSession.sessionStart, cleanedSession.sessionStop);
-    }
-
-    //possibly empty...
-    return cleanedTrainingSessions;
-  };
-
   //role management and output
   const output = await callBasedOnRole(sqlDB, username, 
     //player
     async () => {
       const userInfo = await getPersonalInfoAPI(sqlDB, username);//callBasedOnRole does this too...
-      const trainingSessions = await cleanTrainingSessionsWithQuery({ names: [userInfo.name], get_unique: 'sessions' }); 
+      const trainingSessions = await cleanTrainingSessionsWithQuery(queryClient, { names: [userInfo.name], get_unique: 'sessions' }); 
       return trainingSessions;
     },
     //coach
     async () => {
       //coach queries based on his assigned teams in SQL
       const coachTeamNames = await getCoachTeamsAPI(sqlDB, queryClient, username);
-      const trainingSessions = await cleanTrainingSessionsWithQuery({ teams: coachTeamNames, get_unique: 'sessions' });
+      const trainingSessions = await cleanTrainingSessionsWithQuery(queryClient, { teams: coachTeamNames, get_unique: 'sessions' });
       return trainingSessions;
     },
     //admin
     async () => {
       //getting ALL sessions for admin
-      const trainingSessions = await cleanTrainingSessionsWithQuery({ get_unique: 'sessions' });
+      const trainingSessions = await cleanTrainingSessionsWithQuery(queryClient, { get_unique: 'sessions' });
       return trainingSessions;
     },
   );
