@@ -12,21 +12,34 @@ export async function getLineGraphAPI(
 ): Promise<TimeSeriesResponse | undefined> {
   /**
    * TODO:
-   *  [ ] support team filter with no specified names
    *  [ ] support session filter with no specified names
    */
-  if (influxRequest.names === undefined || influxRequest.fields === undefined) {
+  //no fields specified. Many fields in InfluxDB are irrelevant, will not return all
+  if (influxRequest.fields === undefined) {
     throwBasedOnCode('e400.19', JSON.stringify(influxRequest) as string);
     return;
   }
+
   //prepare output object skeleton
   //  arrow function will create new arrays, so they are not shared between players
   let generateStatsSkeleton = () => Object.fromEntries(influxRequest.fields!.map((f) => [f, []]));
-  let output: TimeSeriesResponse = Object.fromEntries(influxRequest.names.map((p) => [p, generateStatsSkeleton()]));
+  let output: TimeSeriesResponse = {};
+  
+  //frontend has specified a filter for player's names
+  //we can construct the playernames section from this
+  if (influxRequest.names !== undefined) {
+    output = Object.fromEntries(influxRequest.names.map((p) => [p, generateStatsSkeleton()]));
+  }
 
+  //perform query
   const influxResponse = await executeInflux(buildQuery(influxRequest), queryClient);
+
   //organise times and values into output
   influxResponse.forEach((row) => {
+    if (!((row['Player Name'] as string) in output)) {
+      output[row['Player Name']] = generateStatsSkeleton();
+    }
+
     output[row['Player Name']][row._field].push([row._time, row._value]);
   });
   return output;
