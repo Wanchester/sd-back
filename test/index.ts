@@ -49,6 +49,27 @@ function assertPlayerNameListResponse(playerList: any) {
   });
 }
 
+function assertTimeSeriesResponse(response: any) {
+  assert.isObject(response);
+  assert.isArray(Object.keys(response));
+  Object.keys(response).forEach((key:any) => assert.isString(key));
+  response.forEach((playerEntry:any) => {
+    assert.isObject(playerEntry);
+    assert.isArray(Object.keys(playerEntry));
+    Object.keys(playerEntry).forEach((field:any) => assert.isString(field));
+    playerEntry.forEach((statList:any) => {
+      assert.isArray(statList);
+      statList.forEach((timeAndValue:any) => {
+        assert.isArray(timeAndValue);
+        expect(timeAndValue.length).to.equal(2);
+        assert.isString(timeAndValue[0]);
+        assert.isNumber(timeAndValue[1]);
+      });
+    });
+  });
+  
+}
+
 async function verifyPutProfileRequest(agent: SuperAgentTest, endpoint: string, height = 170) {
   const res = await agent.put(endpoint).send({ height });
   expect(res.statusCode).to.equal(200);
