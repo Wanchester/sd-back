@@ -475,5 +475,22 @@ describe('Test Express server endpoints', async () => {
     it('PUT /profile/OTHER_USER succeeds with a_administrator as logged in user', async () => {
       await verifyPutProfileRequest(agent, '/profile/p_jbk', 172);
     }).timeout(4000);
+
+    //line graph
+    it('GET /lineGraph succeeds for a_administrator', async () => {
+      const res = await agent.get('/lineGraph').send({
+        sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
+        teams: ['TeamBit', 'Team3', 'TeamWanchester'],
+        fields: ['Velocity', 'Height'],
+        time_window: { every: '36000', func: 'mean' },
+      });
+      expect(res.statusCode).to.equal(200);
+      assertTimeSeriesResponse(res.body);
+    }).timeout(6000);
+
+    it('GET /lineGraph fails for a_administrator with empty query', async () => {
+      const res = await agent.get('/lineGraph').send({});
+      expect(res.statusCode).to.equal(400);
+    });
   });
 });
