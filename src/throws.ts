@@ -29,6 +29,7 @@ const ExitCodeMap = {
   'e401.1': 'You have to be a coach/admin to make this request.',
   'e401.2': 'You have to be an admin to make this request.',
   'e403.3': 'You have to be a player/coach to make this request',
+  'e403.4': 'You are not affiliated with :0 and therefore not allowed to make this request',
 
   //403 Forbiden
   'e403.0': 'You are not allowed to edit the :0 attribute',
