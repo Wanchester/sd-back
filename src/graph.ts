@@ -10,6 +10,11 @@ export async function getLineGraphAPI(
   queryClient: QueryApi,
   influxRequest: InfluxQuery,
 ): Promise<TimeSeriesResponse | undefined> {
+  /**
+   * TODO:
+   *  [ ] support team filter with no specified names
+   *  [ ] support session filter with no specified names
+   */
   if (influxRequest.names === undefined || influxRequest.fields === undefined) {
     throwBasedOnCode('e400.19', JSON.stringify(influxRequest) as string);
     return;
