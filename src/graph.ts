@@ -104,7 +104,6 @@ export default function bindGetLineGraph(
 ) {
   /**
    * TODO:
-   *  [ ] any role management?
    *  [ ] what if empty return values?
    */
   app.get('/lineGraph', async (req, res) => {
