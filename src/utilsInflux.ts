@@ -153,23 +153,23 @@ export function buildQuery(query: InfluxQuery) :string {
   //window and aggregate with fn
   if (query.time_window !== undefined ) {
     if (query.time_window.every < 1) {throwBasedOnCode('e400.17');}
+    output.push('|>group(columns: ["_field","Player Name"])');
     output.push(`|>window(every: ${Math.floor(query.time_window.every)}s`);
     if (query.time_window.period !== undefined ) {
       if (query.time_window.period < 1) {throwBasedOnCode('e400.17');}
       output.push(`, period: ${Math.floor(query.time_window.period)}s`);
     }
     output.push(')');
-    output.push('|>group(columns: ["_field","Player Name"])');
+    //repair _time column after window
     if (query.time_window.func !== undefined) {
       output.push(`|>${query.time_window.func}()`);
     } else {
       output.push('|>mean()');
     }
-    //repair _time column after window
     output.push('|>duplicate(column: "_stop", as: "_time")');
+    //collect as one window
+    // output.push('|>window(every: inf)');
   }
-  //collect as one window
-  output.push('|>window(every: inf)');
   return output.join('');
 }
 
