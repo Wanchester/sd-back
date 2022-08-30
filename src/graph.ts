@@ -12,7 +12,6 @@ export async function getLineGraphAPI(
 ): Promise<TimeSeriesResponse | undefined> {
   /**
    * TODO:
-   *  [ ] support session filter with no specified names
    */
   //no fields specified. Many fields in InfluxDB are irrelevant, will not return all
   if (influxRequest.fields === undefined) {
