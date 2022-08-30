@@ -159,6 +159,7 @@ export function buildQuery(query: InfluxQuery) :string {
       output.push(`, period: ${Math.floor(query.time_window.period)}s`);
     }
     output.push(')');
+    output.push('|>group(columns: ["_field","Player Name"])');
     if (query.time_window.func !== undefined) {
       output.push(`|>${query.time_window.func}()`);
     } else {
