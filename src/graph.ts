@@ -1,7 +1,7 @@
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
 import { TimeSeriesResponse } from './interface';
-import throwBasedOnCode, { getStatusCodeBasedOnError } from './throws';
+import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { executeInflux } from './utils';
 import { buildQuery, InfluxQuery } from './utilsInflux';
 
@@ -55,6 +55,15 @@ export default function bindGetLineGraph(
    */
   app.get('/lineGraph', async (req, res) => {
     try {
+      //must log in
+      if (req.session.username === undefined) {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+        return;
+      }
+
       const lineGraphData = await getLineGraphAPI(queryClient, req.body as InfluxQuery);
       res.status(200).send(lineGraphData);
     } catch (error) {
