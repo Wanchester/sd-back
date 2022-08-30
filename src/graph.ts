@@ -24,7 +24,7 @@ export async function getLineGraphAPI(
   let generateStatsSkeleton = () => Object.fromEntries(influxRequest.fields!.map((f) => [f, []]));
   let output: TimeSeriesResponse = {};
   
-  //frontend has specified a filter for player's names
+  //frontend may specify a filter for player's names
   //we can construct the playernames section from this
   if (influxRequest.names !== undefined) {
     output = Object.fromEntries(influxRequest.names.map((p) => [p, generateStatsSkeleton()]));
@@ -35,6 +35,7 @@ export async function getLineGraphAPI(
 
   //organise times and values into output
   influxResponse.forEach((row) => {
+    //request may not have specified names, extract from influxResponse
     if (!((row['Player Name'] as string) in output)) {
       output[row['Player Name']] = generateStatsSkeleton();
     }
