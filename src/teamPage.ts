@@ -7,7 +7,7 @@ import  throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError 
 import { getTeamsAPI } from './team';
 
 
-async function getTeamPlayersAPI(
+export async function getTeamPlayersAPI(
   sqlDB: Database,
   queryClient: QueryApi,
   teamName: string,
