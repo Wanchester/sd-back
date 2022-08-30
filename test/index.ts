@@ -347,10 +347,10 @@ describe('Test Express server endpoints', async () => {
     });
 
     //line graph
-    it('GET /lineGraph succeeds for c_coach', async () => {
+    it('GET /lineGraph succeeds for c_coach1', async () => {
       const res = await agent.get('/lineGraph').send({
-        sessions: ['NULL 24/4/22'],
-        teams: ['TeamWanchester', 'Team3'],
+        sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
+        teams: ['TeamBit', 'Team3'],
         fields: ['Velocity', 'Height'],
         time_window: { every: '3600', func: 'mean' },
       });

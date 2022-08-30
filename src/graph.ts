@@ -1,8 +1,12 @@
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
-import { TimeSeriesResponse } from './interface';
+import { Database } from 'sqlite3';
+import { SessionResponseType, TimeSeriesResponse } from './interface';
+import { getTeamsAPI } from './team';
+import { getTeamPlayersAPI } from './teamPage';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
-import { executeInflux } from './utils';
+import { getTrainingSessionsAPI } from './trainingSession';
+import { executeInflux, getPersonalInfoAPI } from './utils';
 import { buildQuery, InfluxQuery } from './utilsInflux';
 
 
@@ -13,10 +17,6 @@ export async function getLineGraphAPI(
   /**
    * TODO:
    */
-  //no fields specified. Many fields in InfluxDB are irrelevant, will not return all
-  if (influxRequest.fields === undefined) {
-    throwBasedOnCode('e400.19', JSON.stringify(influxRequest) as string);
-  }
 
   //prepare output object skeleton
   //  arrow function will create new arrays, so they are not shared between players
@@ -44,8 +44,62 @@ export async function getLineGraphAPI(
   return output;
 }
 
+export async function buildQueryHasPermissions(
+  sqlDB: Database, 
+  queryClient: QueryApi,
+  username: string,
+  requestedQuery: InfluxQuery,
+) {
+  if ((await getPersonalInfoAPI(sqlDB, username)).role === 'admin') {return true;}
+  /**
+   * Permissions restrict which values a user may request to view.
+   * Those values are grouped as Player Names, Teams and training Sessions
+   */
+  const allowedSessionsPromise = getTrainingSessionsAPI(sqlDB, queryClient, username) as Promise<SessionResponseType[] | undefined>;
+  const allowedTeamsPromise = getTeamsAPI(sqlDB, queryClient, username) as Promise<string[] | undefined>;
+  //allowed player names are derrived from the allowed team names
+  const allowedPlayerNamesPromise = Promise.all((await allowedTeamsPromise)!.flatMap((teamName:string)=> 
+    getTeamPlayersAPI(sqlDB, queryClient, teamName)));
+
+  /**
+   * throw a 403 FORBIDDEN
+   */
+  const compareRequestedWithAllowed = (requestedList: string[], allowedList: string[] | undefined) => {
+    if (allowedList === undefined) {throwBasedOnCode('e403.4', requestedList[0]);}
+    
+    const keyedAllowed = Object.fromEntries(allowedList!.map((s) => [s, true]));
+    for (let requested of requestedList) {
+      if (keyedAllowed[requested] === undefined) {
+        throwBasedOnCode('e403.4', requested);
+        return;
+      }
+    }
+  };
+
+  //perform checks
+  //sessions
+  if (requestedQuery.sessions !== undefined) {
+    const allowedSessions = (await allowedSessionsPromise)!.map((s) => s.sessionName);
+    compareRequestedWithAllowed(requestedQuery.sessions, allowedSessions);
+  }
+  //teams
+  if (requestedQuery.teams !== undefined) {
+    const allowedTeams = (await allowedTeamsPromise);
+    compareRequestedWithAllowed(requestedQuery.teams, allowedTeams);
+  }
+  //players
+  if (requestedQuery.names !== undefined) {
+    const allowedPlayerNames = (await allowedPlayerNamesPromise).flat().map((n)=>n.name);
+    compareRequestedWithAllowed(requestedQuery.names, allowedPlayerNames);
+  }
+
+  //all passed
+  return true;
+}
+
 export default function bindGetLineGraph(
   app: Express,
+  sqlDB: Database,
   queryClient: QueryApi,
 ) {
   /**
@@ -64,8 +118,21 @@ export default function bindGetLineGraph(
         return;
       }
 
-      const lineGraphData = await getLineGraphAPI(queryClient, req.body as InfluxQuery);
-      res.status(200).send(lineGraphData);
+      //no fields specified. Many fields in InfluxDB are irrelevant, will not return all
+      if (req.body.fields === undefined) {
+        throwBasedOnCode('e400.19', JSON.stringify(req.body) as string);
+      }
+      const performQuery = async () => {
+        const lineGraphData = await getLineGraphAPI(queryClient, req.body as InfluxQuery);
+  	    res.status(200).send(lineGraphData);
+      };
+
+      if (await buildQueryHasPermissions(sqlDB, queryClient, req.session.username!, req.body) === true) {
+        performQuery();
+        return;
+      }
+
+
     } catch (error) {
       res.status(getStatusCodeBasedOnError(error as Error)).send({
         error: (error as Error).message,
