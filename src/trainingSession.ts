@@ -48,7 +48,7 @@ async function cleanTrainingSessionsWithQuery(queryClient: QueryApi, queryFromFr
 }
 
 export async function getTeamsTrainingSessionsAPI(queryClient: QueryApi, teamName: string) {
-  return cleanTrainingSessionsWithQuery(queryClient, { teams: [teamName] });
+  return cleanTrainingSessionsWithQuery(queryClient, { teams: [teamName], get_unique: 'sessions' });
 }
 
 
