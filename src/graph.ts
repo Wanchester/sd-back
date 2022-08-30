@@ -16,7 +16,6 @@ export async function getLineGraphAPI(
   //no fields specified. Many fields in InfluxDB are irrelevant, will not return all
   if (influxRequest.fields === undefined) {
     throwBasedOnCode('e400.19', JSON.stringify(influxRequest) as string);
-    return;
   }
 
   //prepare output object skeleton

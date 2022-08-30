@@ -42,7 +42,7 @@ function assertTeamResponse(team: any) {
 function assertPlayerNameListResponse(playerList: any) {
   assert.isObject(playerList);
   assert.isArray(playerList.players);
-  playerList.players.forEach((value: any) => {
+  (playerList.players as any[]).forEach((value: any) => {
     assert.isObject(value);
     assert.isString(value.name);
     assert.isString(value.username);
@@ -53,13 +53,13 @@ function assertTimeSeriesResponse(response: any) {
   assert.isObject(response);
   assert.isArray(Object.keys(response));
   Object.keys(response).forEach((key:any) => assert.isString(key));
-  response.forEach((playerEntry:any) => {
+  Object.values(response).forEach((playerEntry:any) => {
     assert.isObject(playerEntry);
     assert.isArray(Object.keys(playerEntry));
     Object.keys(playerEntry).forEach((field:any) => assert.isString(field));
-    playerEntry.forEach((statList:any) => {
+    Object.values(playerEntry).forEach((statList:any) => {
       assert.isArray(statList);
-      statList.forEach((timeAndValue:any) => {
+      (statList as any[]).forEach((timeAndValue:any) => {
         assert.isArray(timeAndValue);
         expect(timeAndValue.length).to.equal(2);
         assert.isString(timeAndValue[0]);
@@ -91,6 +91,11 @@ describe('Test Express server endpoints', async () => {
     });
     it('GET /team fails when not logged in', async () => {
       const res = await agent.get('/team?teamName=TeamWanchester');
+      expect(res.statusCode).to.equal(401);
+    });
+
+    it('GET /lineGraph fails when not logged in', async () => {
+      const res = await agent.get('/lineGraph');
       expect(res.statusCode).to.equal(401);
     });
   });
@@ -227,12 +232,31 @@ describe('Test Express server endpoints', async () => {
     // edit profile
     it('PUT /profile succeeds with p_jbk as logged in user', async () => {
       await verifyPutProfileRequest(agent, '/profile');
-    });
+    }).timeout(10000);
 
     it('PUT /profile/OTHER_USER fails with p_jbk as logged in user', async () => {
       const res = await agent.put('/profile/p_warren').send({ height: 170 });
       expect(res.statusCode).to.equal(401);
     });
+
+    //line graph
+    it('GET /lineGraph succeeds for p_jbk', async () => {
+      const res = await agent.get('/lineGraph').send({
+        names: ['Jbk'],
+        sessions: ['NULL 24/4/22'],
+        teams: ['TeamWanchester'],
+        fields: ['Velocity'],
+        time_window: { every: '3600', func: 'mean' },
+      });
+      expect(res.statusCode).to.equal(200);
+      assertTimeSeriesResponse(res.body);
+    }).timeout(6000);
+
+    it('GET /lineGraph fails for p_jbk with empty query', async () => {
+      const res = await agent.get('/lineGraph').send({});
+      expect(res.statusCode).to.equal(400);
+    });
+
 
   });
 
@@ -311,14 +335,31 @@ describe('Test Express server endpoints', async () => {
     // edit profile
     it('PUT /profile succeeds with c_coach1 as logged in user', async () => {
       await verifyPutProfileRequest(agent, '/profile');
-    }).timeout(4000);
+    }).timeout(6000);
 
     it('PUT /profile/PLAYER_IN_TEAM succeeds with c_coach1 as logged in user', async () => {
       await verifyPutProfileRequest(agent, '/profile/p_jbk', 171);
-    }).timeout(4000);
+    }).timeout(6000);
 
     it('PUT /profile/PLAYER_NOT_IN_TEAM fails with c_coach1 as logged in user', async () => {
       const res = await agent.put('/profile/p_ballard').send({ height: 170 });
+      expect(res.statusCode).to.equal(400);
+    });
+
+    //line graph
+    it('GET /lineGraph succeeds for c_coach', async () => {
+      const res = await agent.get('/lineGraph').send({
+        sessions: ['NULL 24/4/22'],
+        teams: ['TeamWanchester', 'Team3'],
+        fields: ['Velocity', 'Height'],
+        time_window: { every: '3600', func: 'mean' },
+      });
+      expect(res.statusCode).to.equal(200);
+      assertTimeSeriesResponse(res.body);
+    }).timeout(6000);
+
+    it('GET /lineGraph fails for c_coach with empty query', async () => {
+      const res = await agent.get('/lineGraph').send({});
       expect(res.statusCode).to.equal(400);
     });
 
@@ -433,6 +474,6 @@ describe('Test Express server endpoints', async () => {
 
     it('PUT /profile/OTHER_USER succeeds with a_administrator as logged in user', async () => {
       await verifyPutProfileRequest(agent, '/profile/p_jbk', 172);
-    });
+    }).timeout(4000);
   });
 });
