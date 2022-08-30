@@ -252,6 +252,15 @@ describe('Test Express server endpoints', async () => {
       assertTimeSeriesResponse(res.body);
     }).timeout(6000);
 
+    it('GET /lineGraph fails for p_jbk requesting unaffiliated team', async () => {
+      const res = await agent.get('/lineGraph').send({
+        teams: ['Team3'],
+        fields: ['Velocity'],
+        time_window: { every: '3600', func: 'mean' },
+      });
+      expect(res.statusCode).to.equal(403);
+    }).timeout(6000);
+
     it('GET /lineGraph fails for p_jbk with empty query', async () => {
       const res = await agent.get('/lineGraph').send({});
       expect(res.statusCode).to.equal(400);
@@ -356,6 +365,15 @@ describe('Test Express server endpoints', async () => {
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
+    }).timeout(6000);
+
+    it('GET /lineGraph fails for c_coach1 requesting unaffiliated team', async () => {
+      const res = await agent.get('/lineGraph').send({
+        teams: ['TeamWanchester'],
+        fields: ['Velocity'],
+        time_window: { every: '3600', func: 'mean' },
+      });
+      expect(res.statusCode).to.equal(403);
     }).timeout(6000);
 
     it('GET /lineGraph fails for c_coach with empty query', async () => {

@@ -65,13 +65,12 @@ export async function buildQueryHasPermissions(
    * throw a 403 FORBIDDEN
    */
   const compareRequestedWithAllowed = (requestedList: string[], allowedList: string[] | undefined) => {
-    if (allowedList === undefined) {throwBasedOnCode('e403.4', requestedList[0]);}
+    if (allowedList === undefined || allowedList.length === 0) {throwBasedOnCode('e403.4', requestedList[0]);}
     
     const keyedAllowed = Object.fromEntries(allowedList!.map((s) => [s, true]));
     for (let requested of requestedList) {
       if (keyedAllowed[requested] === undefined) {
         throwBasedOnCode('e403.4', requested);
-        return;
       }
     }
   };
