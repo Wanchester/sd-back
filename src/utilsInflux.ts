@@ -97,10 +97,6 @@ export function buildQuery(query: InfluxQuery) :string {
         query.range.stop = temp;
       }
     }
-    if (Math.max(new Date(query.range.start).getTime(), new Date(query.range.stop || query.range.start).getTime()) > new Date().getTime()) {
-      //Error cannot query future
-      throwBasedOnCode('e400.16');
-    }
 
     if (query.range.stop !== undefined) {
       //swap ranges if wrong order
@@ -153,6 +149,7 @@ export function buildQuery(query: InfluxQuery) :string {
   //window and aggregate with fn
   if (query.time_window !== undefined ) {
     if (query.time_window.every < 1) {throwBasedOnCode('e400.17');}
+    output.push('|>group(columns: ["_field","Player Name"])');
     output.push(`|>window(every: ${Math.floor(query.time_window.every)}s`);
     if (query.time_window.period !== undefined ) {
       if (query.time_window.period < 1) {throwBasedOnCode('e400.17');}
@@ -166,9 +163,10 @@ export function buildQuery(query: InfluxQuery) :string {
     }
     //repair _time column after window
     output.push('|>duplicate(column: "_stop", as: "_time")');
+
+    //collect as one window
+    // output.push('|>window(every: inf)');
   }
-  //collect as one window
-  output.push('|>window(every: inf)');
   return output.join('');
 }
 

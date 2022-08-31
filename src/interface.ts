@@ -37,9 +37,23 @@ export interface TrainingSessionsGetInterface {
   'sessionName': string,
 }
 
-export interface TimeSeriesResponse { //out of date
-  data: [
-    string, //RFC3339 date string. try 'new Date().toISOString()' to see the format. Date objects handle this well
-    number,
-  ][]
+
+export interface TimeSeriesResponse { // for line graph
+  [playerName:string]: {
+    [fieldName:string]: [
+      string,
+      number,
+    ][]
+  }
 }
+
+// const example = { 
+//   'Warren':
+//     { 'Velocity': [['time1', 10], ['time2', 9], ['time3', 8]],
+//       'Acceleration': [['time1', 10], ['time2', 9]],
+//     }, 
+//   'Jbk':
+//     { 'Velocity': [['time1', 10], ['time2', 9], ['time3', 8]],
+//       'Acceleration': [['time1', 10], ['time2', 9]],
+//     }, 
+// } as TimeSeriesResponse;

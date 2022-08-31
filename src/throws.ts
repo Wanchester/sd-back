@@ -22,12 +22,15 @@ const ExitCodeMap = {
   'e400.16': 'Cannot query future',
   'e400.17': 'Bad time window',
   'e400.18': 'Invalid get_unique influx column. Do not support :0',
+  'e400.19': 'Invalid Line Graph Data request, require fields, got :0',
+  'e400.20': 'No session associated with this Team \':0\'',
 
   //401 Unauthenticated, Unauthorised
   'e401.0': 'You must login in order to make this request.',
   'e401.1': 'You have to be a coach/admin to make this request.',
   'e401.2': 'You have to be an admin to make this request.',
   'e403.3': 'You have to be a player/coach to make this request',
+  'e403.4': 'You are not affiliated with :0 and therefore not allowed to make this request',
 
   //403 Forbiden
   'e403.0': 'You are not allowed to edit the :0 attribute',
