@@ -107,12 +107,12 @@ export default function bindGetTrainingSessions(
         //teamName validation
         const getTeamQuery = buildQuery({ get_unique: 'teams' } ); //get all the teams
         const team = await executeInflux(getTeamQuery, queryClient);
-        console.log('team: ', team);
+        // console.log('team: ', team);
         const teamsList: string[] = [];  // list of all the teams
         team.forEach(row => 
           teamsList.push(row._measurement),
         );
-        console.log(teamsList);
+        // console.log(teamsList);
         if (!teamsList.includes(teamName)) {
           throwBasedOnCode('e400.14', teamName);
         }

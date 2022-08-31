@@ -120,10 +120,10 @@ export async function hasCommonTeams( sqlDB:Database, queryClient: QueryApi, use
   
   let teams1: string[] = [];
   if (personalInfo1.role == 'player') {
-    console.log('1st username is player');
+    // console.log('1st username is player');
     teams1 = await getPlayerTeamsAPI(sqlDB, queryClient, username1 );
   } else if (personalInfo1.role == 'coach') {
-    console.log('1st username is coach');
+    // console.log('1st username is coach');
     teams1 = await getCoachTeamsAPI(sqlDB, queryClient, username1 );
   } else {
     // throw new Error('the 1st input username is not a player or a coach');
@@ -132,10 +132,10 @@ export async function hasCommonTeams( sqlDB:Database, queryClient: QueryApi, use
   
   let teams2: string[] = [];
   if (personalInfo2.role == 'player') {
-    console.log('2nd username is player');
+    // console.log('2nd username is player');
     teams2 = await getPlayerTeamsAPI(sqlDB, queryClient, username2 );
   } else if (personalInfo2.role == 'coach') {
-    console.log('2nd username is coach');
+    // console.log('2nd username is coach');
     teams2 = await getCoachTeamsAPI(sqlDB, queryClient, username2 );
   } else {
     // throw new Error('the 2nd input username is not a player or a coach');
