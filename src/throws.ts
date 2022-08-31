@@ -23,6 +23,7 @@ const ExitCodeMap = {
   'e400.17': 'Bad time window',
   'e400.18': 'Invalid get_unique influx column. Do not support :0',
   'e400.19': 'Invalid Line Graph Data request, require fields, got :0',
+  'e400.20': 'No session associated with this Team \':0\'',
 
   //401 Unauthenticated, Unauthorised
   'e401.0': 'You must login in order to make this request.',

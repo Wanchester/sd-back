@@ -70,7 +70,7 @@ export function bindGetTeamPlayers(
           });
           return;
         } 
-        res.send({ 'players': players });
+        res.status(200).send({ 'players': players });
       };
     
       //ROLE MANAGEMENT

@@ -4,7 +4,7 @@ import { Database } from 'sqlite3';
 import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } from './utils';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
-import { getCoachTeamsAPI } from './team';
+import { getCoachTeamsAPI, getTeamsAPI } from './team';
 import { buildQuery, getDuration, getSessionBeginningAndEnd, InfluxQuery } from './utilsInflux';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
 import { getTrainingSessionPlayerNamesAPI, getTrainingSessionStatisticsAPI } from './trainingSessionStats';
@@ -47,7 +47,7 @@ async function cleanTrainingSessionsWithQuery(queryClient: QueryApi, queryFromFr
   return cleanedTrainingSessions;
 }
 
-export async function getTeamsTrainingSessionsAPI(queryClient: QueryApi, teamName: string) {
+export async function getTeamTrainingSessionsAPI(queryClient: QueryApi, teamName: string) {
   return cleanTrainingSessionsWithQuery(queryClient, { teams: [teamName], get_unique: 'sessions' });
 }
 
@@ -89,9 +89,9 @@ export default function bindGetTrainingSessions(
 ) {
   app.get('/trainingSessions', async (req, res) => {
     try {
+      const loggedInUsername = req.session.username; 
       if ((req.query as any).fullStats) {   
       // app.get('/trainingSessions?fullStats=:fullStats&teamName=:teamName&sessionName=:sessionName', async (req, res) => { 
-        const loggedInUsername = req.session.username;  
         if (loggedInUsername === undefined) {
           res.status(401).send({
             name: 'Error',
@@ -151,11 +151,39 @@ export default function bindGetTrainingSessions(
       } else if (!(req.query as any).fullStats && (req.query as any).teamName !== undefined) {
       // get(/trainingSessions/teamName:=teamName) 
         const teamName = (req.query as any).teamName;
-        const trainingSesissonList = await getTeamsTrainingSessionsAPI(queryClient, teamName );
-        res.send(trainingSesissonList);
+
+        const performRequest = async () => {
+          const trainingSessions = await getTeamTrainingSessionsAPI(queryClient, teamName);
+          if (trainingSessions.length === 0) {
+            res.status(400).send({
+              name: 'Error',
+              error: generateErrorBasedOnCode('e400.20', teamName).message,
+            });
+            return;
+          } 
+          res.status(200).send(trainingSessions);
+        };
+
+        const performRequestWithPermissionOrError = async () => {
+          const associatedTeams = await getTeamsAPI(sqlDB, queryClient, loggedInUsername!);
+          if (associatedTeams.includes(teamName)) {
+            performRequest();
+          } else {
+          //player/coach is not in this team
+            res.status(400).send({
+              name: 'Error',
+              error: generateErrorBasedOnCode('e400.12', loggedInUsername, teamName).message,
+            });
+            return;
+          }
+        };
+
+        callBasedOnRole(sqlDB, loggedInUsername!, 
+          performRequestWithPermissionOrError, 
+          performRequestWithPermissionOrError, 
+          performRequest); 
       } else {  
       // get(/trainingSessions) 
-        let loggedInUsername =  req.session.username;
         if (loggedInUsername === undefined) {
           res.status(401).send({
             name: 'Error',
