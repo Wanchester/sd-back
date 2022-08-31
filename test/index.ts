@@ -493,12 +493,18 @@ describe('Test Express server endpoints', async () => {
       assertPlayerNameListResponse(res.body);
     }).timeout(10000);
 
+    it('GET /team?teamName=InvalidTeam fails with a_administrator logged in as user', async () => {
+      const res = await agent.get('/team?teamName=InvalidTeam');
+      expect(res.statusCode).to.equal(400);
+    });
+
     // team trainingSessions
     it('GET /trainingSessions?teamName=TeamBit succeeds with a_administrator logged in as user', async () => {
       const res = await agent.get('/trainingSessions?teamName=TeamBit');
       expect(res.statusCode).to.equal(200);
       res.body.forEach((session: any)=>assertSessionResponse(session) );
     });
+
     it('GET /trainingSessions?teamName=TeamWanchester succeeds with a_administrator logged in as user', async () => {
       const res = await agent.get('/trainingSessions?teamName=TeamWanchester');
       expect(res.statusCode).to.equal(200);
