@@ -91,7 +91,7 @@ export async function buildQueryWithPermissions(
     compareRequestedWithAllowed(requestedQuery.teams, allowedTeams);
   } else {
     //add legal teams if none requested
-    //ensures no illegal players are returned when not specefied
+    //ensures no illegal players are returned when not specified
     output = { teams: await allowedTeamsPromise, ...output };
   }
   //players
