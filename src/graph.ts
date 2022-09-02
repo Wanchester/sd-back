@@ -31,7 +31,6 @@ export async function getLineGraphAPI(
 
   //perform query
   const influxResponse = await executeInflux(buildQuery(influxRequest), queryClient);
-  console.log(buildQuery(influxRequest));
 
   //organise times and values into output
   influxResponse.forEach((row) => {
