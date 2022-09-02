@@ -10,6 +10,7 @@ import 'dotenv/config';
 // import bindGetStatistic from './playerStatistic';
 import bindLoginAPI from './login';
 import { bindGetTeamPlayers } from './teamPage';
+import bindGetLineGraph from './graph';
 
 function startExpressServer() {
   const app = express();
@@ -37,7 +38,7 @@ function startExpressServer() {
   bindGetProfile(app, db, queryClient);
   // bindGetStatistic(app, db, queryClient);
   bindGetTeamPlayers(app, db, queryClient);
-
+  bindGetLineGraph(app, db, queryClient);
   // PUT requests
   bindPutProfile(app, db, queryClient);
   app.listen(port, () => {

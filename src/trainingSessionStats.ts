@@ -165,7 +165,7 @@ export default function bindGetTrainingSessionStatistics(
         loggedInUsername!,
         async () => {
           const playerList = await getTrainingSessionPlayerNamesAPI(queryClient, teamName, sessionName);
-          console.log(loggedInPersonalInfo);
+          // console.log(loggedInPersonalInfo);
           if ( !playerList.includes(loggedInPersonalInfo.name )) {
             res.status(400).send({
               'name': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).name,

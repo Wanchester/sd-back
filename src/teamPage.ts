@@ -7,7 +7,7 @@ import  throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError 
 import { getTeamsAPI } from './team';
 
 
-async function getTeamPlayersAPI(
+export async function getTeamPlayersAPI(
   sqlDB: Database,
   queryClient: QueryApi,
   teamName: string,
@@ -70,7 +70,7 @@ export function bindGetTeamPlayers(
           });
           return;
         } 
-        res.send({ 'players': players });
+        res.status(200).send({ 'players': players });
       };
     
       //ROLE MANAGEMENT
