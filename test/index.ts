@@ -270,6 +270,21 @@ describe('Test Express server endpoints', async () => {
       assertTimeSeriesResponse(res.body);
     }).timeout(6000);
 
+    it('GET /lineGraph fails for p_jbk requesting unknown field', async () => {
+      const res = await agent.get('/lineGraph').send({
+        fields: ['BAD FIELD'],
+      });
+      expect(res.statusCode).to.equal(400);
+    }).timeout(6000);
+
+    it('GET /lineGraph fails for p_jbk requesting unknown field', async () => {
+      const res = await agent.get('/lineGraph').send({
+        fields: ['BAD FIELD'],
+        BAD_KEY: ['BAD FIELD'],
+      });
+      expect(res.statusCode).to.equal(400);
+    }).timeout(6000);
+
     it('GET /lineGraph fails for p_jbk requesting unaffiliated team', async () => {
       const res = await agent.get('/lineGraph').send({
         teams: ['Team3'],
