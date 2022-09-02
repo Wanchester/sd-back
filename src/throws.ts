@@ -24,6 +24,7 @@ const ExitCodeMap = {
   'e400.18': 'Invalid get_unique influx column. Do not support :0',
   'e400.19': 'Invalid Line Graph Data request, require fields, got :0',
   'e400.20': 'No session associated with this Team \':0\'',
+  'e400.21': 'Found invalid key \':0\', expected only in list [:1]',
 
   //401 Unauthenticated, Unauthorised
   'e401.0': 'You must login in order to make this request.',

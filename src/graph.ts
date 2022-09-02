@@ -120,6 +120,16 @@ export default function bindGetLineGraph(
       if (req.body.fields === undefined) {
         throwBasedOnCode('e400.19', JSON.stringify(req.body) as string);
       }
+      //ensure all keys are valid
+      const querysKeys = Object.keys(req.body);
+      const expectedKeys = ['names', 'fields', 'sessions', 'teams', 'time_window', 'range', 'get_unique'];
+      for (let key of querysKeys) {
+        if (!(key in expectedKeys)) {
+          throwBasedOnCode('e400.21', key, expectedKeys);
+        }
+      }
+           
+
       const performQuery = async () => {
         const lineGraphData = await getLineGraphAPI(queryClient, req.body as InfluxQuery);
   	    res.status(200).send(lineGraphData);
