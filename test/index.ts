@@ -257,71 +257,6 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(401);
     });
 
-    //line graph
-    it('GET /lineGraph succeeds for p_jbk', async () => {
-      const res = await agent.get('/lineGraph').send({
-        names: ['Jbk'],
-        sessions: ['NULL 24/4/22'],
-        teams: ['TeamWanchester'],
-        fields: ['Velocity'],
-        time_window: { every: '3600', func: 'mean' },
-      });
-      expect(res.statusCode).to.equal(200);
-      assertTimeSeriesResponse(res.body);
-    }).timeout(6000);
-
-    it('GET /lineGraph with no name filter only shows allowed players for p_jbk ', async () => {
-      const res = await agent.get('/lineGraph').send({
-        time_window: { every: 84000 },
-        fields: ['Velocity', 'Height', 'Distance'],
-      });
-      const allowedTeams = (await agent.get('/teams')).body;
-      const allowedNames = (await Promise.all(allowedTeams.flatMap(async (team:string) => {
-        const playerList = await agent.get(`/team?teamName=${team}`);
-        const nameList = playerList.body.players.map((p:any)=>p.name);
-        return nameList;
-      }))).flat(2);
-      for (let name of Object.keys(res.body)) {
-        expect(allowedNames).to.include(name);
-      }
-    }).timeout(6000);
-
-
-    it('GET /lineGraph fails for p_jbk requesting unknown field', async () => {
-      const res = await agent.get('/lineGraph').send({
-        fields: ['BAD FIELD'],
-      });
-      expect(res.statusCode).to.equal(400);
-    }).timeout(6000);
-
-    it('GET /lineGraph fails for p_jbk requesting unknown field', async () => {
-      const res = await agent.get('/lineGraph').send({
-        fields: ['BAD FIELD'],
-        BAD_KEY: ['BAD FIELD'],
-      });
-      expect(res.statusCode).to.equal(400);
-    }).timeout(6000);
-
-    it('GET /lineGraph fails for p_jbk empty field', async () => {
-      const res = await agent.get('/lineGraph').send({
-        fields: [],
-      });
-      expect(res.statusCode).to.equal(400);
-    }).timeout(6000);
-
-    it('GET /lineGraph fails for p_jbk requesting unaffiliated team', async () => {
-      const res = await agent.get('/lineGraph').send({
-        teams: ['Team3'],
-        fields: ['Velocity'],
-        time_window: { every: '3600', func: 'mean' },
-      });
-      expect(res.statusCode).to.equal(403);
-    }).timeout(6000);
-
-    it('GET /lineGraph fails for p_jbk with empty query', async () => {
-      const res = await agent.get('/lineGraph').send({});
-      expect(res.statusCode).to.equal(400);
-    });
   });
 
   // coach
@@ -609,17 +544,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(400);
     });
   });
-
-
-
-
-
-
-
-
-
-
-
+  
 
   // player graph  
   describe('Tests graphs for p_jbk player', () => {
@@ -642,17 +567,73 @@ describe('Test Express server endpoints', async () => {
       });
       expect(res.statusCode).to.equal(403);
     });
+  
+    it('GET /lineGraph succeeds for p_warren', async () => {
+      const res = await agent.get('/lineGraph').send({
+        names: ['Jbk'],
+        sessions: ['NULL 24/4/22'],
+        teams: ['TeamWanchester'],
+        fields: ['Velocity'],
+        time_window: { every: '3600', func: 'mean' },
+      });
+      expect(res.statusCode).to.equal(200);
+      assertTimeSeriesResponse(res.body);
+    }).timeout(6000);
+
+    it('GET /lineGraph with no name filter only shows allowed players for p_warren ', async () => {
+      const res = await agent.get('/lineGraph').send({
+        time_window: { every: 84000 },
+        fields: ['Velocity', 'Height', 'Distance'],
+      });
+      const allowedTeams = (await agent.get('/teams')).body;
+      const allowedNames = (await Promise.all(allowedTeams.flatMap(async (team:string) => {
+        const playerList = await agent.get(`/team?teamName=${team}`);
+        const nameList = playerList.body.players.map((p:any)=>p.name);
+        return nameList;
+      }))).flat(2);
+      for (let name of Object.keys(res.body)) {
+        expect(allowedNames).to.include(name);
+      }
+    }).timeout(6000);
+
+
+    it('GET /lineGraph fails for p_warren requesting unknown field', async () => {
+      const res = await agent.get('/lineGraph').send({
+        fields: ['BAD FIELD'],
+      });
+      expect(res.statusCode).to.equal(400);
+    }).timeout(6000);
+
+    it('GET /lineGraph fails for p_warren requesting unknown field', async () => {
+      const res = await agent.get('/lineGraph').send({
+        fields: ['BAD FIELD'],
+        BAD_KEY: ['BAD FIELD'],
+      });
+      expect(res.statusCode).to.equal(400);
+    }).timeout(6000);
+
+    it('GET /lineGraph fails for p_warren empty field', async () => {
+      const res = await agent.get('/lineGraph').send({
+        fields: [],
+      });
+      expect(res.statusCode).to.equal(400);
+    }).timeout(6000);
+
+    it('GET /lineGraph fails for p_warren requesting unaffiliated team', async () => {
+      const res = await agent.get('/lineGraph').send({
+        teams: ['Team3'],
+        fields: ['Velocity'],
+        time_window: { every: '3600', func: 'mean' },
+      });
+      expect(res.statusCode).to.equal(403);
+    }).timeout(6000);
+
+    it('GET /lineGraph fails for p_warren with empty query', async () => {
+      const res = await agent.get('/lineGraph').send({});
+      expect(res.statusCode).to.equal(400);
+    });
+
   });
-
-
-
-
-
-
-
-
-
-
 
 
 
