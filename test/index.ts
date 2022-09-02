@@ -545,8 +545,7 @@ describe('Test Express server endpoints', async () => {
     });
   });
   
-
-  // player graph  
+  // player graph p_warren 
   describe('Tests graphs for p_warren player', () => {
     const agent = request.agent(app);
 
@@ -592,6 +591,24 @@ describe('Test Express server endpoints', async () => {
       assertTimeSeriesResponse(res.body);
     }).timeout(6000);
 
+    it('GET /lineGraph succeeds for requesting all info of NULL 24/4/22', async () => {
+      const res = await agent.get('/lineGraph').send({
+        'sessions': ['NULL 24/4/22'],
+        'fields': ['Velocity', 'Distance'],
+      });
+      expect(res.statusCode).to.equal(200);
+      assertTimeSeriesResponse(res.body);
+      const allowedTeams = (await agent.get('/teams')).body;
+      const allowedNames = (await Promise.all(allowedTeams.flatMap(async (team:string) => {
+        const playerList = await agent.get(`/team?teamName=${team}`);
+        const nameList = playerList.body.players.map((p:any)=>p.name);
+        return nameList;
+      }))).flat(2);
+      for (let name of Object.keys(res.body)) {
+        expect(allowedNames).to.include(name);
+      }
+    }).timeout(6000);
+
     it('GET /lineGraph with no name filter only shows allowed players for p_warren ', async () => {
       const res = await agent.get('/lineGraph').send({
         time_window: { every: 84000 },
@@ -615,7 +632,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(400);
     }).timeout(6000);
 
-    it('GET /lineGraph fails for p_warren requesting unknown field', async () => {
+    it('GET /lineGraph fails for p_warren requesting unknown key', async () => {
       const res = await agent.get('/lineGraph').send({
         fields: ['BAD FIELD'],
         BAD_KEY: ['BAD FIELD'],
@@ -646,7 +663,37 @@ describe('Test Express server endpoints', async () => {
 
   });
 
+  // player graph p_jbk
+  describe('Tests graphs for p_jbk player', () => {
+    const agent = request.agent(app);
 
+    it('POST /login succeeds with p_warren as logged in user', async () => {
+      const testUser = {
+        'username':'p_warren',
+        'password':'12345678',
+      };
+      const res = await agent.post('/login').send(testUser);
+      expect(res.statusCode).to.equal(200);
+    });
+
+    it('GET /lineGraph succeeds for requesting all info of NULL 24/4/22', async () => {
+      const res = await agent.get('/lineGraph').send({
+        'sessions': ['NULL 24/4/22'],
+        'fields': ['Velocity', 'Distance'],
+      });
+      expect(res.statusCode).to.equal(200);
+      assertTimeSeriesResponse(res.body);
+      const allowedTeams = (await agent.get('/teams')).body;
+      const allowedNames = (await Promise.all(allowedTeams.flatMap(async (team:string) => {
+        const playerList = await agent.get(`/team?teamName=${team}`);
+        const nameList = playerList.body.players.map((p:any)=>p.name);
+        return nameList;
+      }))).flat(2);
+      for (let name of Object.keys(res.body)) {
+        expect(allowedNames).to.include(name);
+      }
+    }).timeout(6000);
+  });
 
   //coach graph
   describe('Tests graphs for c_coach1', () => {
