@@ -570,4 +570,60 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(400);
     });
   });
+
+
+
+
+
+
+
+
+
+
+
+
+  // player graph  
+  describe('Tests graphs for p_jbk player', () => {
+    const agent = request.agent(app);
+
+    it('POST /login succeeds with p_warren as logged in user', async () => {
+      const testUser = {
+        'username':'p_warren',
+        'password':'12345678',
+      };
+      const res = await agent.post('/login').send(testUser);
+      expect(res.statusCode).to.equal(200);
+    });
+    
+    it('GET /lineGraph fails when warren tries to see line graph of players in other teams (Silv is in Team3)', async () => {
+      const res = await agent.get('/lineGraph').send({
+        'names':['Silv'],
+        'sessions': ['NULL 24/4/22'],
+        'fields':['Velocity', 'Distance'],
+      });
+      expect(res.statusCode).to.equal(403);
+    });
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+  //coach graph
+  describe('Tests graphs for c_coach1', () => {
+    // const agent = request.agent(app);
+  });
+
+  // admin graph
+  describe('Tests graphs for a_administrator', () => {
+    // const agent = request.agent(app);
+  });
 });
