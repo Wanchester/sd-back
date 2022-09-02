@@ -285,6 +285,13 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(400);
     }).timeout(6000);
 
+    it('GET /lineGraph fails for p_jbk empty field', async () => {
+      const res = await agent.get('/lineGraph').send({
+        fields: [],
+      });
+      expect(res.statusCode).to.equal(400);
+    }).timeout(6000);
+
     it('GET /lineGraph fails for p_jbk requesting unaffiliated team', async () => {
       const res = await agent.get('/lineGraph').send({
         teams: ['Team3'],
