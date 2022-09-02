@@ -196,6 +196,7 @@ describe('Test Express server endpoints', async () => {
     it('GET /trainingSessions succeeds with p_jbk as logged in user', async () => {
       const res = await agent.get('/trainingSessions');
       expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
       res.body.forEach((session: any)=>assertSessionResponse(session) );
     }).timeout(10000);
 
@@ -220,6 +221,7 @@ describe('Test Express server endpoints', async () => {
     it('GET /trainingSessions?teamName=TeamBit succeeds with p_jbk logged in as user', async () => {
       const res = await agent.get('/trainingSessions?teamName=TeamBit');
       expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
       res.body.forEach((session: any)=>assertSessionResponse(session) );
     });
 
@@ -284,7 +286,7 @@ describe('Test Express server endpoints', async () => {
   });
 
   // coach
-  describe('Tsets for c_coach1 coach', async () => {
+  describe('Tests for c_coach1 coach', async () => {
     const agent = request.agent(app);
   
     it('POST /login succeeds with c_coach1 as logged in user', async () => {
@@ -324,6 +326,7 @@ describe('Test Express server endpoints', async () => {
     it('GET /trainingSessions succeeds with c_coach1 as logged in user', async () => {
       const res = await agent.get('/trainingSessions');
       expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
       res.body.forEach((session: any)=>assertSessionResponse(session) );
     }).timeout(10000);
   
@@ -340,6 +343,7 @@ describe('Test Express server endpoints', async () => {
     it('GET /trainingSessions/good_player_name succeeds with c_coach1 as logged in user', async () => {
       const res = await agent.get('/trainingSessions/p_warren');
       expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
       res.body.forEach((session: any)=>assertSessionResponse(session) );
     }).timeout(4000);
 
@@ -359,6 +363,7 @@ describe('Test Express server endpoints', async () => {
     it('GET /trainingSessions?teamName=TeamBit succeeds with c_coach1 logged in as user', async () => {
       const res = await agent.get('/trainingSessions?teamName=TeamBit');
       expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
       res.body.forEach((session: any)=>assertSessionResponse(session) );
     });
 
@@ -512,7 +517,7 @@ describe('Test Express server endpoints', async () => {
     });
 
     it('GET /trainingSessions?Team3 succeeds with a_administrator logged in as user', async () => {
-      const res = await agent.get('/trainingSessions?teamName=Team3');
+      const res = await agent.get('/trainingSessions?teamName=TeamBit');
       expect(res.statusCode).to.equal(200);
       res.body.forEach((session: any)=>assertSessionResponse(session) );
     });
