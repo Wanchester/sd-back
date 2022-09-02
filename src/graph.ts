@@ -51,6 +51,13 @@ export async function buildQueryHasPermissions(
   requestedQuery: InfluxQuery,
 ) {
   if ((await getPersonalInfoAPI(sqlDB, username)).role === 'admin') {return true;}
+  //error if unknown field
+  const legalFieldKeys = ['2dAccuracy', '3dAccuracy', 'Distance', 'Height', 'RunDistance', 'SprintDistance', 'TotalDistance', 'TotalRunDistance', 'TotalSprintDistance', 'TotalWorkRate', 'Velocity', 'WorkRate', 'lat', 'lon'];
+  for (let fieldKey of requestedQuery.fields!) {
+    if (!legalFieldKeys.includes(fieldKey)) {
+      throwBasedOnCode('e400.21', fieldKey, legalFieldKeys);
+    }
+  }
   /**
    * Permissions restrict which values a user may request to view.
    * Those values are grouped as Player Names, Teams and training Sessions
@@ -117,14 +124,14 @@ export default function bindGetLineGraph(
       }
 
       //no fields specified. Many fields in InfluxDB are irrelevant, will not return all
-      if (req.body.fields === undefined) {
+      if (req.body.fields === undefined || req.body.fields.length === 0) {
         throwBasedOnCode('e400.19', JSON.stringify(req.body) as string);
       }
       //ensure all keys are valid
       const querysKeys = Object.keys(req.body);
       const expectedKeys = ['names', 'fields', 'sessions', 'teams', 'time_window', 'range', 'get_unique'];
       for (let key of querysKeys) {
-        if (!(key in expectedKeys)) {
+        if (!(expectedKeys.includes(key))) {
           throwBasedOnCode('e400.21', key, expectedKeys);
         }
       }
