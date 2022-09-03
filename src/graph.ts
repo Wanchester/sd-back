@@ -139,8 +139,16 @@ export default function bindGetLineGraph(
            
 
       const performQuery = async (q:InfluxQuery) => {
-        const lineGraphData = await getLineGraphAPI(queryClient, q);
-  	    res.status(200).send(lineGraphData);
+        try {
+          const lineGraphData = await getLineGraphAPI(queryClient, q);
+          res.status(200).send(lineGraphData);
+        } catch (error) {
+          const errCode = getStatusCodeBasedOnError(error as Error);
+          res.status(errCode).send({
+            error: (error as Error).message,
+            name: (error as Error).name,
+          });
+        }
       };
 
       performQuery(await buildQueryWithPermissions(sqlDB, queryClient, req.session.username!, req.body));
