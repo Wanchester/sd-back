@@ -717,5 +717,12 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.get('/lineGraph').send({});
       expect(res.statusCode).to.equal(400);
     });
+    it('GET /lineGraph fails for a_administrator with BAD TIMEWINDOW query', async () => {
+      const res = await agent.get('/lineGraph').send({
+        fields: ['Velocity'],
+        time_window: { every: -1 },
+      });
+      expect(res.statusCode).to.equal(400);
+    });
   });
 });
