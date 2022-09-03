@@ -360,32 +360,6 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(400);
     });
 
-    //line graph
-    it('GET /lineGraph succeeds for c_coach1', async () => {
-      const res = await agent.get('/lineGraph').send({
-        sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
-        teams: ['TeamBit', 'Team3'],
-        fields: ['Velocity', 'Height'],
-        time_window: { every: '3600', func: 'mean' },
-      });
-      expect(res.statusCode).to.equal(200);
-      assertTimeSeriesResponse(res.body);
-    }).timeout(6000);
-
-    it('GET /lineGraph fails for c_coach1 requesting unaffiliated team', async () => {
-      const res = await agent.get('/lineGraph').send({
-        teams: ['TeamWanchester'],
-        fields: ['Velocity'],
-        time_window: { every: '3600', func: 'mean' },
-      });
-      expect(res.statusCode).to.equal(403);
-    }).timeout(6000);
-
-    it('GET /lineGraph fails for c_coach with empty query', async () => {
-      const res = await agent.get('/lineGraph').send({});
-      expect(res.statusCode).to.equal(400);
-    });
-
 
     // trainingSessions fullStats
     it('GET /trainingSessions?fullStats=true&teamName=TeamBit&sessionName=NULL 21/4/22 succeeds with c_coach1 as logged in user', async () => {
@@ -527,22 +501,6 @@ describe('Test Express server endpoints', async () => {
       await verifyPutProfileRequest(agent, '/profile/p_jbk', 172);
     }).timeout(4000);
 
-    //line graph
-    it('GET /lineGraph succeeds for a_administrator', async () => {
-      const res = await agent.get('/lineGraph').send({
-        sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
-        teams: ['TeamBit', 'Team3', 'TeamWanchester'],
-        fields: ['Velocity', 'Height'],
-        time_window: { every: '36000', func: 'mean' },
-      });
-      expect(res.statusCode).to.equal(200);
-      assertTimeSeriesResponse(res.body);
-    }).timeout(6000);
-
-    it('GET /lineGraph fails for a_administrator with empty query', async () => {
-      const res = await agent.get('/lineGraph').send({});
-      expect(res.statusCode).to.equal(400);
-    });
   });
   
   // player graph p_warren 
@@ -697,11 +655,67 @@ describe('Test Express server endpoints', async () => {
 
   //coach graph
   describe('Tests graphs for c_coach1', () => {
-    // const agent = request.agent(app);
+    const agent = request.agent(app);
+    it('login c_coach1', async () => {
+      const testUser = {
+        'username':'c_coach1',
+        'password':'12345678',
+      };
+      await agent.post('/login').send(testUser);
+    });
+    //line graph
+    it('GET /lineGraph succeeds for c_coach1', async () => {
+      const res = await agent.get('/lineGraph').send({
+        sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
+        teams: ['TeamBit', 'Team3'],
+        fields: ['Velocity', 'Height'],
+        time_window: { every: '3600', func: 'mean' },
+      });
+      expect(res.statusCode).to.equal(200);
+      assertTimeSeriesResponse(res.body);
+    }).timeout(6000);
+
+    it('GET /lineGraph fails for c_coach1 requesting unaffiliated team', async () => {
+      const res = await agent.get('/lineGraph').send({
+        teams: ['TeamWanchester'],
+        fields: ['Velocity'],
+        time_window: { every: '3600', func: 'mean' },
+      });
+      expect(res.statusCode).to.equal(403);
+    }).timeout(6000);
+
+    it('GET /lineGraph fails for c_coach with empty query', async () => {
+      const res = await agent.get('/lineGraph').send({});
+      expect(res.statusCode).to.equal(400);
+    });
+
   });
 
   // admin graph
   describe('Tests graphs for a_administrator', () => {
-    // const agent = request.agent(app);
+    const agent = request.agent(app);
+    it('login a_administrator', async () => {
+      const testUser = {
+        'username':'a_administrator',
+        'password':'12345678',
+      };
+      await agent.post('/login').send(testUser);
+    });
+    //line graph
+    it('GET /lineGraph succeeds for a_administrator', async () => {
+      const res = await agent.get('/lineGraph').send({
+        sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
+        teams: ['TeamBit', 'Team3', 'TeamWanchester'],
+        fields: ['Velocity', 'Height'],
+        time_window: { every: '36000', func: 'mean' },
+      });
+      expect(res.statusCode).to.equal(200);
+      assertTimeSeriesResponse(res.body);
+    }).timeout(6000);
+
+    it('GET /lineGraph fails for a_administrator with empty query', async () => {
+      const res = await agent.get('/lineGraph').send({});
+      expect(res.statusCode).to.equal(400);
+    });
   });
 });
