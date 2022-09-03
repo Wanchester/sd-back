@@ -223,7 +223,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(200);
       assert.isArray(res.body); 
       res.body.forEach((session: any)=>assertSessionResponse(session) );
-    });
+    }).timeout(4000);
 
     it('GET /trainingSessions?teamName=Team3 fails with p_jbk logged in as user', async () => {
       const res = await agent.get('/trainingSessions?teamName=Team3');
@@ -565,7 +565,7 @@ describe('Test Express server endpoints', async () => {
       for (let name of Object.keys(res.body)) {
         expect(allowedNames).to.include(name);
       }
-    }).timeout(6000);
+    }).timeout(10000);
 
     it('GET /lineGraph with no name filter only shows allowed players for p_warren ', async () => {
       const res = await agent.get('/lineGraph').send({
@@ -650,7 +650,7 @@ describe('Test Express server endpoints', async () => {
       for (let name of Object.keys(res.body)) {
         expect(allowedNames).to.include(name);
       }
-    }).timeout(6000);
+    }).timeout(10000);
   });
 
   //coach graph
