@@ -49,7 +49,7 @@ export async function buildQueryWithPermissions(
   if ((await getPersonalInfoAPI(sqlDB, username)).role === 'admin') {return requestedQuery;}
   let output = requestedQuery;
   //error if unknown field
-  const legalFieldKeys = ['2dAccuracy', '3dAccuracy', 'Distance', 'Height', 'RunDistance', 'SprintDistance', 'TotalDistance', 'TotalRunDistance', 'TotalSprintDistance', 'TotalWorkRate', 'Velocity', 'WorkRate', 'lat', 'lon'];
+  const legalFieldKeys = ['2dAccuracy', '3dAccuracy', 'Distance', 'Height', 'Run Distance', 'Sprint Distance', 'Total Distance', 'Total Run Distance', 'Total Sprint Distance', 'Total Work Rate', 'Velocity', 'Work Rate', 'lat', 'lon'];
   for (let fieldKey of requestedQuery.fields!) {
     if (!legalFieldKeys.includes(fieldKey)) {
       throwBasedOnCode('e400.21', fieldKey, legalFieldKeys);

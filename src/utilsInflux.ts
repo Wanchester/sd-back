@@ -29,14 +29,14 @@ export type InfluxField = '2dAccuracy' |
 '3dAccuracy' |
 'Distance' |
 'Height' |
-'RunDistance' |
-'SprintDistance' |
-'TotalDistance' |
-'TotalRunDistance' |
-'TotalSprintDistance' |
-'TotalWorkRate' |
+'Run Distance' |
+'Sprint Distance' |
+'Total Distance' |
+'Total Run Distance' |
+'Total Sprint Distance' |
+'Total WorkRate' |
 'Velocity' |
-'WorkRate' |
+'Work Rate' |
 'lat' | 'lon';
 
 export async function getSessionBeginningAndEnd(sessionName: string, queryClient: QueryApi) {
