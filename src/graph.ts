@@ -14,10 +14,6 @@ export async function getLineGraphAPI(
   queryClient: QueryApi,
   influxRequest: InfluxQuery,
 ): Promise<TimeSeriesResponse | undefined> {
-  /**
-   * TODO:
-   */
-
   //prepare output object skeleton
   //  arrow function will create new arrays, so they are not shared between players
   let generateStatsSkeleton = () => Object.fromEntries(influxRequest.fields!.map((f) => [f, []]));
@@ -44,13 +40,21 @@ export async function getLineGraphAPI(
   return output;
 }
 
-export async function buildQueryHasPermissions(
+export async function buildQueryWithPermissions(
   sqlDB: Database, 
   queryClient: QueryApi,
   username: string,
   requestedQuery: InfluxQuery,
 ) {
-  if ((await getPersonalInfoAPI(sqlDB, username)).role === 'admin') {return true;}
+  if ((await getPersonalInfoAPI(sqlDB, username)).role === 'admin') {return requestedQuery;}
+  let output = requestedQuery;
+  //error if unknown field
+  const legalFieldKeys = ['2dAccuracy', '3dAccuracy', 'Distance', 'Height', 'RunDistance', 'SprintDistance', 'TotalDistance', 'TotalRunDistance', 'TotalSprintDistance', 'TotalWorkRate', 'Velocity', 'WorkRate', 'lat', 'lon'];
+  for (let fieldKey of requestedQuery.fields!) {
+    if (!legalFieldKeys.includes(fieldKey)) {
+      throwBasedOnCode('e400.21', fieldKey, legalFieldKeys);
+    }
+  }
   /**
    * Permissions restrict which values a user may request to view.
    * Those values are grouped as Player Names, Teams and training Sessions
@@ -85,6 +89,10 @@ export async function buildQueryHasPermissions(
   if (requestedQuery.teams !== undefined) {
     const allowedTeams = (await allowedTeamsPromise);
     compareRequestedWithAllowed(requestedQuery.teams, allowedTeams);
+  } else {
+    //add legal teams if none requested
+    //ensures no illegal players are returned when not specified
+    output = { teams: await allowedTeamsPromise, ...output };
   }
   //players
   if (requestedQuery.names !== undefined) {
@@ -93,7 +101,7 @@ export async function buildQueryHasPermissions(
   }
 
   //all passed
-  return true;
+  return output;
 }
 
 export default function bindGetLineGraph(
@@ -117,19 +125,33 @@ export default function bindGetLineGraph(
       }
 
       //no fields specified. Many fields in InfluxDB are irrelevant, will not return all
-      if (req.body.fields === undefined) {
+      if (req.body.fields === undefined || req.body.fields.length === 0) {
         throwBasedOnCode('e400.19', JSON.stringify(req.body) as string);
       }
-      const performQuery = async () => {
-        const lineGraphData = await getLineGraphAPI(queryClient, req.body as InfluxQuery);
-  	    res.status(200).send(lineGraphData);
+      //ensure all keys are valid
+      const querysKeys = Object.keys(req.body);
+      const expectedKeys = ['names', 'fields', 'sessions', 'teams', 'time_window', 'range', 'get_unique'];
+      for (let key of querysKeys) {
+        if (!(expectedKeys.includes(key))) {
+          throwBasedOnCode('e400.21', key, expectedKeys);
+        }
+      }
+           
+
+      const performQuery = async (q:InfluxQuery) => {
+        try {
+          const lineGraphData = await getLineGraphAPI(queryClient, q);
+          res.status(200).send(lineGraphData);
+        } catch (error) {
+          const errCode = getStatusCodeBasedOnError(error as Error);
+          res.status(errCode).send({
+            error: (error as Error).message,
+            name: (error as Error).name,
+          });
+        }
       };
 
-      if (await buildQueryHasPermissions(sqlDB, queryClient, req.session.username!, req.body) === true) {
-        performQuery();
-        return;
-      }
-
+      performQuery(await buildQueryWithPermissions(sqlDB, queryClient, req.session.username!, req.body));
 
     } catch (error) {
       res.status(getStatusCodeBasedOnError(error as Error)).send({
