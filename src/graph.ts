@@ -100,11 +100,6 @@ export async function buildQueryWithPermissions(
   if (requestedQuery.names !== undefined) {
     const allowedPlayerNames = (await allowedPlayerNamesPromise).flat().map((n)=>n.name);
     compareRequestedWithAllowed(requestedQuery.names, allowedPlayerNames);
-  } else {
-    //add legal names if none requested
-    //ensures no illegal players are returned when not specified
-    const allowedPlayerNames = await allowedPlayerNamesPromise;
-    output = { ...output, names: allowedPlayerNames.flat().map((p)=>p.name) };
   }
   //all passed
   return output;
