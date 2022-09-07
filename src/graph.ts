@@ -113,7 +113,7 @@ export default function bindGetLineGraph(
    * TODO:
    *  [ ] what if empty return values?
    */
-  app.get('/lineGraph', async (req, res) => {
+  app.post('/lineGraph', async (req, res) => {
     try {
       //must log in
       if (req.session.username === undefined) {
