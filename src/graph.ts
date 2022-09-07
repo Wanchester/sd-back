@@ -27,12 +27,19 @@ export async function getLineGraphAPI(
 
   //perform query
   const influxResponse = await executeInflux(buildQuery(influxRequest), queryClient);
+
   //get player names for a given session based on session team
   //assume session has one team
   //@refactor: getSessionPlayersAPI
   //@refactor: getSessionTeamAPI  ??
-  const sessionPlayersPromise = executeInflux(buildQuery({ teams: [influxResponse[0]._measurement], get_unique: 'players' }), queryClient);
-
+  let sessionPlayersPromise = undefined;
+  if (influxRequest.sessions === undefined) {
+    //no sessions specified. allowed teams will be inserted by buildQueryWithPermissions or undefined -> all allowed players returned
+    sessionPlayersPromise = executeInflux(buildQuery({ teams: influxRequest.teams || undefined, get_unique: 'players' }), queryClient);
+  } else {
+    //for each specified session, get unique players
+    sessionPlayersPromise = executeInflux(buildQuery({ sessions: influxRequest.sessions, get_unique: 'players' }), queryClient);
+  }
   //organise times and values into output
   influxResponse.forEach((row) => {
     //request may not have specified names, extract from influxResponse
