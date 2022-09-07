@@ -149,7 +149,7 @@ export function buildQuery(query: InfluxQuery) :string {
   //window and aggregate with fn
   if (query.time_window !== undefined ) {
     if (query.time_window.every < 1) {throwBasedOnCode('e400.17');}
-    output.push('|>group(columns: ["_field","Player Name"])');
+    output.push('|>group(columns: ["_field","Player Name","_measurement"])');
     output.push(`|>window(every: ${Math.floor(query.time_window.every)}s`);
     if (query.time_window.period !== undefined ) {
       if (query.time_window.period < 1) {throwBasedOnCode('e400.17');}
