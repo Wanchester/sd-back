@@ -94,7 +94,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(401);
     });
 
-    it('GET /lineGraph fails when not logged in', async () => {
+    it('POST /lineGraph fails when not logged in', async () => {
       const res = await agent.post('/lineGraph');
       expect(res.statusCode).to.equal(401);
     });
@@ -516,7 +516,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(200);
     });
     
-    it('GET /lineGraph fails for warren requesting unallowed player (Silv is in Team3)', async () => {
+    it('POST /lineGraph fails for warren requesting unallowed player (Silv is in Team3)', async () => {
       const res = await agent.post('/lineGraph').send({
         'names':['Silv'],
         'sessions': ['NULL 24/4/22'],
@@ -525,7 +525,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(403);
     });
   
-    it('GET /lineGraph succeeds for requesting p_warren info', async () => {
+    it('POST /lineGraph succeeds for requesting p_warren info', async () => {
       const res = await agent.post('/lineGraph').send({
         names: ['Warren'],
         sessions: ['NULL 24/4/22'],
@@ -537,7 +537,7 @@ describe('Test Express server endpoints', async () => {
       assertTimeSeriesResponse(res.body);
     }).timeout(6000);
 
-    it('GET /lineGraph succeeds for requesting p_jbk info', async () => {
+    it('POST /lineGraph succeeds for requesting p_jbk info', async () => {
       const res = await agent.post('/lineGraph').send({
         names: ['Jbk'],
         sessions: ['NULL 24/4/22'],
@@ -549,7 +549,7 @@ describe('Test Express server endpoints', async () => {
       assertTimeSeriesResponse(res.body);
     }).timeout(6000);
 
-    it('GET /lineGraph succeeds for requesting all info of NULL 24/4/22', async () => {
+    it('POST /lineGraph succeeds for requesting all info of NULL 24/4/22', async () => {
       const res = await agent.post('/lineGraph').send({
         'sessions': ['NULL 24/4/22'],
         'fields': ['Velocity', 'Distance'],
@@ -565,9 +565,9 @@ describe('Test Express server endpoints', async () => {
       for (let name of Object.keys(res.body)) {
         expect(allowedNames).to.include(name);
       }
-    }).timeout(10000);
+    }).timeout(20000);
 
-    it('GET /lineGraph with no name filter only shows allowed players for p_warren ', async () => {
+    it('POST /lineGraph with no name filter only shows allowed players for p_warren ', async () => {
       const res = await agent.post('/lineGraph').send({
         time_window: { every: 84000 },
         fields: ['Velocity', 'Height', 'Distance'],
@@ -583,14 +583,14 @@ describe('Test Express server endpoints', async () => {
       }
     }).timeout(6000);
 
-    it('GET /lineGraph fails for p_warren requesting unknown field', async () => {
+    it('POST /lineGraph fails for p_warren requesting unknown field', async () => {
       const res = await agent.post('/lineGraph').send({
         fields: ['BAD FIELD'],
       });
       expect(res.statusCode).to.equal(400);
     }).timeout(6000);
 
-    it('GET /lineGraph fails for p_warren requesting unknown key', async () => {
+    it('POST /lineGraph fails for p_warren requesting unknown key', async () => {
       const res = await agent.post('/lineGraph').send({
         fields: ['BAD FIELD'],
         BAD_KEY: ['BAD FIELD'],
@@ -598,14 +598,14 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(400);
     }).timeout(6000);
 
-    it('GET /lineGraph fails for p_warren empty field', async () => {
+    it('POST /lineGraph fails for p_warren empty field', async () => {
       const res = await agent.post('/lineGraph').send({
         fields: [],
       });
       expect(res.statusCode).to.equal(400);
     }).timeout(6000);
 
-    it('GET /lineGraph fails for p_warren requesting unaffiliated team', async () => {
+    it('POST /lineGraph fails for p_warren requesting unaffiliated team', async () => {
       const res = await agent.post('/lineGraph').send({
         teams: ['Team3'],
         fields: ['Velocity'],
@@ -614,7 +614,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(403);
     }).timeout(6000);
 
-    it('GET /lineGraph fails for p_warren with empty query', async () => {
+    it('POST /lineGraph fails for p_warren with empty query', async () => {
       const res = await agent.post('/lineGraph').send({});
       expect(res.statusCode).to.equal(400);
     });
@@ -634,7 +634,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(200);
     });
 
-    it('GET /lineGraph succeeds for requesting all info of NULL 24/4/22', async () => {
+    it('POST /lineGraph succeeds for requesting all info of NULL 24/4/22', async () => {
       const res = await agent.post('/lineGraph').send({
         'sessions': ['NULL 24/4/22'],
         'fields': ['Velocity', 'Distance'],
@@ -664,7 +664,7 @@ describe('Test Express server endpoints', async () => {
       await agent.post('/login').send(testUser);
     });
     //line graph
-    it('GET /lineGraph succeeds for c_coach1', async () => {
+    it('POST /lineGraph succeeds for c_coach1', async () => {
       const res = await agent.post('/lineGraph').send({
         sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
         teams: ['TeamBit', 'Team3'],
@@ -675,7 +675,7 @@ describe('Test Express server endpoints', async () => {
       assertTimeSeriesResponse(res.body);
     }).timeout(6000);
 
-    it('GET /lineGraph fails for c_coach1 requesting unaffiliated team', async () => {
+    it('POST /lineGraph fails for c_coach1 requesting unaffiliated team', async () => {
       const res = await agent.post('/lineGraph').send({
         teams: ['TeamWanchester'],
         fields: ['Velocity'],
@@ -684,7 +684,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(403);
     }).timeout(6000);
 
-    it('GET /lineGraph fails for c_coach with empty query', async () => {
+    it('POST /lineGraph fails for c_coach with empty query', async () => {
       const res = await agent.post('/lineGraph').send({});
       expect(res.statusCode).to.equal(400);
     });
@@ -702,7 +702,7 @@ describe('Test Express server endpoints', async () => {
       await agent.post('/login').send(testUser);
     });
     //line graph
-    it('GET /lineGraph succeeds for a_administrator', async () => {
+    it('POST /lineGraph succeeds for a_administrator', async () => {
       const res = await agent.post('/lineGraph').send({
         sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
         teams: ['TeamBit', 'Team3', 'TeamWanchester'],
@@ -713,11 +713,11 @@ describe('Test Express server endpoints', async () => {
       assertTimeSeriesResponse(res.body);
     }).timeout(6000);
 
-    it('GET /lineGraph fails for a_administrator with empty query', async () => {
+    it('POST /lineGraph fails for a_administrator with empty query', async () => {
       const res = await agent.post('/lineGraph').send({});
       expect(res.statusCode).to.equal(400);
     });
-    it('GET /lineGraph fails for a_administrator with BAD TIMEWINDOW query', async () => {
+    it('POST /lineGraph fails for a_administrator with BAD TIMEWINDOW query', async () => {
       const res = await agent.post('/lineGraph').send({
         fields: ['Velocity'],
         time_window: { every: -1 },
