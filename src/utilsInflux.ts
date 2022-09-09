@@ -155,7 +155,7 @@ export function buildQuery(query: InfluxQuery) :string {
 
     if (['mean', 'mode', 'median', 'max', 'min'].includes(query.aggregate.func)) {
       //group for these aggregations
-      output.push('|>group(columns: ["_field","Player Name"])');//aggs fields per player and team
+      output.push('|>group(columns: ["_field","Player Name"])');//aggs per field per player
       //window if good every else error
       if (query.aggregate.every !== undefined) {
         if (query.aggregate.every < 1) {throwBasedOnCode('e400.17');}
@@ -175,7 +175,7 @@ export function buildQuery(query: InfluxQuery) :string {
       
       //repair _time column after window
       if (query.aggregate.every !== undefined) {
-        //not perfect
+        //_time will be null if no window
         output.push('|>duplicate(column: "_stop", as: "_time")');
       }
 
