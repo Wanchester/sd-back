@@ -155,7 +155,8 @@ export function buildQuery(query: InfluxQuery) :string {
 
     if (['mean', 'median', 'mode', 'max', 'min'].includes(query.aggregate.func)) {
       //group for these aggregations
-      output.push('|>group(columns: ["_field","Player Name"])');//aggs per field per player
+      //to prevent mixing data from different fields and players
+      output.push('|>group(columns: ["_field","Player Name"])');
       //window if good 'every' else error or skip
       if (query.aggregate.every !== undefined) {
         if (query.aggregate.every < 1) {throwBasedOnCode('e400.17');}
@@ -183,6 +184,8 @@ export function buildQuery(query: InfluxQuery) :string {
     } else if (query.aggregate.func === 'timedMovingAverage') {
       if (query.aggregate.every === undefined || query.aggregate.period === undefined) {throwBasedOnCode('e400.22');}
 
+      //don't mix data if multiple fields requested
+      output.push('|>group(columns: ["_field"])');
       output.push(`|>${query.aggregate.func}(every: ${query.aggregate.every}s, period: ${query.aggregate.period}s)`);
     }
   }
