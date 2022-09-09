@@ -50,15 +50,17 @@ export async function getLineGraphAPI(
     output[row['Player Name']][row._field].push([row._time, row._value]);
   });
 
+  //if no names requested
   //input the session player names if not yet included
-  const sessionPlayersResponse = await sessionPlayersPromise;
-  const sessionPlayers = sessionPlayersResponse.map((r) => r['Player Name']);
-  sessionPlayers.forEach((player) => {
-    if (!(player in output)) {
-      output[player] = generateStatsSkeleton();
-    }
-  });
-  
+  if (influxRequest.names === undefined) {
+    const sessionPlayersResponse = await sessionPlayersPromise;
+    const sessionPlayers = sessionPlayersResponse.map((r) => r['Player Name']);
+    sessionPlayers.forEach((player) => {
+      if (!(player in output)) {
+        output[player] = generateStatsSkeleton();
+      }
+    });
+  }
   return output;
 }
 
