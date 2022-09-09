@@ -20,11 +20,12 @@ const ExitCodeMap = {
   'e400.14': 'Input \':0\' team name does not exist',
   'e400.15': 'Input \':0\' training session name does not exist',
   'e400.16': 'Cannot query future',
-  'e400.17': 'Bad time window',
+  'e400.17': 'Bad time window in \'aggregate\'',
   'e400.18': 'Invalid get_unique influx column. Do not support :0',
   'e400.19': 'Invalid Line Graph Data request, require fields, got :0',
   'e400.20': 'No session associated with this Team \':0\'',
   'e400.21': 'Found invalid key \':0\', expected only in list [:1]',
+  'e400.22': 'Expected fields \'every\' and \'period\' in aggregate field of POST request with func \'timedMovingAverage\'',
 
   //401 Unauthenticated, Unauthorised
   'e401.0': 'You must login in order to make this request.',

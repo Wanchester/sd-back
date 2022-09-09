@@ -153,7 +153,7 @@ export default function bindGetLineGraph(
       }
       //ensure all keys are valid
       const querysKeys = Object.keys(req.body);
-      const expectedKeys = ['names', 'fields', 'sessions', 'teams', 'time_window', 'range', 'get_unique'];
+      const expectedKeys = ['names', 'fields', 'sessions', 'teams', 'aggregate', 'range', 'get_unique'];
       for (let key of querysKeys) {
         if (!(expectedKeys.includes(key))) {
           throwBasedOnCode('e400.21', key, expectedKeys);

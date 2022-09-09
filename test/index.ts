@@ -531,7 +531,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 24/4/22'],
         teams: ['TeamWanchester'],
         fields: ['Velocity'],
-        time_window: { every: '3600', func: 'mean' },
+        aggregate: { every: '3600', func: 'mean' },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -543,7 +543,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 24/4/22'],
         teams: ['TeamWanchester'],
         fields: ['Velocity'],
-        time_window: { every: '3600', func: 'mean' },
+        aggregate: { every: '3600', func: 'mean' },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -569,7 +569,7 @@ describe('Test Express server endpoints', async () => {
 
     it('POST /lineGraph with no name filter only shows allowed players for p_warren ', async () => {
       const res = await agent.post('/lineGraph').send({
-        time_window: { every: 84000 },
+        aggregate: { every: 84000 },
         fields: ['Velocity', 'Height', 'Distance'],
       });
       const allowedTeams = (await agent.get('/teams')).body;
@@ -609,7 +609,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.post('/lineGraph').send({
         teams: ['Team3'],
         fields: ['Velocity'],
-        time_window: { every: '3600', func: 'mean' },
+        aggregate: { every: '3600', func: 'mean' },
       });
       expect(res.statusCode).to.equal(403);
     }).timeout(6000);
@@ -669,7 +669,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
         teams: ['TeamBit', 'Team3'],
         fields: ['Velocity', 'Height'],
-        time_window: { every: '3600', func: 'mean' },
+        aggregate: { every: '3600', func: 'mean' },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -679,7 +679,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.post('/lineGraph').send({
         teams: ['TeamWanchester'],
         fields: ['Velocity'],
-        time_window: { every: '3600', func: 'mean' },
+        aggregate: { every: '3600', func: 'mean' },
       });
       expect(res.statusCode).to.equal(403);
     }).timeout(6000);
@@ -707,7 +707,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
         teams: ['TeamBit', 'Team3', 'TeamWanchester'],
         fields: ['Velocity', 'Height'],
-        time_window: { every: '36000', func: 'mean' },
+        aggregate: { every: '36000', func: 'mean' },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -720,7 +720,7 @@ describe('Test Express server endpoints', async () => {
     it('POST /lineGraph fails for a_administrator with BAD TIMEWINDOW query', async () => {
       const res = await agent.post('/lineGraph').send({
         fields: ['Velocity'],
-        time_window: { every: -1 },
+        aggregate: { every: -1 },
       });
       expect(res.statusCode).to.equal(400);
     });

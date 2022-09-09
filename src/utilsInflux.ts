@@ -10,7 +10,7 @@ export type InfluxQuery = { //TODO:need more specific name
   teams?: string[],
   sessions?: string[],
   fields?: InfluxField[],
-  time_window?: { every: number, period?: number, func?: AggregateFunc }, //seconds
+  aggregate?: { every?: number, period?: number, func?: AggregateFunc }, //seconds
   get_unique?: string
 };
 function influxColumn(name: string) :string | undefined {
@@ -23,7 +23,7 @@ function influxColumn(name: string) :string | undefined {
       //do not support this column error
   }
 }
-export type AggregateFunc = 'mean' | 'median' | 'mode' | 'max' | 'min';
+export type AggregateFunc = 'mean' | 'median' | 'mode' | 'max' | 'min' | 'timedMovingAverage';
 
 export type InfluxField = '2dAccuracy' |
 '3dAccuracy' |
@@ -147,26 +147,46 @@ export function buildQuery(query: InfluxQuery) :string {
 
 
   //window and aggregate with fn
-  if (query.time_window !== undefined ) {
-    if (query.time_window.every < 1) {throwBasedOnCode('e400.17');}
-    output.push('|>group(columns: ["_field","Player Name","_measurement"])');
-    output.push(`|>window(every: ${Math.floor(query.time_window.every)}s`);
-    if (query.time_window.period !== undefined ) {
-      if (query.time_window.period < 1) {throwBasedOnCode('e400.17');}
-      output.push(`, period: ${Math.floor(query.time_window.period)}s`);
+  if (query.aggregate !== undefined ) {
+    //default aggregation to arithmetic mean
+    if (query.aggregate.func === undefined) {
+      query.aggregate.func = 'mean';
     }
-    output.push(')');
-    if (query.time_window.func !== undefined) {
-      output.push(`|>${query.time_window.func}()`);
-    } else {
-      output.push('|>mean()');
-    }
-    //repair _time column after window
-    output.push('|>duplicate(column: "_stop", as: "_time")');
 
-    //collect as one window
-    // output.push('|>window(every: inf)');
+    if (['mean', 'mode', 'median', 'max', 'min'].includes(query.aggregate.func)) {
+      //group for these aggregations
+      output.push('|>group(columns: ["_field","Player Name","_measurement"])');//aggs fields per player and team
+      //window if good every else error
+      if (query.aggregate.every !== undefined) {
+        if (query.aggregate.every < 1) {throwBasedOnCode('e400.17');}
+        output.push(`|>window(every: ${Math.floor(query.aggregate.every)}s`);
+
+        //insert good period or error
+        if (query.aggregate.period !== undefined ) {
+          if (query.aggregate.period < 1) {throwBasedOnCode('e400.17');}
+          output.push(`, period: ${Math.floor(query.aggregate.period)}s`);
+        }
+        //close window
+        output.push(')');
+      }
+      //if no window, this will be for all time
+      //aggregate
+      output.push(`|>${query.aggregate.func}()`);
+      //repair _time column after window
+      //not perfect
+      output.push('|>duplicate(column: "_stop", as: "_time")');
+
+
+    } else if (query.aggregate.func === 'timedMovingAverage') {
+      if (query.aggregate.every === undefined || query.aggregate.period === undefined) {throwBasedOnCode('e400.22');}
+
+      output.push(`|>${query.aggregate.func}(every: ${query.aggregate.every}s, period: ${query.aggregate.period}s)`);
+    }
   }
+
+
+
+
   return output.join('');
 }
 
@@ -177,7 +197,7 @@ export function buildQuery(query: InfluxQuery) :string {
 //       names: ['Warren'],
 //       teams: ['TeamBit'],
 //       fields: ['Velocity'],
-//       time_window: { every: 60, func: 'mean' },
+//       aggregate: { every: 60, func: 'mean' },
 //     },
 //   ));
 //   console.log('\n');
@@ -185,7 +205,7 @@ export function buildQuery(query: InfluxQuery) :string {
 //     {
 //       fields: ['Velocity'],
 //       sessions: ['NULL 21/4/22'],
-//       time_window:{ every: 86400, func: 'max' },
+//       aggregate:{ every: 86400, func: 'max' },
 //     },
 //   ));
 //   console.log('\n');
@@ -207,7 +227,7 @@ export function buildQuery(query: InfluxQuery) :string {
 //     {
 //       names: ['Warren'],
 //       fields: ['Height'],
-//       time_window: { every: 5, func: 'median' },
+//       aggregate: { every: 5, func: 'median' },
 //     },
 //   ));
 // }

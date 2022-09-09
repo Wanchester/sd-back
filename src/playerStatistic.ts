@@ -71,7 +71,7 @@ export default function bindGetStatistic(
         names: ['Warren'],
         teams: ['TeamBit'],
         fields: ['Velocity'] as InfluxField[],
-        time_window: { every: 60, func: 'mean' },
+        aggregate: { every: 60, func: 'mean' },
       };
       // let statistic = await getStatistic(
       //   queryClient,
