@@ -155,7 +155,7 @@ export function buildQuery(query: InfluxQuery) :string {
 
     if (['mean', 'mode', 'median', 'max', 'min'].includes(query.aggregate.func)) {
       //group for these aggregations
-      output.push('|>group(columns: ["_field","Player Name","_measurement"])');//aggs fields per player and team
+      output.push('|>group(columns: ["_field","Player Name"])');//aggs fields per player and team
       //window if good every else error
       if (query.aggregate.every !== undefined) {
         if (query.aggregate.every < 1) {throwBasedOnCode('e400.17');}
@@ -172,10 +172,12 @@ export function buildQuery(query: InfluxQuery) :string {
       //if no window, this will be for all time
       //aggregate
       output.push(`|>${query.aggregate.func}()`);
+      
       //repair _time column after window
-      //not perfect
-      output.push('|>duplicate(column: "_stop", as: "_time")');
-
+      if (query.aggregate.every !== undefined) {
+        //not perfect
+        output.push('|>duplicate(column: "_stop", as: "_time")');
+      }
 
     } else if (query.aggregate.func === 'timedMovingAverage') {
       if (query.aggregate.every === undefined || query.aggregate.period === undefined) {throwBasedOnCode('e400.22');}
