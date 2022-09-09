@@ -84,7 +84,7 @@ export function getDuration(first: string, second: string) :string {
 
 export function buildQuery(query: InfluxQuery) :string {
   //disallow empty object query. Would return all data
-  if (Object.keys(query).length === 0) {return '';}
+  if (Object.keys(query).length === 0) {throwBasedOnCode('e400.23');}
 
   let output = ['from(bucket: "test")'];
   //fill range

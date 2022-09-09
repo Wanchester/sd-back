@@ -26,6 +26,7 @@ const ExitCodeMap = {
   'e400.20': 'No session associated with this Team \':0\'',
   'e400.21': 'Found invalid key \':0\', expected only in list [:1]',
   'e400.22': 'Expected fields \'every\' and \'period\' in aggregate field of POST request with func \'timedMovingAverage\'',
+  'e400.23': 'Revieved empty object for query!',
 
   //401 Unauthenticated, Unauthorised
   'e401.0': 'You must login in order to make this request.',
