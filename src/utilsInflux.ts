@@ -153,10 +153,10 @@ export function buildQuery(query: InfluxQuery) :string {
       query.aggregate.func = 'mean';
     }
 
-    if (['mean', 'mode', 'median', 'max', 'min'].includes(query.aggregate.func)) {
+    if (['mean', 'median', 'mode', 'max', 'min'].includes(query.aggregate.func)) {
       //group for these aggregations
       output.push('|>group(columns: ["_field","Player Name"])');//aggs per field per player
-      //window if good every else error
+      //window if good 'every' else error or skip
       if (query.aggregate.every !== undefined) {
         if (query.aggregate.every < 1) {throwBasedOnCode('e400.17');}
         output.push(`|>window(every: ${Math.floor(query.aggregate.every)}s`);
@@ -176,6 +176,7 @@ export function buildQuery(query: InfluxQuery) :string {
       //repair _time column after window
       if (query.aggregate.every !== undefined) {
         //_time will be null if no window
+        //that situation will only return one value for all time
         output.push('|>duplicate(column: "_stop", as: "_time")');
       }
 
