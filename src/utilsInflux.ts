@@ -169,6 +169,9 @@ export function buildQuery(query: InfluxQuery) :string {
         }
         //close window
         output.push(')');
+      } else if (query.aggregate.period !== undefined) {
+        //require 'every' if 'period' exists
+        throwBasedOnCode('e400.24');
       }
       //if no window, this will be for all time
       //aggregate

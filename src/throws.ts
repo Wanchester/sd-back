@@ -27,6 +27,7 @@ const ExitCodeMap = {
   'e400.21': 'Found invalid key \':0\', expected only in list [:1]',
   'e400.22': 'Expected fields \'every\' and \'period\' in aggregate field of POST request with func \'timedMovingAverage\'',
   'e400.23': 'Revieved empty object for query!',
+  'e400.24': 'Expected propery \'every\' because property \'period\' exists in \'aggregate\'',
 
   //401 Unauthenticated, Unauthorised
   'e401.0': 'You must login in order to make this request.',
