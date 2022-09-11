@@ -47,7 +47,7 @@ export async function getLineGraphAPI(
       output[row['Player Name']] = generateStatsSkeleton();
     }
 
-    output[row['Player Name']][row._field].push([row._time, row._value]);
+    output[row['Player Name']][row._field].push([row._time || 'null', row._value]);
   });
 
   //if no names requested

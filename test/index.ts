@@ -543,7 +543,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 24/4/22'],
         teams: ['TeamWanchester'],
         fields: ['Velocity'],
-        aggregate: { every: '3600', func: 'mean' },
+        aggregate: {},
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -669,7 +669,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
         teams: ['TeamBit', 'Team3'],
         fields: ['Velocity', 'Height'],
-        aggregate: { every: '3600', func: 'mean' },
+        aggregate: { every: '3600', period: 86400, func: 'timedMovingAverage' },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -707,7 +707,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
         teams: ['TeamBit', 'Team3', 'TeamWanchester'],
         fields: ['Velocity', 'Height'],
-        aggregate: { every: '36000', func: 'mean' },
+        aggregate: { func: 'mean' },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -715,6 +715,13 @@ describe('Test Express server endpoints', async () => {
 
     it('POST /lineGraph fails for a_administrator with empty query', async () => {
       const res = await agent.post('/lineGraph').send({});
+      expect(res.statusCode).to.equal(400);
+    });
+    it('POST /lineGraph fails for a_administrator when specifying period and not every', async () => {
+      const res = await agent.post('/lineGraph').send({
+        fields: ['Velocity'],
+        aggregate: { period: 100000 },
+      });
       expect(res.statusCode).to.equal(400);
     });
     it('POST /lineGraph fails for a_administrator with BAD TIMEWINDOW query', async () => {
