@@ -57,3 +57,8 @@ export interface TimeSeriesResponse { // for line graph
 //       'Acceleration': [['time1', 10], ['time2', 9]],
 //     }, 
 // } as TimeSeriesResponse;
+
+export interface CombinationGraphResponse {
+  'line': [string, number][],
+  'bar': [string, number][]
+}

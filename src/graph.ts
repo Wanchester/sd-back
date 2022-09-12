@@ -28,6 +28,18 @@ export async function getLineGraphAPI(
   //perform query
   const influxResponse = await executeInflux(buildQuery(influxRequest), queryClient);
 
+  //get player names for a given session based on session team
+  //assume session has one team
+  //@refactor: getSessionPlayersAPI
+  //@refactor: getSessionTeamAPI  ??
+  let sessionPlayersPromise = undefined;
+  if (influxRequest.sessions === undefined) {
+    //no sessions specified. allowed teams will be inserted by buildQueryWithPermissions or undefined -> all allowed players returned
+    sessionPlayersPromise = executeInflux(buildQuery({ teams: influxRequest.teams || undefined, get_unique: 'players' }), queryClient);
+  } else {
+    //for each specified session, get unique players
+    sessionPlayersPromise = executeInflux(buildQuery({ sessions: influxRequest.sessions, get_unique: 'players' }), queryClient);
+  }
   //organise times and values into output
   influxResponse.forEach((row) => {
     //request may not have specified names, extract from influxResponse
@@ -35,8 +47,20 @@ export async function getLineGraphAPI(
       output[row['Player Name']] = generateStatsSkeleton();
     }
 
-    output[row['Player Name']][row._field].push([row._time, row._value]);
+    output[row['Player Name']][row._field].push([row._time || 'null', row._value]);
   });
+
+  //if no names requested
+  //input the session player names if not yet included
+  if (influxRequest.names === undefined) {
+    const sessionPlayersResponse = await sessionPlayersPromise;
+    const sessionPlayers = sessionPlayersResponse.map((r) => r['Player Name']);
+    sessionPlayers.forEach((player) => {
+      if (!(player in output)) {
+        output[player] = generateStatsSkeleton();
+      }
+    });
+  }
   return output;
 }
 
@@ -49,7 +73,7 @@ export async function buildQueryWithPermissions(
   if ((await getPersonalInfoAPI(sqlDB, username)).role === 'admin') {return requestedQuery;}
   let output = requestedQuery;
   //error if unknown field
-  const legalFieldKeys = ['2dAccuracy', '3dAccuracy', 'Distance', 'Height', 'RunDistance', 'SprintDistance', 'TotalDistance', 'TotalRunDistance', 'TotalSprintDistance', 'TotalWorkRate', 'Velocity', 'WorkRate', 'lat', 'lon'];
+  const legalFieldKeys = ['2dAccuracy', '3dAccuracy', 'Distance', 'Height', 'Run Distance', 'Sprint Distance', 'Total Distance', 'Total Run Distance', 'Total Sprint Distance', 'Total Work Rate', 'Velocity', 'Work Rate', 'lat', 'lon'];
   for (let fieldKey of requestedQuery.fields!) {
     if (!legalFieldKeys.includes(fieldKey)) {
       throwBasedOnCode('e400.21', fieldKey, legalFieldKeys);
@@ -90,16 +114,17 @@ export async function buildQueryWithPermissions(
     const allowedTeams = (await allowedTeamsPromise);
     compareRequestedWithAllowed(requestedQuery.teams, allowedTeams);
   } else {
-    //add legal teams if none requested
+    //add legal names if none requested
     //ensures no illegal players are returned when not specified
-    output = { teams: await allowedTeamsPromise, ...output };
+    const allowedTeams = await allowedTeamsPromise;
+    output = { ...output, teams: allowedTeams };
   }
+
   //players
   if (requestedQuery.names !== undefined) {
     const allowedPlayerNames = (await allowedPlayerNamesPromise).flat().map((n)=>n.name);
     compareRequestedWithAllowed(requestedQuery.names, allowedPlayerNames);
   }
-
   //all passed
   return output;
 }
@@ -130,7 +155,7 @@ export default function bindGetLineGraph(
       }
       //ensure all keys are valid
       const querysKeys = Object.keys(req.body);
-      const expectedKeys = ['names', 'fields', 'sessions', 'teams', 'time_window', 'range', 'get_unique'];
+      const expectedKeys = ['names', 'fields', 'sessions', 'teams', 'aggregate', 'range', 'get_unique'];
       for (let key of querysKeys) {
         if (!(expectedKeys.includes(key))) {
           throwBasedOnCode('e400.21', key, expectedKeys);
