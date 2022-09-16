@@ -26,12 +26,12 @@ export async function getLineGraphAPI(
   }
 
   //ALWAYS aggregate player's data seperately
-  if (influxRequest.aggregate === undefined ) {
-    influxRequest.aggregate = { dont_mix: ['players'] };
-  } else if (influxRequest.aggregate.dont_mix === undefined) {
-    influxRequest.aggregate.dont_mix = ['players'];
-  } else if (!influxRequest.aggregate.dont_mix.includes('players')) {
-    influxRequest.aggregate.dont_mix.push('players');
+  if (influxRequest.aggregate !== undefined ) {
+    if (influxRequest.aggregate.dont_mix === undefined) {
+      influxRequest.aggregate.dont_mix = ['players'];
+    } else if (!influxRequest.aggregate.dont_mix.includes('players')) {
+      influxRequest.aggregate.dont_mix.push('players');
+    }
   }
   //perform query
   const influxResponse = await executeInflux(buildQuery(influxRequest), queryClient);
