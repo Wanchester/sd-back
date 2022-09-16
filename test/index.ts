@@ -340,7 +340,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(200);
       assert.isArray(res.body); 
       res.body.forEach((session: any)=>assertSessionResponse(session) );
-    });
+    }).timeout(4000);
 
     it('GET /trainingSessions?teamName=TeamWanchester fails with c_coach1 logged in as user', async () => {
       const res = await agent.get('/trainingSessions?teamName=TeamWanchester');
@@ -457,7 +457,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.get('/trainingSessions?teamName=TeamBit');
       expect(res.statusCode).to.equal(200);
       res.body.forEach((session: any)=>assertSessionResponse(session) );
-    });
+    }).timeout(4000);
 
     it('GET /trainingSessions?teamName=TeamWanchester succeeds with a_administrator logged in as user', async () => {
       const res = await agent.get('/trainingSessions?teamName=TeamWanchester');
