@@ -25,6 +25,14 @@ export async function getLineGraphAPI(
     output = Object.fromEntries(influxRequest.names.map((p) => [p, generateStatsSkeleton()]));
   }
 
+  //ALWAYS aggregate player's data seperately
+  if (influxRequest.aggregate === undefined ) {
+    influxRequest.aggregate = { dont_mix: ['players'] };
+  } else if (influxRequest.aggregate.dont_mix === undefined) {
+    influxRequest.aggregate.dont_mix = ['players'];
+  } else if (!influxRequest.aggregate.dont_mix.includes('players')) {
+    influxRequest.aggregate.dont_mix.push('players');
+  }
   //perform query
   const influxResponse = await executeInflux(buildQuery(influxRequest), queryClient);
 
@@ -43,9 +51,11 @@ export async function getLineGraphAPI(
   //organise times and values into output
   influxResponse.forEach((row) => {
     //request may not have specified names, extract from influxResponse
-    if (!((row['Player Name'] as string) in output)) {
+    if (output[row['Player Name']] === undefined) {
       output[row['Player Name']] = generateStatsSkeleton();
     }
+    
+    if (row['Player Name'] == undefined) {console.log(row); }
 
     output[row['Player Name']][row._field].push([row._time || 'null', row._value]);
   });

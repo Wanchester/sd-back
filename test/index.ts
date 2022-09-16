@@ -1,6 +1,7 @@
 import { assert, expect } from 'chai';
 import startExpressServer from '../src';
 import request, { SuperAgentTest } from 'supertest';
+import { InfluxColumn } from 'src/utilsInflux';
 
 function assertSessionResponse(session: any) {
   assert.isObject(session);
@@ -531,7 +532,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 24/4/22'],
         teams: ['TeamWanchester'],
         fields: ['Velocity'],
-        aggregate: { every: '3600', func: 'mean' },
+        aggregate: { every: '3600', func: 'mean', dont_mix: ['players'] as InfluxColumn[] },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -543,7 +544,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 24/4/22'],
         teams: ['TeamWanchester'],
         fields: ['Velocity'],
-        aggregate: {},
+        aggregate: { dont_mix: ['players'] },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -609,7 +610,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.post('/lineGraph').send({
         teams: ['Team3'],
         fields: ['Velocity'],
-        aggregate: { every: '3600', func: 'mean' },
+        aggregate: { every: '3600', func: 'mean', dont_mix: ['players'] },
       });
       expect(res.statusCode).to.equal(403);
     }).timeout(6000);
@@ -669,7 +670,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
         teams: ['TeamBit', 'Team3'],
         fields: ['Velocity', 'Height'],
-        aggregate: { every: '3600', period: 86400, func: 'timedMovingAverage' },
+        aggregate: { every: '3600', period: 86400, func: 'timedMovingAverage', dont_mix: ['players'] },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -679,7 +680,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.post('/lineGraph').send({
         teams: ['TeamWanchester'],
         fields: ['Velocity'],
-        aggregate: { every: '3600', func: 'mean' },
+        aggregate: { every: '3600', func: 'mean', dont_mix: ['players'] },
       });
       expect(res.statusCode).to.equal(403);
     }).timeout(6000);
@@ -707,7 +708,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
         teams: ['TeamBit', 'Team3', 'TeamWanchester'],
         fields: ['Velocity', 'Height'],
-        aggregate: { func: 'mean' },
+        aggregate: { func: 'mean', dont_mix: ['players'] },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);

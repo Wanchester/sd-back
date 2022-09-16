@@ -4,16 +4,22 @@ import { readFileSync } from 'fs';
 import throwBasedOnCode from './throws';
 import { QueryApi } from '@influxdata/influxdb-client';
 import { executeInflux } from './utils';
+export type InfluxColumn = 'teams' | 'players' | 'sessions';
 export type InfluxQuery = { //TODO:need more specific name
   range?: { start: string, stop?: string },
   names?: string[],
   teams?: string[],
   sessions?: string[],
   fields?: InfluxField[],
-  aggregate?: { every?: number, period?: number, func?: AggregateFunc }, //seconds
-  get_unique?: string
+  get_unique?: InfluxColumn,
+  aggregate?: { 
+    every?: number,  //seconds
+    period?: number, //seconds
+    func?: AggregateFunc,
+    dont_mix: InfluxColumn[],
+  },
 };
-function influxColumn(name: string) :string | undefined {
+function influxColumn(name: InfluxColumn) :string | undefined {
   switch (name) {
     case 'teams': return '_measurement';
     case 'players': return 'Player Name';
@@ -153,10 +159,16 @@ export function buildQuery(query: InfluxQuery) :string {
       query.aggregate.func = 'mean';
     }
 
+    //group
+    output.push('|>group(columns: ["_field"');
+    if (query.aggregate.dont_mix !== undefined) {
+      for (let col of query.aggregate.dont_mix) {
+        output.push(`, "${influxColumn(col)}"`);
+      }
+    }
+    output.push('])');
+
     if (['mean', 'median', 'mode', 'max', 'min'].includes(query.aggregate.func)) {
-      //group for these aggregations
-      //to prevent mixing data from different fields and players
-      output.push('|>group(columns: ["_field","Player Name"])');
       //window if good 'every' else error or skip
       if (query.aggregate.every !== undefined) {
         if (query.aggregate.every < 1) {throwBasedOnCode('e400.17');}
@@ -187,8 +199,6 @@ export function buildQuery(query: InfluxQuery) :string {
     } else if (query.aggregate.func === 'timedMovingAverage') {
       if (query.aggregate.every === undefined || query.aggregate.period === undefined) {throwBasedOnCode('e400.22');}
 
-      //don't mix data if multiple fields requested
-      output.push('|>group(columns: ["_field"])');
       output.push(`|>${query.aggregate.func}(every: ${query.aggregate.every}s, period: ${query.aggregate.period}s)`);
     }
   }
