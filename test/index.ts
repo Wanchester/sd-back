@@ -1,9 +1,11 @@
 import { assert, expect } from 'chai';
 import startExpressServer, { queryClient } from '../src';
 import request, { SuperAgentTest } from 'supertest';
+
 import { executeInflux } from '../src/utils';
 import { TimeSeriesResponse } from 'src/interface';
 import _ from 'lodash';
+import { InfluxColumn } from 'src/utilsInflux';
 
 function assertSessionResponse(session: any) {
   assert.isObject(session);
@@ -342,7 +344,7 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(200);
       assert.isArray(res.body); 
       res.body.forEach((session: any)=>assertSessionResponse(session) );
-    });
+    }).timeout(4000);
 
     it('GET /trainingSessions?teamName=TeamWanchester fails with c_coach1 logged in as user', async () => {
       const res = await agent.get('/trainingSessions?teamName=TeamWanchester');
@@ -459,7 +461,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.get('/trainingSessions?teamName=TeamBit');
       expect(res.statusCode).to.equal(200);
       res.body.forEach((session: any)=>assertSessionResponse(session) );
-    });
+    }).timeout(4000);
 
     it('GET /trainingSessions?teamName=TeamWanchester succeeds with a_administrator logged in as user', async () => {
       const res = await agent.get('/trainingSessions?teamName=TeamWanchester');
@@ -534,7 +536,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 24/4/22'],
         teams: ['TeamWanchester'],
         fields: ['Velocity'],
-        aggregate: { every: '3600', func: 'mean' },
+        aggregate: { every: '3600', func: 'mean', dont_mix: ['players'] as InfluxColumn[] },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -546,7 +548,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 24/4/22'],
         teams: ['TeamWanchester'],
         fields: ['Velocity'],
-        aggregate: {},
+        aggregate: { dont_mix: ['players'] },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -612,7 +614,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.post('/lineGraph').send({
         teams: ['Team3'],
         fields: ['Velocity'],
-        aggregate: { every: '3600', func: 'mean' },
+        aggregate: { every: '3600', func: 'mean', dont_mix: ['players'] },
       });
       expect(res.statusCode).to.equal(403);
     }).timeout(6000);
@@ -703,7 +705,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
         teams: ['TeamBit', 'Team3'],
         fields: ['Velocity', 'Height'],
-        aggregate: { every: '3600', period: 86400, func: 'timedMovingAverage' },
+        aggregate: { every: '3600', period: 86400, func: 'timedMovingAverage', dont_mix: ['players'] },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -713,7 +715,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.post('/lineGraph').send({
         teams: ['TeamWanchester'],
         fields: ['Velocity'],
-        aggregate: { every: '3600', func: 'mean' },
+        aggregate: { every: '3600', func: 'mean', dont_mix: ['players'] },
       });
       expect(res.statusCode).to.equal(403);
     }).timeout(6000);
@@ -741,7 +743,7 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
         teams: ['TeamBit', 'Team3', 'TeamWanchester'],
         fields: ['Velocity', 'Height'],
-        aggregate: { func: 'mean' },
+        aggregate: { func: 'mean', dont_mix: ['players'] },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
