@@ -1,4 +1,4 @@
-import { InfluxDB } from '@influxdata/influxdb-client';
+import { InfluxDB, QueryApi } from '@influxdata/influxdb-client';
 import express from 'express';
 import bodyParser from 'body-parser';
 import console from 'console';
@@ -12,6 +12,8 @@ import bindLoginAPI from './login';
 import { bindGetTeamPlayers } from './teamPage';
 import bindGetLineGraph from './graph';
 
+// let queryClient: InfluxDB;
+let queryClient: QueryApi;
 function startExpressServer() {
   const app = express();
   const port = process.env.SD_SERVER_PORT || 3000;
@@ -23,7 +25,9 @@ function startExpressServer() {
   const url = 'https://ap-southeast-2-1.aws.cloud2.influxdata.com';
   const client = new InfluxDB({ url: url, token: DBtoken });
   const org = process.env.SD_SERVER_INFLUX_EMAIL as string;
-  const queryClient = client.getQueryApi(org);
+  queryClient = client.getQueryApi(org);
+
+
 
   app.use(bodyParser.json());
 
@@ -52,4 +56,5 @@ if (require.main === module) {
   startExpressServer();
 }
 
+export { queryClient };
 export default startExpressServer;

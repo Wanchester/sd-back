@@ -44,9 +44,11 @@ export async function getLineGraphAPI(
   if (influxRequest.sessions === undefined) {
     //no sessions specified. allowed teams will be inserted by buildQueryWithPermissions or undefined -> all allowed players returned
     sessionPlayersPromise = executeInflux(buildQuery({ teams: influxRequest.teams || undefined, get_unique: 'players' }), queryClient);
+    // console.log(buildQuery({ teams: influxRequest.teams || undefined, get_unique: 'players' }));
   } else {
     //for each specified session, get unique players
     sessionPlayersPromise = executeInflux(buildQuery({ sessions: influxRequest.sessions, get_unique: 'players' }), queryClient);
+    // console.log(buildQuery({ teams: influxRequest.teams || undefined, get_unique: 'players' }));
   }
   //organise times and values into output
   influxResponse.forEach((row) => {

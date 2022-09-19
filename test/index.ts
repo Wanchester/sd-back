@@ -1,6 +1,10 @@
 import { assert, expect } from 'chai';
-import startExpressServer from '../src';
+import startExpressServer, { queryClient } from '../src';
 import request, { SuperAgentTest } from 'supertest';
+
+import { executeInflux } from '../src/utils';
+import { TimeSeriesResponse } from 'src/interface';
+import _ from 'lodash';
 import { InfluxColumn } from 'src/utilsInflux';
 
 function assertSessionResponse(session: any) {
@@ -638,7 +642,8 @@ describe('Test Express server endpoints', async () => {
     it('POST /lineGraph succeeds for requesting all info of NULL 24/4/22', async () => {
       const res = await agent.post('/lineGraph').send({
         'sessions': ['NULL 24/4/22'],
-        'fields': ['Velocity', 'Distance'],
+        'fields': ['Velocity', 'Distance', 'Total Sprint Distance'],
+        'aggregate': { 'every': 3600 },
       });
       expect(res.statusCode).to.equal(200);
       assertTimeSeriesResponse(res.body);
@@ -651,6 +656,36 @@ describe('Test Express server endpoints', async () => {
       for (let name of Object.keys(res.body)) {
         expect(allowedNames).to.include(name);
       }
+
+      //deep comparing
+      const equivalentQuery :string = `from(bucket:"test")
+      |>range(start:-3y)
+      |>filter(fn: (r) => r["topic"] !~ /.*log$/)
+      |>filter(fn: (r) => r["Session"] == "NULL 24/4/22")
+      |>filter(fn: (r) => r["_field"] == "Velocity" or r["_field"] == "Distance" or r["_field"] == "Total Sprint Distance")
+      |>group(columns: ["_field", "Player Name"])
+      |>window(every: 3600s)
+      |>mean()
+      |>duplicate(column: "_stop", as: "_time")` ;
+      const InfluxResult = await executeInflux(equivalentQuery, queryClient);
+      const output: TimeSeriesResponse = {};
+      for (let row of InfluxResult) {
+        const playerName = row['Player Name'];
+        const field = row._field;
+        if (output[playerName]) { 
+          if ((output[playerName])[field]) {
+            output[playerName][field].push([row._time || 'null', row._value]);
+          } else {
+            output[playerName][field] = [];
+            output[playerName][field].push([row._time || 'null', row._value]);
+          }
+        } else {
+          output[playerName] = {};
+          output[playerName][field] = [];
+          output[playerName][field].push([row._time, row._value]);
+        }
+      }
+      assert.isTrue(_.isEqual(res.body, output));
     }).timeout(10000);
   });
 
