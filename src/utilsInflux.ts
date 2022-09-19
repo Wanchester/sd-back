@@ -16,7 +16,7 @@ export type InfluxQuery = { //TODO:need more specific name
     every?: number,  //seconds
     period?: number, //seconds
     func?: AggregateFunc,
-    dont_mix: InfluxColumn[],
+    dont_mix?: InfluxColumn[],
   },
 };
 function influxColumn(name: InfluxColumn) :string | undefined {
