@@ -640,7 +640,7 @@ describe('Test Express server endpoints', async () => {
     it('POST /lineGraph succeeds for requesting all info of NULL 24/4/22', async () => {
       const res = await agent.post('/lineGraph').send({
         'sessions': ['NULL 24/4/22'],
-        'fields': ['Velocity', 'Distance'],
+        'fields': ['Velocity', 'Distance', 'Total Sprint Distance'],
         'aggregate': { 'every': 3600 },
       });
       expect(res.statusCode).to.equal(200);
@@ -658,8 +658,9 @@ describe('Test Express server endpoints', async () => {
       //deep comparing
       const equivalentQuery :string = `from(bucket:"test")
       |>range(start:-3y)
+      |>filter(fn: (r) => r["topic"] !~ /.*log$/)
       |>filter(fn: (r) => r["Session"] == "NULL 24/4/22")
-      |>filter(fn: (r) => r["_field"] == "Velocity" or r["_field"] == "Distance")
+      |>filter(fn: (r) => r["_field"] == "Velocity" or r["_field"] == "Distance" or r["_field"] == "Total Sprint Distance")
       |>group(columns: ["_field", "Player Name"])
       |>window(every: 3600s)
       |>mean()

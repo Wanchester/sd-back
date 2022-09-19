@@ -133,6 +133,7 @@ export function buildQuery(query: InfluxQuery) :string {
   };
 
   //filter for all names,teams,sessions,fields,
+  output.push('|>filter(fn: (r) => r["topic"] !~ /.*log$/)');
   output.push(filterWithList('Player Name', query.names));
   output.push(filterWithList('_measurement', query.teams));
   output.push(filterWithList('Session', query.sessions));
