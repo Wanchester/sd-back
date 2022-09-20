@@ -10,7 +10,7 @@ import 'dotenv/config';
 // import bindGetStatistic from './playerStatistic';
 import bindLoginAPI from './login';
 import { bindGetTeamPlayers } from './teamPage';
-import bindGetLineGraph from './graph';
+import bindGetLineGraph, { bindGetCombinationGraph } from './graph';
 
 // let queryClient: InfluxDB;
 let queryClient: QueryApi;
@@ -43,6 +43,7 @@ function startExpressServer() {
   // bindGetStatistic(app, db, queryClient);
   bindGetTeamPlayers(app, db, queryClient);
   bindGetLineGraph(app, db, queryClient);
+  bindGetCombinationGraph(app, db, queryClient);
   // PUT requests
   bindPutProfile(app, db, queryClient);
   app.listen(port, () => {
