@@ -226,7 +226,7 @@ export async function getCombinationGraphAPI(
   const lineQuery: InfluxQuery = {
     ...influxRequest,
     aggregate: {
-      func: 'timedMovingAverage',
+      func: influxRequest.aggregate?.func || 'timedMovingAverage',
       every: 86400, //1 day
       period: 86400 * 28, //28 days
     },
