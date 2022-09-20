@@ -652,7 +652,6 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 24/4/22'],
         teams: ['TeamWanchester'],
         fields: ['Velocity'],
-        aggregate: { every: '3600', func: 'mean', dont_mix: ['players'] as InfluxColumn[] },
       });
       expect(res.statusCode).to.equal(200);
       assertCombinationGraphResponse(res.body);
@@ -664,7 +663,6 @@ describe('Test Express server endpoints', async () => {
         sessions: ['NULL 24/4/22'],
         teams: ['TeamWanchester'],
         fields: ['Velocity'],
-        aggregate: { dont_mix: ['players'] },
       });
       expect(res.statusCode).to.equal(200);
       assertCombinationGraphResponse(res.body);
@@ -696,7 +694,6 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.post('/combinationGraph').send({
         teams: ['Team3'],
         fields: ['Velocity'],
-        aggregate: { every: '3600', func: 'mean', dont_mix: ['players'] },
       });
       expect(res.statusCode).to.equal(403);
     }).timeout(6000);
