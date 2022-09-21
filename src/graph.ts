@@ -1,7 +1,7 @@
 import { QueryApi } from '@influxdata/influxdb-client';
 import { Express } from 'express';
 import { Database } from 'sqlite3';
-import { SessionResponseType, TimeSeriesResponse } from './interface';
+import { CombinationGraphResponse, SessionResponseType, TimeSeriesResponse } from './interface';
 import { getTeamsAPI } from './team';
 import { getTeamPlayersAPI } from './teamPage';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
@@ -16,7 +16,7 @@ export async function getLineGraphAPI(
 ): Promise<TimeSeriesResponse | undefined> {
   //prepare output object skeleton
   //  arrow function will create new arrays, so they are not shared between players
-  let generateStatsSkeleton = () => Object.fromEntries(influxRequest.fields!.map((f) => [f, []]));
+  const generateStatsSkeleton = () => Object.fromEntries(influxRequest.fields!.map((f) => [f, []]));
   let output: TimeSeriesResponse = {};
   
   //frontend may specify a filter for player's names
@@ -179,6 +179,124 @@ export default function bindGetLineGraph(
         try {
           const lineGraphData = await getLineGraphAPI(queryClient, q);
           res.status(200).send(lineGraphData);
+        } catch (error) {
+          const errCode = getStatusCodeBasedOnError(error as Error);
+          res.status(errCode).send({
+            error: (error as Error).message,
+            name: (error as Error).name,
+          });
+        }
+      };
+
+      performQuery(await buildQueryWithPermissions(sqlDB, queryClient, req.session.username!, req.body));
+
+    } catch (error) {
+      res.status(getStatusCodeBasedOnError(error as Error)).send({
+        error: (error as Error).message,
+        name: (error as Error).name,
+      });
+    }
+  });
+}
+
+
+export async function getCombinationGraphAPI(
+  queryClient: QueryApi,
+  influxRequest: InfluxQuery,
+): Promise<CombinationGraphResponse | undefined> {
+  
+  const generateStatsSkeleton = () => Object.fromEntries(influxRequest.fields!.map((f) => [f, []]));
+  const output: CombinationGraphResponse = {
+    bar: generateStatsSkeleton(),
+    line: generateStatsSkeleton(),
+  };
+
+  //get average for each session
+  const barQuery:InfluxQuery = {
+    ...influxRequest, 
+    aggregate: { 
+      every: 86400, //ensure _time column will be preserved
+      func: influxRequest.aggregate?.func || 'mean', 
+      dont_mix:['sessions'], 
+    },
+  };
+  const barPromise = executeInflux(buildQuery(barQuery), queryClient);
+
+  //get timedmovingaverage for each session
+  const lineQuery: InfluxQuery = {
+    ...influxRequest,
+    aggregate: {
+      func: influxRequest.aggregate?.func || 'timedMovingAverage',
+      every: 86400, //1 day
+      period: 86400 * 28, //28 days
+    },
+  };
+  const linePromise = executeInflux(buildQuery(lineQuery), queryClient);
+  
+  //format as {line: ..., bar:...}
+  const minusOneDay = (date:string) => {
+    //some dates represent the previous 24hrs
+    const d = new Date(date).getTime();
+    return new Date(d - 86400_000).toISOString();
+  };
+
+  const barResponse = await barPromise;
+  barResponse.forEach((row)=> {
+    output.bar[row._field].push([minusOneDay(row._time), row._value, row.Session]);
+  });
+
+  const lineResponse = await linePromise;
+  lineResponse.forEach((row)=> {
+    output.line[row._field].push([minusOneDay(row._time), row._value]);
+  });
+
+  return output;
+}
+
+
+
+export function bindGetCombinationGraph(
+  app: Express,
+  sqlDB: Database,
+  queryClient: QueryApi,
+) {
+  app.post('/combinationGraph', async (req, res) => {
+    try {
+      //must log in
+      if (req.session.username === undefined) {
+        res.status(401).send({
+          name: 'Error',
+          error: generateErrorBasedOnCode('e401.0').message,
+        });
+        return;
+      }
+
+      //no fields specified. Many fields in InfluxDB are irrelevant, will not return all
+      if (req.body.fields === undefined || req.body.fields.length === 0) {
+        throwBasedOnCode('e400.19', JSON.stringify(req.body) as string);
+      }
+      //ensure all keys are valid
+      const querysKeys = Object.keys(req.body);
+      const expectedKeys = ['names', 'fields', 'sessions', 'teams', 'aggregate', 'range', 'get_unique'];
+      for (let key of querysKeys) {
+        if (!(expectedKeys.includes(key))) {
+          throwBasedOnCode('e400.21', key, expectedKeys);
+        }
+      }
+
+      //default to logged in player, if player
+      if (req.body.names === undefined && req.body.teams === undefined) {
+        const personalInfo = await getPersonalInfoAPI(sqlDB, req.session.username);
+        if (personalInfo.role === 'player') {
+          req.body.names = [personalInfo.name];
+        }
+      }
+           
+
+      const performQuery = async (q:InfluxQuery) => {
+        try {
+          const combinationGraphData = await getCombinationGraphAPI(queryClient, q);
+          res.status(200).send(combinationGraphData);
         } catch (error) {
           const errCode = getStatusCodeBasedOnError(error as Error);
           res.status(errCode).send({

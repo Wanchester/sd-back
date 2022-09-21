@@ -72,7 +72,28 @@ function assertTimeSeriesResponse(response: any) {
       });
     });
   });
-  
+}
+
+function assertCombinationGraphResponse(response:any) {
+  assert.isObject(response);
+  assert.containsAllKeys(response, ['bar', 'line']);
+  assert.isObject(response.line);
+  assert.isObject(response.bar);
+  Object.values(response.line).forEach((field:any)=> {
+    assert.isArray(field);
+    field.forEach((e:any)=>{
+      assert.isString(e[0]);
+      assert.isNumber(e[1]);
+    });
+  });
+  Object.values(response.bar).forEach((field:any)=>{
+    assert.isArray(field);
+    field.forEach((e:any)=>{
+      assert.isString(e[0]);
+      assert.isNumber(e[1]);
+      assert.isString(e[2]);
+    });
+  });
 }
 
 async function verifyPutProfileRequest(agent: SuperAgentTest, endpoint: string, height = 170) {
@@ -624,6 +645,62 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(400);
     });
 
+    //combinationGraph
+    it('POST /combinationGraph succeeds for requesting p_warren info', async () => {
+      const res = await agent.post('/combinationGraph').send({
+        names: ['Warren'],
+        fields: ['Velocity'],
+      });
+      expect(res.statusCode).to.equal(200);
+      assertCombinationGraphResponse(res.body);
+    }).timeout(6000);
+
+    it('POST /combinationGraph succeeds for requesting p_jbk info', async () => {
+      const res = await agent.post('/combinationGraph').send({
+        names: ['Jbk'],
+        sessions: ['NULL 24/4/22'],
+        teams: ['TeamWanchester'],
+        fields: ['Velocity'],
+      });
+      expect(res.statusCode).to.equal(200);
+      assertCombinationGraphResponse(res.body);
+    }).timeout(6000);
+
+    it('POST /combinationGraph fails for p_warren requesting unknown field', async () => {
+      const res = await agent.post('/combinationGraph').send({
+        fields: ['BAD FIELD'],
+      });
+      expect(res.statusCode).to.equal(400);
+    }).timeout(6000);
+
+    it('POST /combinationGraph fails for p_warren requesting unknown key', async () => {
+      const res = await agent.post('/combinationGraph').send({
+        fields: ['BAD FIELD'],
+        BAD_KEY: ['BAD FIELD'],
+      });
+      expect(res.statusCode).to.equal(400);
+    }).timeout(6000);
+
+    it('POST /combinationGraph fails for p_warren empty field', async () => {
+      const res = await agent.post('/combinationGraph').send({
+        fields: [],
+      });
+      expect(res.statusCode).to.equal(400);
+    }).timeout(6000);
+
+    it('POST /combinationGraph fails for p_warren requesting unaffiliated team', async () => {
+      const res = await agent.post('/combinationGraph').send({
+        teams: ['Team3'],
+        fields: ['Velocity'],
+      });
+      expect(res.statusCode).to.equal(403);
+    }).timeout(6000);
+
+    it('POST /combinationGraph fails for p_warren with empty query', async () => {
+      const res = await agent.post('/combinationGraph').send({});
+      expect(res.statusCode).to.equal(400);
+    });
+
   });
 
   // player graph p_jbk
@@ -724,6 +801,25 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.post('/lineGraph').send({});
       expect(res.statusCode).to.equal(400);
     });
+    //combinationGraph
+    
+    it('POST /combinationGraph succeeds for c_coach1', async () => {
+      const res = await agent.post('/combinationGraph').send({
+        sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
+        teams: ['TeamBit', 'Team3'],
+        fields: ['Velocity', 'Height'],
+      });
+      expect(res.statusCode).to.equal(200);
+      assertCombinationGraphResponse(res.body);
+    }).timeout(6000);
+
+    it('POST /combinationGraph fails for c_coach1 requesting unaffiliated team', async () => {
+      const res = await agent.post('/combinationGraph').send({
+        teams: ['TeamWanchester'],
+        fields: ['Velocity'],
+      });
+      expect(res.statusCode).to.equal(403);
+    }).timeout(6000);
 
   });
 
@@ -765,6 +861,20 @@ describe('Test Express server endpoints', async () => {
         fields: ['Velocity'],
         aggregate: { every: -1 },
       });
+      expect(res.statusCode).to.equal(400);
+    });
+    //combinationGraph
+    it('POST /combinationGraph succeeds for a_administrator', async () => {
+      const res = await agent.post('/combinationGraph').send({
+        teams: ['TeamBit', 'Team3', 'TeamWanchester'],
+        fields: ['Velocity', 'Height'],
+      });
+      expect(res.statusCode).to.equal(200);
+      assertCombinationGraphResponse(res.body);
+    }).timeout(6000);
+
+    it('POST /combinationGraph fails for a_administrator with empty query', async () => {
+      const res = await agent.post('/combinationGraph').send({});
       expect(res.statusCode).to.equal(400);
     });
   });

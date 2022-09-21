@@ -59,6 +59,10 @@ export interface TimeSeriesResponse { // for line graph
 // } as TimeSeriesResponse;
 
 export interface CombinationGraphResponse {
-  'line': [string, number][],
-  'bar': [string, number][]
+  'line': {
+    [fieldName:string]: [string, number][],
+  },
+  'bar': {
+    [fieldName:string]: [string, number, string][],
+  },
 }
