@@ -649,8 +649,6 @@ describe('Test Express server endpoints', async () => {
     it('POST /combinationGraph succeeds for requesting p_warren info', async () => {
       const res = await agent.post('/combinationGraph').send({
         names: ['Warren'],
-        sessions: ['NULL 24/4/22'],
-        teams: ['TeamWanchester'],
         fields: ['Velocity'],
       });
       expect(res.statusCode).to.equal(200);
@@ -868,7 +866,6 @@ describe('Test Express server endpoints', async () => {
     //combinationGraph
     it('POST /combinationGraph succeeds for a_administrator', async () => {
       const res = await agent.post('/combinationGraph').send({
-        sessions: ['NULL 17/4/22', 'NULL 2/4/22'],
         teams: ['TeamBit', 'Team3', 'TeamWanchester'],
         fields: ['Velocity', 'Height'],
       });

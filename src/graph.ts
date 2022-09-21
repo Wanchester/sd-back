@@ -283,6 +283,14 @@ export function bindGetCombinationGraph(
           throwBasedOnCode('e400.21', key, expectedKeys);
         }
       }
+
+      //default to logged in player, if player
+      if (req.body.names === undefined && req.body.teams === undefined) {
+        const personalInfo = await getPersonalInfoAPI(sqlDB, req.session.username);
+        if (personalInfo.role === 'player') {
+          req.body.names = [personalInfo.name];
+        }
+      }
            
 
       const performQuery = async (q:InfluxQuery) => {
