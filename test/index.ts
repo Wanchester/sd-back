@@ -1,9 +1,8 @@
 import { assert, expect } from 'chai';
 import startExpressServer, { queryClient } from '../src';
 import request, { SuperAgentTest } from 'supertest';
-
 import { executeInflux } from '../src/utils';
-import { TimeSeriesResponse } from 'src/interface';
+import { CombinationGraphResponse, TimeSeriesResponse } from 'src/interface';
 import _ from 'lodash';
 import { InfluxColumn } from 'src/utilsInflux';
 
@@ -701,6 +700,40 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(400);
     });
 
+    it('POST /combinationGraph deep check for Warren as Warren', async () => {
+      const handLineQuery = `from(bucket: "test")
+      |>range(start:0)
+      |>filter(fn: (r)=> r["Player Name"] == "Warren" and r["_field"] == "Velocity")
+      |>group(columns: ["_field", "Player Name"])
+      |>timedMovingAverage(every: 86400s, period: 2419200s)
+      `;
+      const handBarQuery = `from(bucket: "test")
+      |>range(start:0)
+      |>filter(fn: (r)=> r["Player Name"] == "Warren" and r["_field"] == "Velocity")
+      |>group(columns: ["_field", "Player Name", "Session"])
+      |>mean()
+      `;
+      const barPromise = executeInflux(handBarQuery, queryClient);
+      const linePromise = executeInflux(handLineQuery, queryClient);
+      const comboPromise = agent.post('/combinationGraph').send({
+        names: ['Warren'],
+        fields: ['Velocity'],
+      });
+      const lineValues = (await linePromise).map((r)=> r._value);
+      const barValues = (await barPromise).map((r)=> r._value);
+      const comboResponse:CombinationGraphResponse = (await comboPromise).body;
+      comboResponse.line.Velocity.forEach((vel:any) => {
+        expect(lineValues).to.include(vel[1]);
+      });
+      //latest session in bar graph is highly dependent on time of query
+      //rounding values
+      const precision = 10 ** 9;
+      const round = (n:any) =>  Math.floor(n * precision) ;
+      comboResponse.bar.Velocity.forEach((vel:any) => {
+        expect(barValues.map(round)).to.include(round(vel[1]));
+      });
+    });
+
   });
 
   // player graph p_jbk
@@ -821,6 +854,41 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(403);
     }).timeout(6000);
 
+    it('POST /combinationGraph deep check for Warren as Coach1', async () => {
+      const handLineQuery = `from(bucket: "test")
+      |>range(start:0)
+      |>filter(fn: (r)=> r["Player Name"] == "Warren" and r["_field"] == "Velocity")
+      |>filter(fn: (r)=> r["_measurement"] == "Team3" or r["_measurement"] == "TeamBit")
+      |>group(columns: ["_field", "Player Name"])
+      |>timedMovingAverage(every: 86400s, period: 2419200s)
+      `;
+      const handBarQuery = `from(bucket: "test")
+      |>range(start:0)
+      |>filter(fn: (r)=> r["Player Name"] == "Warren" and r["_field"] == "Velocity")
+      |>filter(fn: (r)=> r["_measurement"] == "Team3" or r["_measurement"] == "TeamBit")
+      |>group(columns: ["_field", "Player Name", "Session"])
+      |>mean()
+      `;
+      const barPromise = executeInflux(handBarQuery, queryClient);
+      const linePromise = executeInflux(handLineQuery, queryClient);
+      const comboPromise = agent.post('/combinationGraph').send({
+        names: ['Warren'],
+        fields: ['Velocity'],
+      });
+      const lineValues = (await linePromise).map((r)=> r._value);
+      const barValues = (await barPromise).map((r)=> r._value);
+      const comboResponse:CombinationGraphResponse = (await comboPromise).body;
+      comboResponse.line.Velocity.forEach((vel:any) => {
+        expect(lineValues).to.include(vel[1]);
+      });
+      //latest session in bar graph is highly dependent on time of query
+      //rounding values
+      const precision = 10 ** 9;
+      const round = (n:any) =>  Math.floor(n * precision) ;
+      comboResponse.bar.Velocity.forEach((vel:any) => {
+        expect(barValues.map(round)).to.include(round(vel[1]));
+      });
+    });
   });
 
   // admin graph
