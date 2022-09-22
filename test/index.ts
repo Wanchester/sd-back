@@ -732,7 +732,7 @@ describe('Test Express server endpoints', async () => {
       comboResponse.bar.Velocity.forEach((vel:any) => {
         expect(barValues.map(round)).to.include(round(vel[1]));
       });
-    });
+    }).timeout(6000);
 
   });
 
@@ -889,7 +889,7 @@ describe('Test Express server endpoints', async () => {
         expect(barValues.map(round)).to.include(round(vel[1]));
       });
     });
-  });
+  }).timeout(6000);
 
   // admin graph
   describe('Tests graphs for a_administrator', () => {
