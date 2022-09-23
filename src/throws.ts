@@ -28,6 +28,7 @@ const ExitCodeMap = {
   'e400.22': 'Expected fields \'every\' and \'period\' in aggregate field of POST request with func \'timedMovingAverage\'',
   'e400.23': 'Revieved empty object for query!',
   'e400.24': 'Expected propery \'every\' because property \'period\' exists in \'aggregate\'',
+  'e400.25': 'Coach must specify a player name or team name for the combination graph',
 
   //401 Unauthenticated, Unauthorised
   'e401.0': 'You must login in order to make this request.',
@@ -35,6 +36,7 @@ const ExitCodeMap = {
   'e401.2': 'You have to be an admin to make this request.',
   'e403.3': 'You have to be a player/coach to make this request',
   'e403.4': 'You are not affiliated with :0 and therefore not allowed to make this request',
+  'e403.5': 'Players may only request themselves for this graph',
 
   //403 Forbiden
   'e403.0': 'You are not allowed to edit the :0 attribute',

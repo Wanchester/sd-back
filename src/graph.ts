@@ -284,14 +284,27 @@ export function bindGetCombinationGraph(
         }
       }
 
-      //default to logged in player, if player
-      if (req.body.names === undefined && req.body.teams === undefined) {
-        const personalInfo = await getPersonalInfoAPI(sqlDB, req.session.username);
-        if (personalInfo.role === 'player') {
-          req.body.names = [personalInfo.name];
+      //permissions
+      const loggedInUser = await getPersonalInfoAPI(sqlDB, req.session.username);
+      if (loggedInUser.role === 'player') {
+        if (req.body.names === undefined && req.body.teams === undefined) {
+          //default to logged in player, if player
+          req.body.names = [loggedInUser.name];
+        } else if (req.body.names !== undefined && req.body.names.length === 1) {
+          //player can only query themselves
+          if (req.body.names[0] !== loggedInUser.name) {
+            throwBasedOnCode('e403.4', req.body.names[0]);
+          }
+        } else {
+          //requesting other players specifically is not allowed
+          throwBasedOnCode('e403.5');
         }
-      }
-           
+      } else if (loggedInUser.role === 'coach') {
+        if (req.body.names === undefined && req.body.teams === undefined) {
+          throwBasedOnCode('e400.25');
+        }
+        //handled by buildQueryWithPermissions
+      }       
 
       const performQuery = async (q:InfluxQuery) => {
         try {

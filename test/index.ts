@@ -654,15 +654,12 @@ describe('Test Express server endpoints', async () => {
       assertCombinationGraphResponse(res.body);
     }).timeout(6000);
 
-    it('POST /combinationGraph succeeds for requesting p_jbk info', async () => {
+    it('POST /combinationGraph fails for requesting p_jbk info', async () => {
       const res = await agent.post('/combinationGraph').send({
         names: ['Jbk'],
-        sessions: ['NULL 24/4/22'],
-        teams: ['TeamWanchester'],
         fields: ['Velocity'],
       });
-      expect(res.statusCode).to.equal(200);
-      assertCombinationGraphResponse(res.body);
+      expect(res.statusCode).to.equal(403);
     }).timeout(6000);
 
     it('POST /combinationGraph fails for p_warren requesting unknown field', async () => {
