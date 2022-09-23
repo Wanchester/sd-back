@@ -290,17 +290,19 @@ export function bindGetCombinationGraph(
         if (req.body.names === undefined && req.body.teams === undefined) {
           //default to logged in player, if player
           req.body.names = [loggedInUser.name];
-        } else if (req.body.names !== undefined && req.body.names.length === 1) {
-          //player can only query themselves
-          if (req.body.names[0] !== loggedInUser.name) {
-            throwBasedOnCode('e403.4', req.body.names[0]);
+        } else if (req.body.names !== undefined) {
+          if (req.body.names.length === 1) {
+            //player can only query themselves
+            if (req.body.names[0] !== loggedInUser.name) {
+              throwBasedOnCode('e403.4', req.body.names[0]);
+            } 
+          } else {
+            //requesting other players specifically is not allowed
+            throwBasedOnCode('e403.5');
           }
-        } else {
-          //requesting other players specifically is not allowed
-          throwBasedOnCode('e403.5');
         }
       } else if (loggedInUser.role === 'coach') {
-        if (req.body.names === undefined && req.body.teams === undefined) {
+        if (req.body.names === undefined && (req.body.teams === undefined || req.body.teams.length === 0)) {
           throwBasedOnCode('e400.25');
         }
         //handled by buildQueryWithPermissions
