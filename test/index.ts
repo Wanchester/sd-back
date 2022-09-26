@@ -943,6 +943,8 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(400);
     });
   });
+
+  // POST /trainingSessions for player
   describe('coach new POST training session', async ()=> {
     const agent = request.agent(app);
     it('login c_coach1', async () => {
@@ -983,7 +985,7 @@ describe('Test Express server endpoints', async () => {
       const res = await agent.get('/trainingSessions');
       expect(res.statusCode).to.equal(200);
       assert.isArray(res.body); 
-      res.body.forEach((session: any)=>assertSessionResponse(session) );
+      res.body.forEach((session: any)=>assertSessionResponse(session));
     }).timeout(10000);
     
     it('POST /trainingSessions fails with p_warren as logged in user', async () => {
@@ -993,10 +995,13 @@ describe('Test Express server endpoints', async () => {
 
     // team training sessions
     it('POST /trainingSessions?teamName=TeamBit succeeds with p_jbk logged in as user', async () => {
-      const res = await agent.post('/trainingSessions?teamName=TeamBit').send({ 'teams':['TeamBit'] });
+      const res = await agent.post('/trainingSessions').send({ 'teams':['TeamBit'] });
       expect(res.statusCode).to.equal(200);
       assert.isArray(res.body); 
       res.body.forEach((session: any)=>assertSessionResponse(session) );
+      // using the old API endpoints to do the deep check
+      const res2 =  await agent.get('/trainingSessions?teamName=TeamBit');
+      assert.isTrue(_.isEqual(res.body, res2.body));
     }).timeout(4000);
 
     it('POST /trainingSessions?teamName=Team3 fails with p_warren logged in as user', async () => {
@@ -1006,7 +1011,6 @@ describe('Test Express server endpoints', async () => {
 
     it('GET /trainingSessions?teamName=InvalidTeamName fails with p_jbk logged in as user', async () => {
       const res = await agent.post('/trainingSessions').send({ 'teams':'InvalidName' });
-
       expect(res.statusCode).to.equal(403);
     });
 
@@ -1021,6 +1025,9 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(200);
       assert.isArray(res.body); 
       res.body.forEach((session: any)=>assertSessionResponse(session) );
+      // using the old API endpoints to do the deep check
+      const res2 =  await agent.get('/trainingSessions?sessionName=NULL 24/4/22');
+      assert.isTrue(_.isEqual(res.body, res2.body));
     }).timeout(10000);
   });
 });

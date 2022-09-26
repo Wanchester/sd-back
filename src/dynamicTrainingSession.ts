@@ -30,7 +30,6 @@ export default function bindGetDynamicTrainingSessions(
       const reqBody: InfluxQuery = req.body;
 
       //prevent empty request body
-      console.log(reqBody);
       if (_.isEmpty(reqBody)) {
         throwBasedOnCode('e400.0');
       }
