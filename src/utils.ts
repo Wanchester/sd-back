@@ -179,7 +179,7 @@ export async function getCommonTeams(sqlDB:Database, queryClient: QueryApi, user
   return commonTeams;
 }
 
-export async function inputValidate(sqlDB:Database, queryClient: QueryApi, input: string, columnName: InfluxColumn): Promise<boolean> {
+export async function inputValidate(sqlDB:Database, queryClient: QueryApi, inputList: string[], columnName: InfluxColumn): Promise<void> {
   //teamName validation
   const getAllPossibleInputQuery = buildQuery({ get_unique: columnName }); //get all the teams
   const allPossibleInput = await executeInflux(getAllPossibleInputQuery, queryClient);
@@ -187,9 +187,13 @@ export async function inputValidate(sqlDB:Database, queryClient: QueryApi, input
   allPossibleInput.forEach(row => 
     possibleInputList.push(row[influxColumn(columnName)!]),
   );
-  console.log('inside input validation');
-  if (!possibleInputList.includes(input)) {
-    return false;
+  for (let input of inputList) {
+    if (!possibleInputList.includes(input)) {
+      switch (columnName) {
+        case 'teams': throwBasedOnCode('e400.14', input);
+        case 'players': throwBasedOnCode('e400.4', input);
+        case 'sessions': throwBasedOnCode('e400.15', input);
+      }
+    }
   }
-  return true;
 }

@@ -1011,17 +1011,17 @@ describe('Test Express server endpoints', async () => {
 
     it('GET /trainingSessions?teamName=InvalidTeamName fails with p_jbk logged in as user', async () => {
       const res = await agent.post('/trainingSessions').send({ 'teams':'InvalidName' });
-      expect(res.statusCode).to.equal(403);
+      expect(res.statusCode).to.equal(400);
     });
 
     //trainingSessions fullStats
     it('POST /trainingSessions sessionName=NULL 2/4/22 fails with p_warren as logged in user', async () => {
-      const res = await agent.post('/trainingSessions').send({ 'sessions':'NULL 2/4/22' });
+      const res = await agent.post('/trainingSessions').send({ 'sessions':['NULL 2/4/22'] });
       expect(res.statusCode).to.equal(403);
     }).timeout(10000);
 
     it('GET /trainingSessions succeeds with p_warren as logged in user', async () => {
-      const res = await agent.get('/trainingSessions?').send({ 'sessions': '24/4/22' });
+      const res = await agent.get('/trainingSessions?').send({ 'sessions': ['NULL 24/4/22'] });
       expect(res.statusCode).to.equal(200);
       assert.isArray(res.body); 
       res.body.forEach((session: any)=>assertSessionResponse(session) );
@@ -1032,20 +1032,14 @@ describe('Test Express server endpoints', async () => {
 
     it('GET /trainingSessions succeeds with p_warren as logged in user', async () => {
       const requestBody = {
-        "names":["Warren"],
-        "teams":["TeamBit"],
-        "sessions": ["NULL 24/4/22"]
+        'names':['Warren'],
+        'teams':['TeamBit'],
+        'sessions': ['NULL 24/4/22'],
       };
       const res = await agent.get('/trainingSessions?').send(requestBody);
       expect(res.statusCode).to.equal(200);
       assert.isArray(res.body); 
       res.body.forEach((session: any)=>assertSessionResponse(session) );
-      // // using the old API endpoints to do the deep check
-      // const res2 =  await agent.get('/trainingSessions?sessionName=NULL 24/4/22');
-      // assert.isTrue(_.isEqual(res.body, res2.body));
     }).timeout(10000);
-
-
-
   });
 });

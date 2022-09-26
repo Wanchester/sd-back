@@ -4,7 +4,7 @@ import { Express } from 'express';
 import  { Database } from 'sqlite3';
 import { QueryApi } from '@influxdata/influxdb-client';
 import throwBasedOnCode, { generateErrorBasedOnCode, getStatusCodeBasedOnError } from './throws';
-import { executeInflux, getPersonalInfoAPI } from './utils';
+import { executeInflux, getPersonalInfoAPI, inputValidate } from './utils';
 import _ from 'lodash';
 import { SessionResponseType } from './interface';
 
@@ -41,6 +41,32 @@ export default function bindGetDynamicTrainingSessions(
           }
         } 
       }
+
+      const promiseList: Promise<void>[] = [];
+      //validate player 
+      if ( reqBody.names !== undefined) {
+        const validPlayer = inputValidate(sqlDB, queryClient, reqBody.names, 'players');
+        promiseList.push(validPlayer);
+      }
+      //validate team
+      if ( reqBody.teams !== undefined) {
+        const validTeam = inputValidate(sqlDB, queryClient, reqBody.teams, 'teams');
+        promiseList.push(validTeam);
+      }
+      //validate sessions
+      if ( reqBody.sessions !== undefined) {
+        const validSession = inputValidate(sqlDB, queryClient, reqBody.sessions, 'sessions');
+        promiseList.push(validSession);
+      }
+      await Promise.all(promiseList);
+
+      // const teamResult = await Promise.all(promiseTeamList);
+      // if (!result[0]) {
+      // //   throwBasedOnCode('e400.14', teamName);
+      // }
+      // // if (!result[1]) {
+      // //   throwBasedOnCode('e400.15', sessionName);
+      // // }
 
       reqBody.fields = ['Height', 'Velocity', 'Distance', 'Work Rate', '3dAccuracy', '2dAccuracy', 'Run Distance', 'Sprint Distance', 'Total Run Distance', 'Total Sprint Distance', 'Total Work Rate', 'lat', 'lon'];
       reqBody.get_unique = 'sessions';
@@ -79,10 +105,6 @@ export default function bindGetDynamicTrainingSessions(
         cleanedSession.sessionStop = keyedTimes[cleanedSession.sessionName].end;
         cleanedSession.duration = getDuration(cleanedSession.sessionStart, cleanedSession.sessionStop);
       }
-    
-      //possibly empty...
-      // return cleanedTrainingSessions;
-      
       res.status(200).send(cleanedTrainingSessions);
     } catch (error) {
       res.status(getStatusCodeBasedOnError(error as Error)).send({

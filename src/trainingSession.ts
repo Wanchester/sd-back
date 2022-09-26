@@ -104,20 +104,25 @@ export default function bindGetTrainingSessions(
   
         const teamName = (req.query as any).teamName;
         const sessionName = (req.query as any).sessionName;
-        const promiseList: Promise<boolean>[] = [];
+        // const promiseList: Promise<boolean>[] = [];
 
         //validate teamName and trainingSessions name
-        const validTeam = inputValidate(sqlDB, queryClient, teamName, 'teams');
-        const validSession = inputValidate(sqlDB, queryClient, sessionName, 'sessions');
-        promiseList.push(validTeam);
-        promiseList.push(validSession);
-        const result = await Promise.all(promiseList);
-        if (!result[0]) {
-          throwBasedOnCode('e400.14', teamName);
-        }
-        if (!result[1]) {
-          throwBasedOnCode('e400.15', sessionName);
-        }
+        // const validTeam = inputValidate(sqlDB, queryClient, teamName, 'teams');
+        // const validSession = inputValidate(sqlDB, queryClient, sessionName, 'sessions');
+        // promiseList.push(validTeam);
+        // promiseList.push(validSession);
+        // const result = await Promise.all(promiseList);
+        // if (!result[0]) {
+        //   throwBasedOnCode('e400.14', teamName);
+        // }
+        // if (!result[1]) {
+        //   throwBasedOnCode('e400.15', sessionName);
+        // }
+        const promiseList: Promise<void>[] = [];
+        const validTeam = inputValidate(sqlDB, queryClient, [teamName], 'teams');
+        const validSession = inputValidate(sqlDB, queryClient, [sessionName], 'sessions');
+        promiseList.push(validTeam, validSession );
+        await Promise.all(promiseList);
 
         let trainingSessionsAPI = await callBasedOnRole(
           sqlDB,
