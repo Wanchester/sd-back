@@ -19,7 +19,7 @@ export type InfluxQuery = { //TODO:need more specific name
     dont_mix?: InfluxColumn[],
   },
 };
-function influxColumn(name: InfluxColumn) :string | undefined {
+export function influxColumn(name: InfluxColumn) :string | undefined {
   switch (name) {
     case 'teams': return '_measurement';
     case 'players': return 'Player Name';

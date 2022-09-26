@@ -944,7 +944,7 @@ describe('Test Express server endpoints', async () => {
     });
   });
 
-  // POST /trainingSessions for player
+  // POST /trainingSessions for coach
   describe('coach new POST training session', async ()=> {
     const agent = request.agent(app);
     it('login c_coach1', async () => {
@@ -980,7 +980,7 @@ describe('Test Express server endpoints', async () => {
       await agent.post('/login').send(testUser);
     });
 
-    // /trainingSessions
+    // trainingSessions of currently logged in user
     it('GET /trainingSessions succeeds with p_warren as logged in user', async () => {
       const res = await agent.get('/trainingSessions');
       expect(res.statusCode).to.equal(200);
@@ -1029,5 +1029,23 @@ describe('Test Express server endpoints', async () => {
       const res2 =  await agent.get('/trainingSessions?sessionName=NULL 24/4/22');
       assert.isTrue(_.isEqual(res.body, res2.body));
     }).timeout(10000);
+
+    it('GET /trainingSessions succeeds with p_warren as logged in user', async () => {
+      const requestBody = {
+        "names":["Warren"],
+        "teams":["TeamBit"],
+        "sessions": ["NULL 24/4/22"]
+      };
+      const res = await agent.get('/trainingSessions?').send(requestBody);
+      expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+      // // using the old API endpoints to do the deep check
+      // const res2 =  await agent.get('/trainingSessions?sessionName=NULL 24/4/22');
+      // assert.isTrue(_.isEqual(res.body, res2.body));
+    }).timeout(10000);
+
+
+
   });
 });

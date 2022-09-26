@@ -1,7 +1,7 @@
 import { QueryApi } from '@influxdata/influxdb-client';
 // import moment from 'moment';
 import { Database } from 'sqlite3';
-import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } from './utils';
+import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams, inputValidate } from './utils';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
 import { getCoachTeamsAPI, getTeamsAPI } from './team';
@@ -104,18 +104,19 @@ export default function bindGetTrainingSessions(
   
         const teamName = (req.query as any).teamName;
         const sessionName = (req.query as any).sessionName;
-        
-        //teamName validation
-        const getTeamQuery = buildQuery({ get_unique: 'teams' } ); //get all the teams
-        const team = await executeInflux(getTeamQuery, queryClient);
-        // console.log('team: ', team);
-        const teamsList: string[] = [];  // list of all the teams
-        team.forEach(row => 
-          teamsList.push(row._measurement),
-        );
-        // console.log(teamsList);
-        if (!teamsList.includes(teamName)) {
+        const promiseList: Promise<boolean>[] = [];
+
+        //validate teamName and trainingSessions name
+        const validTeam = inputValidate(sqlDB, queryClient, teamName, 'teams');
+        const validSession = inputValidate(sqlDB, queryClient, sessionName, 'sessions');
+        promiseList.push(validTeam);
+        promiseList.push(validSession);
+        const result = await Promise.all(promiseList);
+        if (!result[0]) {
           throwBasedOnCode('e400.14', teamName);
+        }
+        if (!result[1]) {
+          throwBasedOnCode('e400.15', sessionName);
         }
 
         let trainingSessionsAPI = await callBasedOnRole(
