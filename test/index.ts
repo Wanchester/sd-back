@@ -956,7 +956,7 @@ describe('Test Express server endpoints', async () => {
     });
 
     // /trainingSessions
-    it('POST /trainingSessions succeeds with p_warren as logged in user', async () => {
+    it('GET /trainingSessions succeeds with p_warren as logged in user', async () => {
       const res = await agent.get('/trainingSessions');
       expect(res.statusCode).to.equal(200);
       assert.isArray(res.body); 
@@ -964,40 +964,40 @@ describe('Test Express server endpoints', async () => {
     }).timeout(10000);
     
     it('POST /trainingSessions fails with p_warren as logged in user', async () => {
-      const res = await agent.post('/trainingSessions').send({ 'names': 'Jbk'});
+      const res = await agent.post('/trainingSessions').send({ 'names': 'Jbk' });
       expect(res.statusCode).to.equal(401);
     }).timeout(4000);
 
     // team training sessions
-    it('GET /trainingSessions?teamName=TeamBit succeeds with p_jbk logged in as user', async () => {
+    it('POST /trainingSessions?teamName=TeamBit succeeds with p_jbk logged in as user', async () => {
       const res = await agent.post('/trainingSessions?teamName=TeamBit').send({ 'teams':['TeamBit'] });
       expect(res.statusCode).to.equal(200);
       assert.isArray(res.body); 
       res.body.forEach((session: any)=>assertSessionResponse(session) );
     }).timeout(4000);
 
-    // it('GET /trainingSessions?teamName=Team3 fails with p_jbk logged in as user', async () => {
-    //   const res = await agent.get('/trainingSessions?teamName=Team3');
-    //   expect(res.statusCode).to.equal(400);
-    // });
+    it('POST /trainingSessions?teamName=Team3 fails with p_warren logged in as user', async () => {
+      const res = await agent.post('/trainingSessions').send( { 'teams':['Team3'] });
+      expect(res.statusCode).to.equal(403);
+    });
 
-    // it('GET /trainingSessions?teamName=InvalidTeamName fails with p_jbk logged in as user', async () => {
-    //   const res = await agent.get('/trainingSessions?teamName=InvalidTeamName');
-    //   expect(res.statusCode).to.equal(400);
-    // });
+    it('GET /trainingSessions?teamName=InvalidTeamName fails with p_jbk logged in as user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'teams':'InvalidName' });
 
-    // //trainingSessions fullStats
-    // it('GET /trainingSessions?fullStats=true&teamName=TeamBit&sessionName=NULL 21/4/22 fails with p_jbk as logged in user', async () => {
-    //   const res = await agent.get('/trainingSessions?fullStats=true&teamName=TeamBit&sessionName=NULL 21/4/22');
-    //   expect(res.statusCode).to.equal(400);
-    // }).timeout(10000);
+      expect(res.statusCode).to.equal(403);
+    });
 
-    // it('GET /trainingSessions?fullStats=true&teamName=TeamWanchester&sessionName=NULL 24/4/22 succeeds with p_jbk as logged in user', async () => {
-    //   const res = await agent.get('/trainingSessions?fullStats=true&teamName=TeamWanchester&sessionName=NULL 24/4/22');
-    //   expect(res.statusCode).to.equal(200);
-    //   assertSessionResponse(res.body);
-    // }).timeout(10000);
+    //trainingSessions fullStats
+    it('POST /trainingSessions sessionName=NULL 2/4/22 fails with p_warren as logged in user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'sessions':'NULL 2/4/22' });
+      expect(res.statusCode).to.equal(403);
+    }).timeout(10000);
 
-
+    it('GET /trainingSessions succeeds with p_warren as logged in user', async () => {
+      const res = await agent.get('/trainingSessions?').send({ 'sessions': '24/4/22' });
+      expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+    }).timeout(10000);
   });
 });
