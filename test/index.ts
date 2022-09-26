@@ -943,6 +943,29 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(400);
     });
   });
+  describe('coach new POST training session', async ()=> {
+    const agent = request.agent(app);
+    it('login c_coach1', async () => {
+      const testUser = {
+        'username':'c_coach1',
+        'password':'12345678',
+      };
+      await agent.post('/login').send(testUser);
+    });
+    // trainingSessions
+    it('POST /trainingSessions with bad_player_name fails with c_coach1 as logged in user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'names': ['Ballard'] });
+      expect(res.statusCode).to.equal(403);
+    }).timeout(4000);
+
+    it('POST /trainingSessions with good_player_name succeeds with c_coach1 as logged in user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'names': ['Warren'] });
+      expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+    }).timeout(4000);
+
+  });
 
   // POST /trainingSessions for player
   describe('Tests POST /trainingSessions', () => {
@@ -964,7 +987,7 @@ describe('Test Express server endpoints', async () => {
     }).timeout(10000);
     
     it('POST /trainingSessions fails with p_warren as logged in user', async () => {
-      const res = await agent.post('/trainingSessions').send({ 'names': 'Jbk'});
+      const res = await agent.post('/trainingSessions').send({ 'names': 'Jbk' });
       expect(res.statusCode).to.equal(401);
     }).timeout(4000);
 
