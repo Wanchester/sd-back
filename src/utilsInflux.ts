@@ -40,7 +40,7 @@ export type InfluxField = '2dAccuracy' |
 'Total Distance' |
 'Total Run Distance' |
 'Total Sprint Distance' |
-'Total WorkRate' |
+'Total Work Rate' |
 'Velocity' |
 'Work Rate' |
 'lat' | 'lon';

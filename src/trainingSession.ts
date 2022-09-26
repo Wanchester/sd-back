@@ -90,8 +90,9 @@ export default function bindGetTrainingSessions(
   app.get('/trainingSessions', async (req, res) => {
     try {
       const loggedInUsername = req.session.username; 
-      if ((req.query as any).fullStats) {   
       // app.get('/trainingSessions?fullStats=:fullStats&teamName=:teamName&sessionName=:sessionName', async (req, res) => { 
+      if ((req.query as any).fullStats) {   
+
         if (loggedInUsername === undefined) {
           res.status(401).send({
             name: 'Error',
@@ -147,9 +148,9 @@ export default function bindGetTrainingSessions(
             return getTrainingSessionStatisticsAPI(queryClient, teamName, sessionName);
           },
         );
-        res.send(trainingSessionsAPI);        
+        res.send(trainingSessionsAPI);
+      // get(/trainingSessions/teamName:=teamName)         
       } else if (!(req.query as any).fullStats && (req.query as any).teamName !== undefined) {
-      // get(/trainingSessions/teamName:=teamName) 
         const teamName = (req.query as any).teamName;
 
         const performRequest = async () => {
@@ -182,8 +183,9 @@ export default function bindGetTrainingSessions(
           performRequestWithPermissionOrError, 
           performRequestWithPermissionOrError, 
           performRequest); 
-      } else {  
       // get(/trainingSessions) 
+      } else {  
+
         if (loggedInUsername === undefined) {
           res.status(401).send({
             name: 'Error',
