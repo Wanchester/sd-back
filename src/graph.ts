@@ -222,16 +222,16 @@ export async function getCombinationGraphAPI(
   };
   const barPromise = executeInflux(buildQuery(barQuery), queryClient);
 
-  //get timedmovingaverage for each session
-  // const lineQuery: InfluxQuery = {
-  //   ...influxRequest,
-  //   aggregate: {
-  //     func: influxRequest.aggregate?.func || 'timedMovingAverage',
-  //     every: 86400, //1 day
-  //     period: 86400 * 28, //28 days
-  //   },
-  // };
-  // const linePromise = executeInflux(buildQuery(lineQuery), queryClient);
+  // get timedmovingaverage for each session
+  const lineQuery: InfluxQuery = {
+    ...influxRequest,
+    aggregate: {
+      func: influxRequest.aggregate?.func || 'timedMovingAverage',
+      every: 86400, //1 day
+      period: 86400 * 28, //28 days
+    },
+  };
+  const linePromise = executeInflux(buildQuery(lineQuery), queryClient);
 
   const previousAverageQuery: InfluxQuery = {
     ...influxRequest,
@@ -258,37 +258,57 @@ export async function getCombinationGraphAPI(
     d.setUTCHours(0, 0, 0, 0);
     return translateDay(d.toISOString(), -28);
   })();
-  const lineDates: string[] = [...Array(28).keys()].map((i:number)=>translateDay(fourWeeksAgo, i));
 
-  const movingAverage = async (fieldname:string) => {
-    const firstSessionDate = output.bar[fieldname][0][0];
-    const firstSessionValue = output.bar[fieldname][0][1];
-    const avgForThisField = async () => {
-      for (let avg of await prevAvgPromise) {
-        if (avg._field == fieldname) {
-          return avg._value;
-        }
+  const extractFieldAvg = async (fieldName:string) => {
+    for (let row of await prevAvgPromise) {
+      if (row._field === fieldName) {
+        return row._value;
       }
-      return 0;
-    };
-    //first value
-    output.line[fieldname][0] = firstSessionDate == fourWeeksAgo ? [firstSessionDate, firstSessionValue] : [lineDates[0], await avgForThisField()];
-    const barValuesByDate = Object.fromEntries(output.bar[fieldname].map(e=>[e[0], e]));
-    const mean = (l:number[], date:string) => {
-      return l.reduce((x, y)=>y + x + (barValuesByDate[date] !== undefined ? barValuesByDate[date][1] : 0), 0) / l.length;
-    };
-    for (let day of lineDates.splice(1)) {
-      output.line[fieldname].push([day, mean(output.line[fieldname].map(e => e[1]), day)]);
+    }
+    return 0;
+  };
+  //last 28 date strings
+  const lineDates: string[] = [...Array(28).keys()].map(i=>translateDay(fourWeeksAgo, i));
+  //normal forEach will not await
+  const asyncForEach = async (arr:any[], callback:(elem:any, idx:number, arr:any[])=>any) => {
+    for (let idx = 0; idx < arr.length; idx++) {
+      await callback(arr[idx], idx, arr);
     }
   };
-  for (let fieldName of influxRequest.fields!) {
-    await movingAverage(fieldName);
-  }
 
-  // const lineResponse = await linePromise;
-  // lineResponse.forEach((row)=> {
-  //   output.line[row._field].push([minusOneDay(row._time), row._value]);
-  // });
+  //push all dates, constant time to overwrite
+  const lineObj: { [fieldName:string]: { [date:string]: number } } = {};
+  //include previous average as starting point
+  await asyncForEach(influxRequest.fields!, async (field:string) => {
+    lineObj[field] = {};
+    lineObj[field][translateDay(fourWeeksAgo, -1)] = await extractFieldAvg(field);
+    //null for unknown dates. temp
+    lineDates.forEach((d:string) => lineObj[field][d] = NaN);
+  });
+
+  //insert values from influx
+  const lineResponse = await linePromise;
+  lineResponse.forEach((row)=> {
+    lineObj[row._field][translateDay(row._time, -1)] = row._value;
+  });
+  //reformat for api
+  const fieldSortedDatesAndValues = Object.entries(lineObj).map(v => [v[0], Object.entries(v[1])]);
+  output.line = Object.fromEntries(fieldSortedDatesAndValues);
+
+  //fill null values with appropriate average
+  const mean = (l:number[]) => {
+    return l.reduce((x, y) => (x || 0) + (y || 0), 0) / l.length;
+  };
+
+  for (let field of Object.keys(output.line)) {
+    for (let i = 0; i < output.line[field].length; i++) {
+      // output.line[field].forEach((dataPoint, i, self) => {
+      let dataPoint = output.line[field][i];
+      if (isNaN(dataPoint[1])) {
+        dataPoint[1] = mean(output.line[field].slice(i - 14, i + 13).map(e => e[1])) || 0;
+      }
+    }
+  }
 
   return output;
 }
