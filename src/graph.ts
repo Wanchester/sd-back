@@ -223,32 +223,72 @@ export async function getCombinationGraphAPI(
   const barPromise = executeInflux(buildQuery(barQuery), queryClient);
 
   //get timedmovingaverage for each session
-  const lineQuery: InfluxQuery = {
+  // const lineQuery: InfluxQuery = {
+  //   ...influxRequest,
+  //   aggregate: {
+  //     func: influxRequest.aggregate?.func || 'timedMovingAverage',
+  //     every: 86400, //1 day
+  //     period: 86400 * 28, //28 days
+  //   },
+  // };
+  // const linePromise = executeInflux(buildQuery(lineQuery), queryClient);
+
+  const previousAverageQuery: InfluxQuery = {
     ...influxRequest,
-    aggregate: {
-      func: influxRequest.aggregate?.func || 'timedMovingAverage',
-      every: 86400, //1 day
-      period: 86400 * 28, //28 days
-    },
+    range: { start: '0', stop: '-28d' },
+    aggregate: { func: 'mean' },
   };
-  const linePromise = executeInflux(buildQuery(lineQuery), queryClient);
-  
-  //format as {line: ..., bar:...}
-  const minusOneDay = (date:string) => {
+  const prevAvgPromise = executeInflux(buildQuery(previousAverageQuery), queryClient);
+
+  const translateDay = (date:string, n:number) => {
     //some dates represent the previous 24hrs
     const d = new Date(date).getTime();
-    return new Date(d - 86400_000).toISOString();
+    return new Date(d + (n * 86400_000)).toISOString();
   };
 
+  //format output.bar...
   const barResponse = await barPromise;
   barResponse.forEach((row)=> {
-    output.bar[row._field].push([minusOneDay(row._time), row._value, row.Session]);
+    output.bar[row._field].push([translateDay(row._time, -1), row._value, row.Session]);
   });
 
-  const lineResponse = await linePromise;
-  lineResponse.forEach((row)=> {
-    output.line[row._field].push([minusOneDay(row._time), row._value]);
-  });
+  //format output.line...
+  const fourWeeksAgo = (() => {
+    const d = new Date();
+    d.setUTCHours(0, 0, 0, 0);
+    return translateDay(d.toISOString(), -28);
+  })();
+  const lineDates: string[] = [...Array(28).keys()].map((i:number)=>translateDay(fourWeeksAgo, i));
+
+  const movingAverage = async (fieldname:string) => {
+    const firstSessionDate = output.bar[fieldname][0][0];
+    const firstSessionValue = output.bar[fieldname][0][1];
+    const avgForThisField = async () => {
+      for (let avg of await prevAvgPromise) {
+        if (avg._field == fieldname) {
+          return avg._value;
+        }
+      }
+      return 0;
+    };
+    //first value
+    output.line[fieldname][0] = firstSessionDate == fourWeeksAgo ? [firstSessionDate, firstSessionValue] : [lineDates[0], await avgForThisField()];
+    const barValuesByDate = Object.fromEntries(output.bar[fieldname].map(e=>[e[0], e]));
+    const mean = (l:number[], date:string) => {
+      return l.reduce((x, y)=>y + x + (barValuesByDate[date] !== undefined ? barValuesByDate[date][1] : 0), 0) / l.length;
+    };
+    for (let day of lineDates.splice(1)) {
+      output.line[fieldname].push([day, mean(output.line[fieldname].map(e => e[1]), day)]);
+    }
+  };
+  for (let fieldName of influxRequest.fields!) {
+    await movingAverage(fieldName);
+  }
+
+  // const lineResponse = await linePromise;
+  // lineResponse.forEach((row)=> {
+  //   output.line[row._field].push([minusOneDay(row._time), row._value]);
+  // });
 
   return output;
 }
