@@ -1,7 +1,7 @@
 import { QueryApi } from '@influxdata/influxdb-client';
 // import moment from 'moment';
 import { Database } from 'sqlite3';
-import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams } from './utils';
+import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams, inputValidate } from './utils';
 import { SessionResponseType } from './interface';
 import { Express } from 'express';
 import { getCoachTeamsAPI, getTeamsAPI } from './team';
@@ -90,8 +90,9 @@ export default function bindGetTrainingSessions(
   app.get('/trainingSessions', async (req, res) => {
     try {
       const loggedInUsername = req.session.username; 
-      if ((req.query as any).fullStats) {   
       // app.get('/trainingSessions?fullStats=:fullStats&teamName=:teamName&sessionName=:sessionName', async (req, res) => { 
+      if ((req.query as any).fullStats) {   
+
         if (loggedInUsername === undefined) {
           res.status(401).send({
             name: 'Error',
@@ -103,19 +104,25 @@ export default function bindGetTrainingSessions(
   
         const teamName = (req.query as any).teamName;
         const sessionName = (req.query as any).sessionName;
-        
-        //teamName validation
-        const getTeamQuery = buildQuery({ get_unique: 'teams' } ); //get all the teams
-        const team = await executeInflux(getTeamQuery, queryClient);
-        // console.log('team: ', team);
-        const teamsList: string[] = [];  // list of all the teams
-        team.forEach(row => 
-          teamsList.push(row._measurement),
-        );
-        // console.log(teamsList);
-        if (!teamsList.includes(teamName)) {
-          throwBasedOnCode('e400.14', teamName);
-        }
+        // const promiseList: Promise<boolean>[] = [];
+
+        //validate teamName and trainingSessions name
+        // const validTeam = inputValidate(sqlDB, queryClient, teamName, 'teams');
+        // const validSession = inputValidate(sqlDB, queryClient, sessionName, 'sessions');
+        // promiseList.push(validTeam);
+        // promiseList.push(validSession);
+        // const result = await Promise.all(promiseList);
+        // if (!result[0]) {
+        //   throwBasedOnCode('e400.14', teamName);
+        // }
+        // if (!result[1]) {
+        //   throwBasedOnCode('e400.15', sessionName);
+        // }
+        const promiseList: Promise<void>[] = [];
+        const validTeam = inputValidate(sqlDB, queryClient, [teamName], 'teams');
+        const validSession = inputValidate(sqlDB, queryClient, [sessionName], 'sessions');
+        promiseList.push(validTeam, validSession );
+        await Promise.all(promiseList);
 
         let trainingSessionsAPI = await callBasedOnRole(
           sqlDB,
@@ -147,9 +154,9 @@ export default function bindGetTrainingSessions(
             return getTrainingSessionStatisticsAPI(queryClient, teamName, sessionName);
           },
         );
-        res.send(trainingSessionsAPI);        
+        res.send(trainingSessionsAPI);
+      // get(/trainingSessions/teamName:=teamName)         
       } else if (!(req.query as any).fullStats && (req.query as any).teamName !== undefined) {
-      // get(/trainingSessions/teamName:=teamName) 
         const teamName = (req.query as any).teamName;
 
         const performRequest = async () => {
@@ -182,8 +189,9 @@ export default function bindGetTrainingSessions(
           performRequestWithPermissionOrError, 
           performRequestWithPermissionOrError, 
           performRequest); 
-      } else {  
       // get(/trainingSessions) 
+      } else {  
+
         if (loggedInUsername === undefined) {
           res.status(401).send({
             name: 'Error',

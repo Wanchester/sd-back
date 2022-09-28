@@ -11,6 +11,7 @@ import 'dotenv/config';
 import bindLoginAPI from './login';
 import { bindGetTeamPlayers } from './teamPage';
 import bindGetLineGraph, { bindGetCombinationGraph } from './graph';
+import bindGetDynamicTrainingSessions from './dynamicTrainingSession';
 
 // let queryClient: InfluxDB;
 let queryClient: QueryApi;
@@ -44,6 +45,7 @@ function startExpressServer() {
   bindGetTeamPlayers(app, db, queryClient);
   bindGetLineGraph(app, db, queryClient);
   bindGetCombinationGraph(app, db, queryClient);
+  bindGetDynamicTrainingSessions(app, db, queryClient);
   // PUT requests
   bindPutProfile(app, db, queryClient);
   app.listen(port, () => {
