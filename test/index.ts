@@ -994,7 +994,7 @@ describe('Test Express server endpoints', async () => {
     }).timeout(4000);
 
     // team training sessions
-    it('POST /trainingSessions?teamName=TeamBit succeeds with p_jbk logged in as user', async () => {
+    it('POST /trainingSessions teambit succeeds with p_jbk logged in as user', async () => {
       const res = await agent.post('/trainingSessions').send({ 'teams':['TeamBit'] });
       expect(res.statusCode).to.equal(200);
       assert.isArray(res.body); 
@@ -1002,9 +1002,9 @@ describe('Test Express server endpoints', async () => {
       // using the old API endpoints to do the deep check
       const res2 =  await agent.get('/trainingSessions?teamName=TeamBit');
       assert.isTrue(_.isEqual(res.body, res2.body));
-    }).timeout(4000);
+    }).timeout(6000);
 
-    it('POST /trainingSessions?teamName=Team3 fails with p_warren logged in as user', async () => {
+    it('POST /trainingSessions Team3 fails with p_warren logged in as user', async () => {
       const res = await agent.post('/trainingSessions').send( { 'teams':['Team3'] });
       expect(res.statusCode).to.equal(403);
     });
