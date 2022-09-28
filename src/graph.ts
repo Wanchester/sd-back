@@ -214,6 +214,7 @@ export async function getCombinationGraphAPI(
   //get average for each session
   const barQuery:InfluxQuery = {
     ...influxRequest, 
+    range: { start: '-28d' }, 
     aggregate: { 
       every: 86400, //ensure _time column will be preserved
       func: influxRequest.aggregate?.func || 'mean', 
@@ -225,6 +226,7 @@ export async function getCombinationGraphAPI(
   // get timedmovingaverage for each session
   const lineQuery: InfluxQuery = {
     ...influxRequest,
+    range: { start: '-28d' }, 
     aggregate: {
       func: influxRequest.aggregate?.func || 'timedMovingAverage',
       every: 86400, //1 day
@@ -233,12 +235,12 @@ export async function getCombinationGraphAPI(
   };
   const linePromise = executeInflux(buildQuery(lineQuery), queryClient);
 
-  const previousAverageQuery: InfluxQuery = {
-    ...influxRequest,
-    range: { start: '0', stop: '-28d' },
-    aggregate: { func: 'mean' },
-  };
-  const prevAvgPromise = executeInflux(buildQuery(previousAverageQuery), queryClient);
+  // const previousAverageQuery: InfluxQuery = {
+  //   ...influxRequest,
+  //   range: { start: '0', stop: '-28d' },
+  //   aggregate: { func: 'mean' },
+  // };
+  // const prevAvgPromise = executeInflux(buildQuery(previousAverageQuery), queryClient);
 
   const translateDay = (date:string, n:number) => {
     //some dates represent the previous 24hrs
@@ -253,61 +255,64 @@ export async function getCombinationGraphAPI(
   });
 
   //format output.line...
-  const fourWeeksAgo = (() => {
-    const d = new Date();
-    d.setUTCHours(0, 0, 0, 0);
-    return translateDay(d.toISOString(), -28);
-  })();
+  // const fourWeeksAgo = (() => {
+  //   const d = new Date();
+  //   d.setUTCHours(0, 0, 0, 0);
+  //   return translateDay(d.toISOString(), -28);
+  // })();
 
-  const extractFieldAvg = async (fieldName:string) => {
-    for (let row of await prevAvgPromise) {
-      if (row._field === fieldName) {
-        return row._value;
-      }
-    }
-    return 0;
-  };
+  // const extractFieldAvg = async (fieldName:string) => {
+  //   for (let row of await prevAvgPromise) {
+  //     if (row._field === fieldName) {
+  //       return row._value;
+  //     }
+  //   }
+  //   return 0;
+  // };
   //last 28 date strings
-  const lineDates: string[] = [...Array(28).keys()].map(i=>translateDay(fourWeeksAgo, i));
+  // const lineDates: string[] = [...Array(28).keys()].map(i=>translateDay(fourWeeksAgo, i));
   //normal forEach will not await
-  const asyncForEach = async (arr:any[], callback:(elem:any, idx:number, arr:any[])=>any) => {
-    for (let idx = 0; idx < arr.length; idx++) {
-      await callback(arr[idx], idx, arr);
-    }
-  };
+  // const asyncForEach = async (arr:any[], callback:(elem:any, idx:number, arr:any[])=>any) => {
+  //   for (let idx = 0; idx < arr.length; idx++) {
+  //     await callback(arr[idx], idx, arr);
+  //   }
+  // };
 
   //push all dates, constant time to overwrite
-  const lineObj: { [fieldName:string]: { [date:string]: number } } = {};
+  // const lineObj: { [fieldName:string]: { [date:string]: number } } = {};
   //include previous average as starting point
-  await asyncForEach(influxRequest.fields!, async (field:string) => {
-    lineObj[field] = {};
-    lineObj[field][translateDay(fourWeeksAgo, -1)] = await extractFieldAvg(field);
-    //null for unknown dates. temp
-    lineDates.forEach((d:string) => lineObj[field][d] = NaN);
-  });
+  // await asyncForEach(influxRequest.fields!, async (field:string) => {
+  //   lineObj[field] = {};
+  //   lineObj[field][translateDay(fourWeeksAgo, -1)] = await extractFieldAvg(field);
+  //   //null for unknown dates. temp
+  //   lineDates.forEach((d:string) => lineObj[field][d] = NaN);
+  // });
 
   //insert values from influx
   const lineResponse = await linePromise;
   lineResponse.forEach((row)=> {
-    //override with first real value
-    lineObj[row._field][translateDay(row._time, -1)] ||= row._value;
+    const targetArr = output.line[row._field];
+    if (targetArr.length >= 1 && targetArr[targetArr.length - 1][0] === translateDay(row._time, -1)) {
+    } else {
+      output.line[row._field].push([translateDay(row._time, -1), row._value]);
+    }
   });
   //reformat for api
-  const fieldSortedDatesAndValues = Object.entries(lineObj).map(v => [v[0], Object.entries(v[1])]);
-  output.line = Object.fromEntries(fieldSortedDatesAndValues);
+  // const fieldSortedDatesAndValues = Object.entries(lineObj).map(v => [v[0], Object.entries(v[1])]);
+  // output.line = Object.fromEntries(fieldSortedDatesAndValues);
 
   //fill null values with appropriate average
 
-  for (let field of Object.keys(output.line)) {
-    for (let i = 0; i < output.line[field].length; i++) {
-      // output.line[field].forEach((dataPoint, i, self) => {
-      let dataPoint = output.line[field][i];
-      if (isNaN(dataPoint[1])) {
-        //copy previous day like influx if no data
-        dataPoint[1] = output.line[field][i - 1][1];
-      }
-    }
-  }
+  // for (let field of Object.keys(output.line)) {
+  //   for (let i = 0; i < output.line[field].length; i++) {
+  //     // output.line[field].forEach((dataPoint, i, self) => {
+  //     let dataPoint = output.line[field][i];
+  //     if (isNaN(dataPoint[1])) {
+  //       //copy previous day like influx if no data
+  //       dataPoint[1] = output.line[field][i - 1][1];
+  //     }
+  //   }
+  // }
 
   return output;
 }
