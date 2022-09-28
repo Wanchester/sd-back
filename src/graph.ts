@@ -289,23 +289,22 @@ export async function getCombinationGraphAPI(
   //insert values from influx
   const lineResponse = await linePromise;
   lineResponse.forEach((row)=> {
-    lineObj[row._field][translateDay(row._time, -1)] = row._value;
+    //override with first real value
+    lineObj[row._field][translateDay(row._time, -1)] ||= row._value;
   });
   //reformat for api
   const fieldSortedDatesAndValues = Object.entries(lineObj).map(v => [v[0], Object.entries(v[1])]);
   output.line = Object.fromEntries(fieldSortedDatesAndValues);
 
   //fill null values with appropriate average
-  const mean = (l:number[]) => {
-    return l.reduce((x, y) => (x || 0) + (y || 0), 0) / l.length;
-  };
 
   for (let field of Object.keys(output.line)) {
     for (let i = 0; i < output.line[field].length; i++) {
       // output.line[field].forEach((dataPoint, i, self) => {
       let dataPoint = output.line[field][i];
       if (isNaN(dataPoint[1])) {
-        dataPoint[1] = mean(output.line[field].slice(i - 14, i + 13).map(e => e[1])) || 0;
+        //copy previous day like influx if no data
+        dataPoint[1] = output.line[field][i - 1][1];
       }
     }
   }
