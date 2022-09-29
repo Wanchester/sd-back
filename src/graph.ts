@@ -258,6 +258,17 @@ export async function getCombinationGraphAPI(
     }
   });
 
+  //add zero values to the bar graph. easy to work with
+  influxRequest.fields?.forEach(field => {
+    const barByDate = Object.fromEntries(output.bar[field].map(e => [e[0], [e[1], e[2]]]));
+    output.line[field].forEach(linePoint => {
+      if (barByDate[linePoint[0]] === undefined) {
+        output.bar[field].push([linePoint[0], 0, 'null session']);
+      }
+    });
+    output.bar[field].sort((f, s) => f[0] < s[0] ? -1 : 1);
+  });
+
   return output;
 }
 
