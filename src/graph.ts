@@ -252,8 +252,7 @@ export async function getCombinationGraphAPI(
   const lineResponse = await linePromise;
   lineResponse.forEach((row)=> {
     const targetArr = output.line[row._field];
-    if (targetArr.length >= 1 && targetArr[targetArr.length - 1][0] === translateDay(row._time, -1)) {
-    } else {
+    if (!(targetArr.length >= 1 && targetArr[targetArr.length - 1][0] === translateDay(row._time, -1))) {
       output.line[row._field].push([translateDay(row._time, -1), row._value]);
     }
   });
