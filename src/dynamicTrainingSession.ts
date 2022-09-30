@@ -35,7 +35,7 @@ export default function bindGetDynamicTrainingSessions(
       }
 
       if (loggedInUser.role == 'player') {
-        if ( reqBody.names !== undefined ) {
+        if ( reqBody.names !== undefined && reqBody.names.length > 0) {
           if (reqBody.names[0] !== loggedInUser.name || reqBody.names.length !== 1) {
             throwBasedOnCode('e401.1');
           }
