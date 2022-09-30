@@ -3,6 +3,7 @@ import { QueryApi } from '@influxdata/influxdb-client';
 import { Database } from 'sqlite3';
 import { getCoachTeamsAPI, getPlayerTeamsAPI } from './team';
 import throwBasedOnCode from './throws';
+import { buildQuery, InfluxColumn, influxColumn } from './utilsInflux';
 
 export const DEFAULT_PLAYER = 'p_warren';
 export const DEFAULT_COACH = 'c_coach1';
@@ -176,4 +177,23 @@ export async function getCommonTeams(sqlDB:Database, queryClient: QueryApi, user
   
   let commonTeams = teams1.filter(value => teams2.includes(value));
   return commonTeams;
+}
+
+export async function inputValidate(sqlDB:Database, queryClient: QueryApi, inputList: string[], columnName: InfluxColumn): Promise<void> {
+  //teamName validation
+  const getAllPossibleInputQuery = buildQuery({ get_unique: columnName }); //get all the teams
+  const allPossibleInput = await executeInflux(getAllPossibleInputQuery, queryClient);
+  const possibleInputList: string[] = [];  // list of all the possible input in InfluxDB
+  allPossibleInput.forEach(row => 
+    possibleInputList.push(row[influxColumn(columnName)!]),
+  );
+  for (let input of inputList) {
+    if (!possibleInputList.includes(input)) {
+      switch (columnName) {
+        case 'teams': throwBasedOnCode('e400.14', input);
+        case 'players': throwBasedOnCode('e400.4', input);
+        case 'sessions': throwBasedOnCode('e400.15', input);
+      }
+    }
+  }
 }

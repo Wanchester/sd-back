@@ -947,4 +947,103 @@ describe('Test Express server endpoints', async () => {
       expect(res.statusCode).to.equal(400);
     });
   });
+
+  // POST /trainingSessions for coach
+  describe('coach new POST training session', async ()=> {
+    const agent = request.agent(app);
+    it('login c_coach1', async () => {
+      const testUser = {
+        'username':'c_coach1',
+        'password':'12345678',
+      };
+      await agent.post('/login').send(testUser);
+    });
+    // trainingSessions
+    it('POST /trainingSessions with bad_player_name fails with c_coach1 as logged in user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'names': ['Ballard'] });
+      expect(res.statusCode).to.equal(403);
+    }).timeout(4000);
+
+    it('POST /trainingSessions with good_player_name succeeds with c_coach1 as logged in user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'names': ['Warren'] });
+      expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+    }).timeout(4000);
+
+  });
+
+  // POST /trainingSessions for player
+  describe('Tests POST /trainingSessions', () => {
+    const agent = request.agent(app);
+    it('login Warren', async () => {
+      const testUser = {
+        'username':'p_warren',
+        'password':'12345678',
+      };
+      await agent.post('/login').send(testUser);
+    });
+
+    // trainingSessions of currently logged in user
+    it('GET /trainingSessions succeeds with p_warren as logged in user', async () => {
+      const res = await agent.get('/trainingSessions');
+      expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
+      res.body.forEach((session: any)=>assertSessionResponse(session));
+    }).timeout(10000);
+    
+    it('POST /trainingSessions fails with p_warren as logged in user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'names': 'Jbk' });
+      expect(res.statusCode).to.equal(401);
+    }).timeout(4000);
+
+    // team training sessions
+    it('POST /trainingSessions teambit succeeds with p_jbk logged in as user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'teams':['TeamBit'] });
+      expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+      // using the old API endpoints to do the deep check
+      const res2 =  await agent.get('/trainingSessions?teamName=TeamBit');
+      assert.isTrue(_.isEqual(res.body, res2.body));
+    }).timeout(6000);
+
+    it('POST /trainingSessions Team3 fails with p_warren logged in as user', async () => {
+      const res = await agent.post('/trainingSessions').send( { 'teams':['Team3'] });
+      expect(res.statusCode).to.equal(403);
+    });
+
+    it('GET /trainingSessions?teamName=InvalidTeamName fails with p_jbk logged in as user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'teams':'InvalidName' });
+      expect(res.statusCode).to.equal(400);
+    });
+
+    //trainingSessions fullStats
+    it('POST /trainingSessions sessionName=NULL 2/4/22 fails with p_warren as logged in user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'sessions':['NULL 2/4/22'] });
+      expect(res.statusCode).to.equal(403);
+    }).timeout(10000);
+
+    it('GET /trainingSessions succeeds with p_warren as logged in user', async () => {
+      const res = await agent.get('/trainingSessions?').send({ 'sessions': ['NULL 24/4/22'] });
+      expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+      // using the old API endpoints to do the deep check
+      const res2 =  await agent.get('/trainingSessions?sessionName=NULL 24/4/22');
+      assert.isTrue(_.isEqual(res.body, res2.body));
+    }).timeout(10000);
+
+    it('GET /trainingSessions succeeds with p_warren as logged in user', async () => {
+      const requestBody = {
+        'names':['Warren'],
+        'teams':['TeamBit'],
+        'sessions': ['NULL 24/4/22'],
+      };
+      const res = await agent.get('/trainingSessions?').send(requestBody);
+      expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+    }).timeout(10000);
+  });
 });
