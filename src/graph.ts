@@ -73,6 +73,15 @@ export async function getLineGraphAPI(
       }
     });
   }
+  //sort data
+  Object.keys(output).forEach((player:string) => {
+    Object.keys(output[player]).forEach((field:string) => {
+      output[player][field].sort((f, s) => s[0] < f[0] ? 1 : -1);
+    });
+  });
+
+
+
   return output;
 }
 
@@ -265,9 +274,15 @@ export async function getCombinationGraphAPI(
         output.bar[field].push([linePoint[0], 0, '']);//empty string for space reasons
       }
     });
+    //sort bar
     output.bar[field].sort((f, s) => f[0] < s[0] ? -1 : 1);
   });
 
+
+  //sort line
+  Object.keys(output.line).forEach((field) => {
+    output.line[field].sort((f, s) => s[0] < f[0] ? 1 : -1);
+  });
   return output;
 }
 
