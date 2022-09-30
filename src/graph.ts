@@ -214,6 +214,7 @@ export async function getCombinationGraphAPI(
   //get average for each session
   const barQuery:InfluxQuery = {
     ...influxRequest, 
+    range: { start: '-28d' }, 
     aggregate: { 
       every: 86400, //ensure _time column will be preserved
       func: influxRequest.aggregate?.func || 'mean', 
@@ -222,9 +223,10 @@ export async function getCombinationGraphAPI(
   };
   const barPromise = executeInflux(buildQuery(barQuery), queryClient);
 
-  //get timedmovingaverage for each session
+  // get timedmovingaverage for each session
   const lineQuery: InfluxQuery = {
     ...influxRequest,
+    range: { start: '-28d' }, 
     aggregate: {
       func: influxRequest.aggregate?.func || 'timedMovingAverage',
       every: 86400, //1 day
@@ -232,22 +234,38 @@ export async function getCombinationGraphAPI(
     },
   };
   const linePromise = executeInflux(buildQuery(lineQuery), queryClient);
-  
-  //format as {line: ..., bar:...}
-  const minusOneDay = (date:string) => {
+
+  const translateDay = (date:string, n:number) => {
     //some dates represent the previous 24hrs
     const d = new Date(date).getTime();
-    return new Date(d - 86400_000).toISOString();
+    return new Date(d + (n * 86400_000)).toISOString();
   };
 
+  //format output.bar...
   const barResponse = await barPromise;
   barResponse.forEach((row)=> {
-    output.bar[row._field].push([minusOneDay(row._time), row._value, row.Session]);
+    output.bar[row._field].push([translateDay(row._time, -1), row._value, row.Session]);
   });
 
+
+  //insert values from influx
   const lineResponse = await linePromise;
   lineResponse.forEach((row)=> {
-    output.line[row._field].push([minusOneDay(row._time), row._value]);
+    const targetArr = output.line[row._field];
+    if (!(targetArr.length >= 1 && targetArr[targetArr.length - 1][0] === translateDay(row._time, -1))) {
+      output.line[row._field].push([translateDay(row._time, -1), row._value]);
+    }
+  });
+
+  //add zero values to the bar graph. easy to work with
+  influxRequest.fields!.forEach(field => {
+    const barByDate = Object.fromEntries(output.bar[field].map(e => [e[0], [e[1], e[2]]]));
+    output.line[field].forEach(linePoint => {
+      if (barByDate[linePoint[0]] === undefined) {
+        output.bar[field].push([linePoint[0], 0, '']);//empty string for space reasons
+      }
+    });
+    output.bar[field].sort((f, s) => f[0] < s[0] ? -1 : 1);
   });
 
   return output;

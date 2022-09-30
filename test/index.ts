@@ -727,7 +727,9 @@ describe('Test Express server endpoints', async () => {
       const precision = 10 ** 9;
       const round = (n:any) =>  Math.floor(n * precision) ;
       comboResponse.bar.Velocity.forEach((vel:any) => {
-        expect(barValues.map(round)).to.include(round(vel[1]));
+        if (vel[1] !== 0) {
+          expect(barValues.map(round)).to.include(round(vel[1]));
+        }
       });
     }).timeout(6000);
 
@@ -883,7 +885,9 @@ describe('Test Express server endpoints', async () => {
       const precision = 10 ** 9;
       const round = (n:any) =>  Math.floor(n * precision) ;
       comboResponse.bar.Velocity.forEach((vel:any) => {
-        expect(barValues.map(round)).to.include(round(vel[1]));
+        if (vel[1] !== 0) {
+          expect(barValues.map(round)).to.include(round(vel[1]));
+        }
       });
     }).timeout(6000);
   });
