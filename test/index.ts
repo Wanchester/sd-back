@@ -258,7 +258,7 @@ describe('Test Express server endpoints', async () => {
     it('GET /trainingSessions?teamName=InvalidTeamName fails with p_jbk logged in as user', async () => {
       const res = await agent.get('/trainingSessions?teamName=InvalidTeamName');
       expect(res.statusCode).to.equal(400);
-    });
+    }).timeout(10000);
 
     //trainingSessions fullStats
     it('GET /trainingSessions?fullStats=true&teamName=TeamBit&sessionName=NULL 21/4/22 fails with p_jbk as logged in user', async () => {
@@ -949,7 +949,7 @@ describe('Test Express server endpoints', async () => {
   });
 
   // POST /trainingSessions for coach
-  describe('coach new POST training session', async ()=> {
+  describe('coach POST /training session', async ()=> {
     const agent = request.agent(app);
     it('login c_coach1', async () => {
       const testUser = {
@@ -958,12 +958,7 @@ describe('Test Express server endpoints', async () => {
       };
       await agent.post('/login').send(testUser);
     });
-    // trainingSessions
-    it('POST /trainingSessions with bad_player_name fails with c_coach1 as logged in user', async () => {
-      const res = await agent.post('/trainingSessions').send({ 'names': ['Ballard'] });
-      expect(res.statusCode).to.equal(403);
-    }).timeout(4000);
-
+    // trainingSessions of given player name
     it('POST /trainingSessions with good_player_name succeeds with c_coach1 as logged in user', async () => {
       const res = await agent.post('/trainingSessions').send({ 'names': ['Warren'] });
       expect(res.statusCode).to.equal(200);
@@ -971,7 +966,60 @@ describe('Test Express server endpoints', async () => {
       res.body.forEach((session: any)=>assertSessionResponse(session) );
     }).timeout(4000);
 
+    it('POST /trainingSessions with bad_player_name fails with c_coach1 as logged in user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'names': ['Ballard'] });
+      expect(res.statusCode).to.equal(403);
+    }).timeout(4000);
+
+    it('POST /trainingSessions with another coach name fails with c_coach1 as logged in user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'names': ['Coach2'] });
+      expect(res.statusCode).to.equal(400);
+    }).timeout(4000);
+
+    it('POST /trainingSessions with an invalid name fails with c_coach1 as logged in user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'names': ['InvalidName'] });
+      expect(res.statusCode).to.equal(400);
+    }).timeout(4000);
+
+    // given a team get all trainingSessions
+    it('GET /trainingSessions?teamName=TeamBit succeeds with c_coach1 logged in as user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'teams': ['TeamBit'] });
+      expect(res.statusCode).to.equal(200);
+      assert.isArray(res.body); 
+      res.body.forEach((session: any)=>assertSessionResponse(session) );
+      // deep check
+      const res2 = await agent.get('/trainingSessions?teamName=TeamBit');
+      assert.isTrue(_.isEqual(res.body, res2.body));
+    }).timeout(4000);
+
+
+
+
+
+
+
+    it('POST /trainingSessions of team TeamWanchester  fails with c_coach1 logged in as user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'teams': ['TeamWanchester'] });
+      expect(res.statusCode).to.equal(403);
+    });
+
+    // trainingSessions fullStats
+    it('POST /trainingSessions of session NULL 21/4/22 succeeds with c_coach1 as logged in user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'sessions': ['NULL 21/4/22'] });
+      expect(res.statusCode).to.equal(200);
+      assertSessionResponse(res.body[0]);
+      //deep check
+      const res2 = await agent.get('/trainingSessions?fullStats=true&teamName=TeamBit&sessionName=NULL 21/4/22');
+      assert.isTrue(_.isEqual(res.body[0], res2.body));
+    }).timeout(10000);
+
+    it('POST /trainingSessions of session NULL 24/4/22 fails with c_coach1 as logged in user', async () => {
+      const res = await agent.post('/trainingSessions').send({ 'sessions': ['NULL 24/4/22'] });
+      expect(res.statusCode).to.equal(403);
+    }).timeout(10000);
+
   });
+
 
   // POST /trainingSessions for player
   describe('Tests POST /trainingSessions', () => {
