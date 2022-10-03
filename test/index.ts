@@ -992,7 +992,7 @@ describe('Test Express server endpoints', async () => {
       assert.isTrue(_.isEqual(res.body, res2.body));
     }).timeout(4000);
 
-    it('GET /trainingSessions?teamName=TeamBit and Team3 succeeds with c_coach1 logged in as user', async () => {
+    it('POST /trainingSessions?teamName=TeamBit and Team3 succeeds with c_coach1 logged in as user', async () => {
       const res = await agent.post('/trainingSessions').send({ 'teams': ['TeamBit', 'Team3'] });
       expect(res.statusCode).to.equal(200);
       assert.isArray(res.body); 
@@ -1002,7 +1002,7 @@ describe('Test Express server endpoints', async () => {
       const res3 = await agent.get('/trainingSessions?teamName=Team3');
       const res23Body = res2.body.concat(res3.body);
       assert.isTrue(_.isEqual(new Set(res.body), new Set(res23Body)));
-    }).timeout(4000);
+    }).timeout(6000);
 
     it('POST /trainingSessions of team TeamWanchester  fails with c_coach1 logged in as user', async () => {
       const res = await agent.post('/trainingSessions').send({ 'teams': ['TeamBit', 'TeamWanchester'] });
