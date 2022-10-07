@@ -716,8 +716,8 @@ describe('Test Express server endpoints', async () => {
         names: ['Warren'],
         fields: ['Velocity'],
       });
-      const lineValues = (await linePromise).map((r)=> r._value);
-      const barValues = (await barPromise).map((r)=> r._value);
+      const lineValues = (await linePromise).map((r)=> parseFloat(r._value.toFixed(2)));
+      const barValues = (await barPromise).map((r)=> parseFloat(r._value.toFixed(2)));
       const comboResponse:CombinationGraphResponse = (await comboPromise).body;
       comboResponse.line.Velocity.forEach((vel:any) => {
         expect(lineValues).to.include(vel[1]);
@@ -783,15 +783,15 @@ describe('Test Express server endpoints', async () => {
         const field = row._field;
         if (output[playerName]) { 
           if ((output[playerName])[field]) {
-            output[playerName][field].push([row._time || 'null', row._value]);
+            output[playerName][field].push([row._time || 'null', parseFloat(row._value.toFixed(2))]);
           } else {
             output[playerName][field] = [];
-            output[playerName][field].push([row._time || 'null', row._value]);
+            output[playerName][field].push([row._time || 'null', parseFloat(row._value.toFixed(2))]);
           }
         } else {
           output[playerName] = {};
           output[playerName][field] = [];
-          output[playerName][field].push([row._time, row._value]);
+          output[playerName][field].push([row._time, parseFloat(row._value.toFixed(2))]);
         }
       }
       assert.isTrue(_.isEqual(res.body, output));
@@ -874,8 +874,8 @@ describe('Test Express server endpoints', async () => {
         names: ['Warren'],
         fields: ['Velocity'],
       });
-      const lineValues = (await linePromise).map((r)=> r._value);
-      const barValues = (await barPromise).map((r)=> r._value);
+      const lineValues = (await linePromise).map((r)=> parseFloat(r._value.toFixed(2)));
+      const barValues = (await barPromise).map((r)=> parseFloat(r._value.toFixed(2)));
       const comboResponse:CombinationGraphResponse = (await comboPromise).body;
       comboResponse.line.Velocity.forEach((vel:any) => {
         expect(lineValues).to.include(vel[1]);

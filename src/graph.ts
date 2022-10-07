@@ -59,7 +59,7 @@ export async function getLineGraphAPI(
     
     if (row['Player Name'] == undefined) {console.log(row); }
 
-    output[row['Player Name']][row._field].push([row._time || 'null', row._value]);
+    output[row['Player Name']][row._field].push([row._time || 'null', parseFloat(row._value.toFixed(2))]);
   });
 
   //if no names requested
@@ -253,16 +253,15 @@ export async function getCombinationGraphAPI(
   //format output.bar...
   const barResponse = await barPromise;
   barResponse.forEach((row)=> {
-    output.bar[row._field].push([translateDay(row._time, -1), row._value, row.Session]);
+    output.bar[row._field].push([translateDay(row._time, -1), parseFloat(row._value.toFixed(2)), row.Session]);
   });
-
 
   //insert values from influx
   const lineResponse = await linePromise;
   lineResponse.forEach((row)=> {
     const targetArr = output.line[row._field];
     if (!(targetArr.length >= 1 && targetArr[targetArr.length - 1][0] === translateDay(row._time, -1))) {
-      output.line[row._field].push([translateDay(row._time, -1), row._value]);
+      output.line[row._field].push([translateDay(row._time, -1), parseFloat(row._value.toFixed(2))]);
     }
   });
 
