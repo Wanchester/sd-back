@@ -1,5 +1,4 @@
 import { QueryApi } from '@influxdata/influxdb-client';
-// import moment from 'moment';
 import { Database } from 'sqlite3';
 import { getPersonalInfoAPI, executeInflux, callBasedOnRole, getCommonTeams, inputValidate } from './utils';
 import { SessionResponseType } from './interface';
@@ -50,7 +49,6 @@ async function cleanTrainingSessionsWithQuery(queryClient: QueryApi, queryFromFr
 export async function getTeamTrainingSessionsAPI(queryClient: QueryApi, teamName: string) {
   return cleanTrainingSessionsWithQuery(queryClient, { teams: [teamName], get_unique: 'sessions' });
 }
-
 
 export async function getTrainingSessionsAPI(
   sqlDB: Database,
@@ -104,20 +102,7 @@ export default function bindGetTrainingSessions(
   
         const teamName = (req.query as any).teamName;
         const sessionName = (req.query as any).sessionName;
-        // const promiseList: Promise<boolean>[] = [];
 
-        //validate teamName and trainingSessions name
-        // const validTeam = inputValidate(sqlDB, queryClient, teamName, 'teams');
-        // const validSession = inputValidate(sqlDB, queryClient, sessionName, 'sessions');
-        // promiseList.push(validTeam);
-        // promiseList.push(validSession);
-        // const result = await Promise.all(promiseList);
-        // if (!result[0]) {
-        //   throwBasedOnCode('e400.14', teamName);
-        // }
-        // if (!result[1]) {
-        //   throwBasedOnCode('e400.15', sessionName);
-        // }
         const promiseList: Promise<void>[] = [];
         const validTeam = inputValidate(sqlDB, queryClient, [teamName], 'teams');
         const validSession = inputValidate(sqlDB, queryClient, [sessionName], 'sessions');
@@ -219,10 +204,6 @@ export default function bindGetTrainingSessions(
 
   app.get('/trainingSessions/:username', async (req, res) => {
     try {
-      // let loggedInUsername = 'a_administrator'; // username will be set to the username from session variable when log in feature is implemented
-      // let loggedInUsername = CURRENTLY_LOGGED_IN;
-      // let username = req.params.us
-      //right now, just let the username = 'a_administrator' so that it has the right to see the teams list of all players.
       const queriedUsername = req.params.username;
       let loggedInUsername =  req.session.username;
       if (loggedInUsername === undefined) {
@@ -241,7 +222,6 @@ export default function bindGetTrainingSessions(
         },
         async () => {
           // the coach should only be able to see the training sessions of player
-          // currently, the coach can see the training sessions of all players and coach for testing purpose 
           let commonTeams = await getCommonTeams( sqlDB, queryClient, loggedInUsername!, req.params.username);
           if (commonTeams.length !== 0) {
             return getTrainingSessionsAPI(sqlDB, queryClient, req.params.username);
