@@ -62,44 +62,6 @@ export async function getTrainingSessionPlayerNamesAPI(queryClient:QueryApi, tea
   return playerList;
 }
 
-// export async function getAllTrainingSessionsAPI(queryClient: QueryApi) {
-//   const getAllTrainingSessions = buildQuery({ get_unique: 'sessions' } );
-//   const trainingSessions = await executeInflux(getAllTrainingSessions, queryClient);
-//   const trainingSessionsList: string[] = [];
-
-//   trainingSessions.forEach(row => 
-//     trainingSessionsList.push(row.Session),
-//   );
-//   return trainingSessionsList;
-// }
-
-// export async function isValidTrainingSession(queryClient: QueryApi, trainingSessionName: string) {
-//   const allTrainingSessions = await getAllTrainingSessionsAPI(queryClient);
-//   if ( allTrainingSessions.includes(trainingSessionName) ) {
-//     return true;
-//   }
-//   return false;
-// }
-
-
-// export async function getAllTeamsAPI(queryClient: QueryApi) {
-//   const getTeamQuery = buildQuery({ get_unique: 'team' } );
-//   const team = await executeInflux(getTeamQuery, queryClient);
-//   const teamsList: string[] = [];
-//   team.forEach(row => 
-//     teamsList.push(row._measurement),
-//   );
-//   return teamsList;
-// }
-
-// export async function isValidTeam(queryClient: QueryApi, teamName: string) {
-//   const allTeams = await getAllTeamsAPI(queryClient);
-//   if ( allTeams.includes(teamName) ) {
-//     return true;
-//   }
-//   return false;
-// }
-
 export async function getAllTrainingSessionsAPI(queryClient: QueryApi) {
   const getAllTrainingSessions = buildQuery({ get_unique: 'sessions' } );
   const trainingSessions = await executeInflux(getAllTrainingSessions, queryClient);
@@ -119,30 +81,10 @@ export async function isValidTrainingSession(queryClient: QueryApi, trainingSess
   return false;
 }
 
-
-// export async function getAllTeamsAPI(queryClient: QueryApi) {
-//   const getTeamQuery = buildQuery({ get_unique: 'team' } );
-//   const team = await executeInflux(getTeamQuery, queryClient);
-//   const teamsList: string[] = [];
-//   team.forEach(row => 
-//     teamsList.push(row._measurement),
-//   );
-//   return teamsList;
-// }
-
-// export async function isValidTeam(queryClient: QueryApi, teamName: string) {
-//   const allTeams = await getAllTeamsAPI(queryClient);
-//   if ( allTeams.includes(teamName) ) {
-//     return true;
-//   }
-//   return false;
-// }
-
 export default function bindGetTrainingSessionStatistics(
   app: Express, 
   sqlDB: Database,
   queryClient: QueryApi) {
-  // app.get('/trainingSessionStatistics', async (req, res) => {
   app.get('/trainingSessionsStats', async (req, res) => {
     try {
       const loggedInUsername = req.session.username;
@@ -155,8 +97,6 @@ export default function bindGetTrainingSessionStatistics(
       }
       const loggedInPersonalInfo = await getPersonalInfoAPI(sqlDB, loggedInUsername);
 
-      // const teamName = (req.params as TrainingSessionsGetInterface).teamName;
-      // const sessionName = (req.params as TrainingSessionsGetInterface).sessionName;
       const teamName = req.body.teamName;
       const sessionName = req.body.sessionName;
 
@@ -165,7 +105,6 @@ export default function bindGetTrainingSessionStatistics(
         loggedInUsername!,
         async () => {
           const playerList = await getTrainingSessionPlayerNamesAPI(queryClient, teamName, sessionName);
-          // console.log(loggedInPersonalInfo);
           if ( !playerList.includes(loggedInPersonalInfo.name )) {
             res.status(400).send({
               'name': generateErrorBasedOnCode('e400.10', loggedInUsername, teamName, sessionName).name,
