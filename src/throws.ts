@@ -6,7 +6,6 @@ const ExitCodeMap = {
   'e400.1': 'Given username is not a player or a coach.',
   'e400.2': 'You have already logged in.',
   'e400.3': 'Login failed. Username or password is incorrect.',
-
   'e400.4': 'Cannot find a player with given username :0',
   'e400.5': 'Cannot find a coach with given username :0',
   'e400.6': 'Cannot find an admin with given username :0',
@@ -43,14 +42,6 @@ const ExitCodeMap = {
   'e403.1': 'Unacceptable user data edit request',
 
   // //404 Not Found
-  // 'e404.0': 'Cannot find a player with given username :0',
-  // 'e404.1': 'Cannot find a coach with given username :0',
-  // 'e404.2': 'Cannot find an admin with given username :0',
-  // 'e404.3': 'Cannot find an user with given username :0',
-  // 'e404.4': 'Cannot find the input username :0 in your teams.',
-  // 'e404.5': 'Team :0 does not have any training session with the name :1',
-  // // 'e404.6': 'Cannot find any user with given :0 username of given :1 team in given :2 training session ', 
-  // 'e404.6': 'The user :0 is not eligible to view the training session :2 of the team :1',
 
   //500 Server error
   'e500.0': 'An error occurred while executing InfluxDB queries. Reason: :0',
