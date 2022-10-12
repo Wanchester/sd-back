@@ -55,7 +55,7 @@ export async function getTrainingSessionPlayerNamesAPI(queryClient:QueryApi, tea
   queryTrainingSessionPlayers = interpole(queryTrainingSessionPlayers, [teamName, sessionName]);
   const players = await executeInflux(queryTrainingSessionPlayers, queryClient);
   const playerList: string[] = [];
-  // console.log(players);
+
   for (const i in players) {
     playerList.push(players[i]['Player Name']);
   }
