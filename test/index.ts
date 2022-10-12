@@ -525,7 +525,6 @@ describe('Test Express server endpoints', async () => {
     it('PUT /profile/OTHER_USER succeeds with a_administrator as logged in user', async () => {
       await verifyPutProfileRequest(agent, '/profile/p_jbk', 172);
     }).timeout(4000);
-
   });
   
   // player graph p_warren 
@@ -732,7 +731,6 @@ describe('Test Express server endpoints', async () => {
         }
       });
     }).timeout(6000);
-
   });
 
   // player graph p_jbk
