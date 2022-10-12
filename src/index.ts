@@ -7,13 +7,11 @@ import bindGetTeams from './team';
 import bindGetTrainingSessions from './trainingSession';
 import bindGetProfile, { bindPutProfile } from './profile';
 import 'dotenv/config';
-// import bindGetStatistic from './playerStatistic';
 import bindLoginAPI from './login';
 import { bindGetTeamPlayers } from './teamPage';
 import bindGetLineGraph, { bindGetCombinationGraph } from './graph';
 import bindGetDynamicTrainingSessions from './dynamicTrainingSession';
 
-// let queryClient: InfluxDB;
 let queryClient: QueryApi;
 function startExpressServer() {
   const app = express();
@@ -28,8 +26,6 @@ function startExpressServer() {
   const org = process.env.SD_SERVER_INFLUX_EMAIL as string;
   queryClient = client.getQueryApi(org);
 
-
-
   app.use(bodyParser.json());
 
   // Login endpoints must be bound first to make session variables available
@@ -41,7 +37,6 @@ function startExpressServer() {
   bindGetTeams(app, db, queryClient);
   bindGetTrainingSessions(app, db, queryClient);
   bindGetProfile(app, db, queryClient);
-  // bindGetStatistic(app, db, queryClient);
   bindGetTeamPlayers(app, db, queryClient);
   bindGetLineGraph(app, db, queryClient);
   bindGetCombinationGraph(app, db, queryClient);
