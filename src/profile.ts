@@ -91,8 +91,7 @@ export async function getCoachProfileAPI(
     homepageInfo.weight = personalInfo.weight;
     homepageInfo.role = personalInfo.role;
     homepageInfo.teams = await getCoachTeamsAPI(sqlDB, queryClient, username);
-    homepageInfo.trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username) || [{}];
-    // homepageInfo.trainingSessions = ['TODO: to implement await getPlayerSessionsAPI(sqlDB, queryClient, username);'];
+    homepageInfo.trainingSessions = await getTrainingSessionsAPI(sqlDB, queryClient, username) || [{}]; //getTrainingSessionsAPI already handles the role management
     return homepageInfo;
   } else {
     // 'e400.5': 'cannot find a coach with given username',
@@ -203,10 +202,6 @@ export default function bindGetProfile(
   queryClient: QueryApi,
 ) {
   app.get('/profile', async (req, res) => {
-    /* 
-    username should be set to the username in the session variable if it is not provided in the request
-    Currently, the default users that will be returned is Warren
-    */
     try {
       let username = req.session.username;
       if (username) {
@@ -229,9 +224,6 @@ export default function bindGetProfile(
 
   app.get('/profile/:username', async (req, res) => {
     try {
-      // let loggedInUsername = 'p_jbk';
-      // let loggedInUsername = 'c_coach1';
-      // let loggedInUsername = 'a_administrator';
       let loggedInUsername =  req.session.username;
       if (loggedInUsername === undefined) {
         res.status(401).send({
@@ -240,8 +232,7 @@ export default function bindGetProfile(
         });
         return;
       }
-      // let username = req.params.username;
-      // let homepageAPI = await getProfileAPI(db, queryClient, username);
+
       let homepageAPI = (await callBasedOnRole(
         sqlDB,
         loggedInUsername!,
@@ -250,9 +241,6 @@ export default function bindGetProfile(
         },
         async () => {
           // the coach should only be able to see the profile of player
-          // TODO: validate if the queried players is a member of that coach. 
-          // return getPlayerProfileAPI(db, queryClient, req.params.username);
-          // currently, the coach can see the profile of all players for testing purpose
           let commonTeams = await getCommonTeams( sqlDB, queryClient, loggedInUsername!, req.params.username);
           if (commonTeams.length !== 0) {
             return getPlayerProfileAPI(sqlDB, queryClient, req.params.username);
@@ -309,7 +297,6 @@ export function bindPutProfile(
 
   app.put('/profile/:username', async (req, res) => {
     try {
-      // let loggedInUsername = CURRENTLY_LOGGED_IN;
       let loggedInUsername =  req.session.username;
       if (loggedInUsername === undefined) {
         res.status(401).send({
@@ -352,7 +339,6 @@ export function bindPutProfile(
       console.error(error);
     }
   });
-
 }
 
 
