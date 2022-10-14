@@ -60,14 +60,6 @@ export default function bindGetDynamicTrainingSessions(
       }
       await Promise.all(promiseList);
 
-      // const teamResult = await Promise.all(promiseTeamList);
-      // if (!result[0]) {
-      // //   throwBasedOnCode('e400.14', teamName);
-      // }
-      // // if (!result[1]) {
-      // //   throwBasedOnCode('e400.15', sessionName);
-      // // }
-
       reqBody.fields = ['Height', 'Velocity', 'Distance', 'Work Rate', '3dAccuracy', '2dAccuracy', 'Run Distance', 'Sprint Distance', 'Total Run Distance', 'Total Sprint Distance', 'Total Work Rate', 'lat', 'lon'];
       reqBody.get_unique = 'sessions';
       const validInfluxQuery = await buildQueryWithPermissions(sqlDB, queryClient, loggedInUsername, reqBody);
@@ -113,6 +105,5 @@ export default function bindGetDynamicTrainingSessions(
       });
       console.log((error as Error).stack);
     }
-    
   });
 }
